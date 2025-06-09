@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Atendimento à Família - Etapa 1{% endblock %}
+{% block content %}
+<h2 class="mb-4 text-center">Etapa 1 de 9 - Informações pessoais do(a) entrevistado(a)</h2>
+<form id="formEtapa1">
+    <div class="mb-3">
+        <label for="nome_responsavel" class="form-label">Nome completo do responsável pela família</label>
+        <input type="text" class="form-control" id="nome_responsavel" name="nome_responsavel" required>
+    </div>
+    <div class="mb-3">
+        <label for="data_nascimento" class="form-label">Data de nascimento</label>
+        <input type="date" class="form-control" id="data_nascimento" name="data_nascimento" required>
+    </div>
+    <div class="mb-3">
+        <label for="genero" class="form-label">Gênero</label>
+        <select class="form-select" id="genero" name="genero" required>
+            <option value="" selected disabled>Selecione</option>
+            <option value="Masculino">Masculino</option>
+            <option value="Feminino">Feminino</option>
+            <option value="Outro">Outro</option>
+        </select>
+    </div>
+    <div class="mb-3 d-none" id="genero_autodeclarado_container">
+        <label for="genero_autodeclarado" class="form-label">Se outro, como a pessoa se identifica?</label>
+        <input type="text" class="form-control" id="genero_autodeclarado" name="genero_autodeclarado">
+    </div>
+    <div class="mb-3">
+        <label for="estado_civil" class="form-label">Estado civil</label>
+        <select class="form-select" id="estado_civil" name="estado_civil" required>
+            <option value="" selected disabled>Selecione</option>
+            <option value="Solteira(o)">Solteira(o)</option>
+            <option value="Casada(o)">Casada(o)</option>
+            <option value="Divorciada(o)">Divorciada(o)</option>
+            <option value="Viúva(o)">Viúva(o)</option>
+            <option value="União Estável">União Estável</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="rg" class="form-label">Documento de identidade (RG)</label>
+        <input type="text" class="form-control" id="rg" name="rg">
+    </div>
+    <div class="mb-3">
+        <label for="cpf" class="form-label">CPF do responsável</label>
+        <input type="text" class="form-control" id="cpf" name="cpf" placeholder="000.000.000-00" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Autoriza o uso de imagem em registros e divulgações?</label>
+        <div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="autoriza_uso_imagem" id="autoriza_sim" value="Sim" required>
+                <label class="form-check-label" for="autoriza_sim">Sim</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="autoriza_uso_imagem" id="autoriza_nao" value="Não">
+                <label class="form-check-label" for="autoriza_nao">Não</label>
+            </div>
+        </div>
+    </div>
+    <div class="text-end">
+        <button type="button" class="btn btn-primary" id="btnProxima">Próxima etapa</button>
+    </div>
+</form>
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/etapa1_dados_pessoais.js') }}"></script>
+{% endblock %}

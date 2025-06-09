@@ -9,5 +9,11 @@ def home():
     return render_template("index.html")
 
 
+@app.route("/atendimento/etapa1")
+def atendimento_etapa1():
+    """Exibe a primeira etapa do atendimento à família."""
+    return render_template("atendimento/etapa1_dados_pessoais.html")
+
+
 if __name__ == "__main__":
     app.run(debug=True)
