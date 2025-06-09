@@ -1,5 +1,5 @@
 from app import db
-from datetime import datetime
+from datetime import datetime, timezone
 
 class SaudeFamiliar(db.Model):
     __tablename__ = "saude_familiar"
@@ -15,7 +15,7 @@ class SaudeFamiliar(db.Model):
     recebe_bpc = db.Column(db.Boolean)
     data_hora_log_utc = db.Column(
         db.DateTime(timezone=True),
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
         nullable=False,
     )

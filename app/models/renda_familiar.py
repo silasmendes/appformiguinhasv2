@@ -1,5 +1,5 @@
 from app import db
-from datetime import datetime
+from datetime import datetime, timezone
 
 class RendaFamiliar(db.Model):
     __tablename__ = "renda_familiar"
@@ -28,7 +28,7 @@ class RendaFamiliar(db.Model):
     saldo_mensal = db.Column(db.Numeric(10, 2))
     data_hora_log_utc = db.Column(
         db.DateTime(timezone=True),
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
         nullable=False,
     )

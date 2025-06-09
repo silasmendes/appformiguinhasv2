@@ -1,5 +1,5 @@
 from app import db
-from datetime import datetime
+from datetime import datetime, timezone
 
 class ComposicaoFamiliar(db.Model):
     __tablename__ = "composicao_familiar"
@@ -16,7 +16,7 @@ class ComposicaoFamiliar(db.Model):
     motivo_ausencia_escola = db.Column(db.Text)
     data_hora_log_utc = db.Column(
         db.DateTime(timezone=True),
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
