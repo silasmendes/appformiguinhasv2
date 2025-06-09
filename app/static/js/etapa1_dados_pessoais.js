@@ -62,6 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnProxima = document.getElementById('btnProxima');
     const form = document.getElementById('formEtapa1');
     const requiredInputs = form.querySelectorAll('[required]');
+    const radiosImagem = form.querySelectorAll('input[name="autoriza_uso_imagem"]');
 
     function exibirValidacaoCPF() {
         const valor = cpfInput.value;
@@ -93,6 +94,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     requiredInputs.forEach(function(el) {
         el.addEventListener('input', atualizarEstadoBotao);
+        el.addEventListener('change', atualizarEstadoBotao);
+    });
+
+    radiosImagem.forEach(function(el) {
         el.addEventListener('change', atualizarEstadoBotao);
     });
 
