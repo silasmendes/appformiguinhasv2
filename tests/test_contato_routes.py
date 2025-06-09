@@ -16,24 +16,29 @@ def client():
 
 
 def test_post_contato(client):
-    global _familia_id_contato, _contato_id_gerado
-
-    familia_payload = {
-        "nome_responsavel": "Contato Familia",
-        "data_nascimento": "1985-05-05",
-        "genero": "Feminino",
-        "genero_autodeclarado": "Mulher",
-        "estado_civil": "Solteira",
-        "rg": "111111111",
-        "cpf": "677.770.280-75",
-        "autoriza_uso_imagem": True,
-    }
-    resp_familia = client.post("/familias", json=familia_payload)
-    assert resp_familia.status_code == 201
-    _familia_id_contato = resp_familia.get_json()["familia_id"]
+    global _familia_id_gerada, _contato_id_gerado
 
     payload = {
-        "familia_id": _familia_id_contato,
+        "nome_responsavel": "Teste Pytest",
+        "data_nascimento": "1990-01-01",
+        "genero": "Masculino",
+        "genero_autodeclarado": "Homem",
+        "estado_civil": "Solteiro",
+        "rg": "999999999",
+        "cpf": "794.134.270-70",
+        "autoriza_uso_imagem": True
+    }
+
+    response = client.post("/familias", json=payload)
+    assert response.status_code == 201
+
+    data = response.get_json()
+    assert "familia_id" in data
+
+    _familia_id_gerada = data["familia_id"]
+
+    payload = {
+        "familia_id": _familia_id_gerada,
         "telefone_principal": "11999999999",
         "telefone_principal_whatsapp": True,
         "telefone_principal_nome_contato": "Responsavel",
