@@ -22,3 +22,4 @@ instance/
 Thumbs.db
 
 *.ps1
+*.bat
