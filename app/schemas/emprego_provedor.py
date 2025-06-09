@@ -16,3 +16,4 @@ class EmpregoProvedorSchema(ma.SQLAlchemySchema):
     experiencia_profissional = ma.auto_field()
     formacao_profissional = ma.auto_field()
     habilidades_relevantes = ma.auto_field()
+    data_hora_log_utc = ma.auto_field(dump_only=True)

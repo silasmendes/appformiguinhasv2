@@ -15,3 +15,4 @@ class SaudeFamiliarSchema(ma.SQLAlchemySchema):
     tem_deficiencia = ma.auto_field()
     descricao_deficiencia = ma.auto_field()
     recebe_bpc = ma.auto_field()
+    data_hora_log_utc = ma.auto_field(dump_only=True)

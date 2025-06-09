@@ -1,4 +1,5 @@
 from app import db
+from datetime import datetime
 
 class Familia(db.Model):
     __tablename__ = 'familias'
@@ -12,3 +13,9 @@ class Familia(db.Model):
     rg = db.Column(db.String(20))
     cpf = db.Column(db.String(14))
     autoriza_uso_imagem = db.Column(db.Boolean)
+    data_hora_log_utc = db.Column(
+        db.DateTime(timezone=True),
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False,
+    )

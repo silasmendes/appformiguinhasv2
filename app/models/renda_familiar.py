@@ -1,4 +1,5 @@
 from app import db
+from datetime import datetime
 
 class RendaFamiliar(db.Model):
     __tablename__ = "renda_familiar"
@@ -25,3 +26,9 @@ class RendaFamiliar(db.Model):
     renda_total_familiar = db.Column(db.Numeric(10, 2))
     gastos_totais = db.Column(db.Numeric(10, 2))
     saldo_mensal = db.Column(db.Numeric(10, 2))
+    data_hora_log_utc = db.Column(
+        db.DateTime(timezone=True),
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False,
+    )

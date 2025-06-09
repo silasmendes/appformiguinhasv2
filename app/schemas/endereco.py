@@ -17,3 +17,4 @@ class EnderecoSchema(ma.SQLAlchemySchema):
     cidade = ma.auto_field()
     estado = ma.auto_field()
     ponto_referencia = ma.auto_field()
+    data_hora_log_utc = ma.auto_field(dump_only=True)
