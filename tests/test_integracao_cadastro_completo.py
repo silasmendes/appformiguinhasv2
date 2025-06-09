@@ -17,7 +17,7 @@ def test_cadastro_completo(client):
         "nome_responsavel": "Ana de Teste",
         "data_nascimento": "1985-05-10",
         "genero": "Feminino",
-        "estado_civil": "Casada",
+        "estado_civil": "Casada(o)",
         "rg": "123456789",
         "cpf": "829.438.580-80",
         "autoriza_uso_imagem": True,

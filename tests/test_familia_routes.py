@@ -20,7 +20,7 @@ def test_post_familia(client):
         "nome_responsavel": "Teste Pytest",
         "data_nascimento": "1990-01-01",
         "genero": "Masculino",
-        "estado_civil": "Solteiro",
+        "estado_civil": "Solteira(o)",
         "rg": "999999999",
         "cpf": "794.134.270-70",
         "autoriza_uso_imagem": True
@@ -49,14 +49,14 @@ def test_put_familia(client):
 
     update_payload = {
         "nome_responsavel": "Maria Atualizada",
-        "estado_civil": "Casada"
+        "estado_civil": "Casada(o)"
     }
 
     response = client.put(f"/familias/{_familia_id_gerada}", json=update_payload)
     assert response.status_code == 200
     data = response.get_json()
     assert data["nome_responsavel"] == "Maria Atualizada"
-    assert data["estado_civil"] == "Casada"
+    assert data["estado_civil"] == "Casada(o)"
 
 # Teste de exclusão de família
 def test_delete_familia(client):
@@ -82,7 +82,7 @@ def test_post_familia_cpf_invalido(client):
         "nome_responsavel": "CPF Inválido",
         "data_nascimento": "1990-01-01",
         "genero": "Feminino",
-        "estado_civil": "Solteira",
+        "estado_civil": "Solteira(o)",
         "rg": "123456789",
         "cpf": "123.456.789-00",  # CPF inválido de propósito
         "autoriza_uso_imagem": True

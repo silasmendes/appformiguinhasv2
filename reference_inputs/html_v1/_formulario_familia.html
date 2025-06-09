@@ -1,0 +1,989 @@
+<div class="progress-container">
+    <div class="progress-bar" id="formProgressBar"></div>
+</div>
+
+    {% if is_editing %}
+    <input type="hidden" name="familia_id" value="{{ familia_id }}">
+    {% endif %}
+
+    <fieldset class="form-section">
+        <legend>Informações pessoais do(a) entrevistado(a)</legend>
+        <div class="mb-3">
+            <label for="nome_responsavel" class="form-label">Nome</label>
+            <input type="text" class="form-control" id="nome_responsavel" name="nome_responsavel" value="{% if is_editing %}{{ form_data.nome_responsavel }}{% endif %}" required>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="data_nascimento_resp" class="form-label">Data de Nascimento</label>
+                    <input type="date" class="form-control" id="data_nascimento_resp" name="data_nascimento_resp" value="{% if is_editing %}{{ form_data.data_nascimento_resp }}{% endif %}" required>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">Estado Civil</label>
+                    <div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="estado_civil" id="estado_solteiro" value="Solteiro" {% if is_editing and form_data.estado_civil == 'Solteiro' %}checked{% endif %}>
+                            <label class="form-check-label" for="estado_solteiro">Solteiro</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="estado_civil" id="estado_casado" value="Casado" {% if is_editing and form_data.estado_civil == 'Casado' %}checked{% endif %}>
+                            <label class="form-check-label" for="estado_casado">Casado</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="estado_civil" id="estado_uniao_estavel" value="União estavel" {% if is_editing and form_data.estado_civil == 'União estavel' %}checked{% endif %}>
+                            <label class="form-check-label" for="estado_uniao_estavel">União Estável</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="estado_civil" id="estado_divorciado" value="Divorciado" {% if is_editing and form_data.estado_civil == 'Divorciado' %}checked{% endif %}>
+                            <label class="form-check-label" for="estado_divorciado">Divorciado</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="estado_civil" id="estado_viuvo" value="Viúvo" {% if is_editing and form_data.estado_civil == 'Viúvo' %}checked{% endif %}>
+                            <label class="form-check-label" for="estado_viuvo">Viúvo</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mb-3">
+            <div class="row align-items-center">
+                <div class="col-md-12">
+                    <label class="form-label">Sexo</label>
+                    <div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="sexo" id="sexo_masculino" value="Masculino" {% if is_editing and form_data.sexo == 'Masculino' %}checked{% endif %}>
+                            <label class="form-check-label" for="sexo_masculino">Masculino</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="sexo" id="sexo_feminino" value="Feminino" {% if is_editing and form_data.sexo == 'Feminino' %}checked{% endif %}>
+                            <label class="form-check-label" for="sexo_feminino">Feminino</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="sexo" id="sexo_outro" value="Outro" {% if is_editing and form_data.sexo == 'Outro' %}checked{% endif %}>
+                            <label class="form-check-label" for="sexo_outro">Outro</label>
+                            <div class="sexo-outro-input-container">
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="sexo_outro_input" 
+                                       name="sexo_outro_input" 
+                                       maxlength="20" 
+                                       value="{% if is_editing %}{{ form_data.sexo_outro_input }}{% endif %}"
+                                       {% if not is_editing or form_data.sexo != 'Outro' %}disabled{% endif %}
+                                       placeholder="Como se identifica?">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="rg_responsavel" class="form-label">RG do Responsável</label>
+            <input type="text" class="form-control" id="rg_responsavel" name="rg_responsavel" value="{% if is_editing %}{{ form_data.rg_responsavel }}{% endif %}">
+        </div>         
+        <div class="mb-3">
+            <label for="cpf_responsavel" class="form-label">CPF</label>
+            <input type="text" 
+                   class="form-control" 
+                   id="cpf_responsavel" 
+                   name="cpf_responsavel" 
+                   placeholder="000.000.000-00" 
+                   value="{% if is_editing %}{{ form_data.cpf_responsavel }}{% endif %}"
+                   required>
+            <div id="cpf-feedback" class="alert alert-warning mt-2"></div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Autoriza o uso de sua imagem?</label>
+            <div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="autoriza_uso_imagem" id="autoriza_sim" value="True" {% if is_editing and form_data.autoriza_uso_imagem == 'True' %}checked{% endif %} required>
+                    <label class="form-check-label" for="autoriza_sim">Sim</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="autoriza_uso_imagem" id="autoriza_nao" value="False" {% if is_editing and form_data.autoriza_uso_imagem == 'False' %}checked{% endif %}>
+                    <label class="form-check-label" for="autoriza_nao">Não</label>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+    <fieldset class="form-section">
+        <legend>Endereço</legend>
+        <div class="mb-3">
+            <label for="cep" class="form-label">CEP:</label>
+            <input type="text" 
+                   class="form-control" 
+                   id="cep" 
+                   name="cep" 
+                   placeholder="00000-000" 
+                   maxlength="9"
+                   value="{% if is_editing %}{{ form_data.cep }}{% endif %}"
+                   required>
+        </div>
+        
+        <div class="mb-3">
+            <div class="form-check">
+                <input class="form-check-input" 
+                       type="checkbox" 
+                       id="manual_address" 
+                       name="manual_address" 
+                       value="sim"
+                       {% if is_editing and form_data.manual_address == 1 %}checked{% endif %}>
+                <label class="form-check-label" for="manual_address">
+                    Informar endereço manualmente
+                </label>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label for="logradouro" class="form-label">Logradouro (rua, avenida etc.):</label>
+            <input type="text" 
+                   class="form-control" 
+                   id="logradouro" 
+                   name="logradouro" 
+                   value="{% if is_editing %}{{ form_data.logradouro }}{% endif %}"
+                   readonly>
+        </div>
+        
+        <div class="mb-3">
+            <label for="numero" class="form-label">Número:</label>
+            <input type="text" 
+                   class="form-control" 
+                   id="numero" 
+                   name="numero" 
+                   placeholder="Ex: 123"
+                   value="{% if is_editing %}{{ form_data.numero }}{% endif %}">
+        </div>
+        
+        <div class="mb-3">
+            <label for="complemento" class="form-label">Complemento:</label>
+            <input type="text" 
+                   class="form-control" 
+                   id="complemento" 
+                   name="complemento" 
+                   placeholder="Ex: fundo das casa, laje, Apt 202, Bloco B"
+                   value="{% if is_editing %}{{ form_data.complemento }}{% endif %}">
+        </div>
+        
+        <div class="mb-3">
+            <label for="bairro" class="form-label">Bairro:</label>
+            <input type="text" 
+                   class="form-control" 
+                   id="bairro" 
+                   name="bairro" 
+                   value="{% if is_editing %}{{ form_data.bairro }}{% endif %}"
+                   readonly>
+        </div>
+        
+        <div class="mb-3">
+            <label for="cidade" class="form-label">Cidade:</label>
+            <input type="text" 
+                   class="form-control" 
+                   id="cidade" 
+                   name="cidade" 
+                   value="{% if is_editing %}{{ form_data.cidade }}{% endif %}"
+                   readonly>
+        </div>
+        
+        <div class="mb-3">
+            <label for="estado" class="form-label">Estado:</label>
+            <input type="text" 
+                   class="form-control" 
+                   id="estado" 
+                   name="estado" 
+                   value="{% if is_editing %}{{ form_data.estado }}{% endif %}"
+                   readonly>
+        </div>
+        
+        <div class="mb-3">
+            <label for="ponto_referencia" class="form-label">Ponto de Referência:</label>
+            <input type="text" 
+                   class="form-control" 
+                   id="ponto_referencia" 
+                   name="ponto_referencia" 
+                   placeholder="Ex: Próximo à praça"
+                   value="{% if is_editing %}{{ form_data.ponto_referencia }}{% endif %}">
+        </div>
+    </fieldset>
+    
+    <fieldset class="form-section">
+        <legend>Composição familiar</legend>
+
+        <div class="mb-3">
+            <label for="pessoas_mesma_residencia" class="form-label">Quantas pessoas vivem na mesma residência:</label>
+            <input type="number" 
+                   class="form-control" 
+                   id="pessoas_mesma_residencia" 
+                   name="pessoas_mesma_residencia" 
+                   placeholder="Ex: 2" 
+                   min="0"
+                   value="{% if is_editing %}{{ form_data.pessoas_mesma_residencia }}{% endif %}">
+        </div>
+        
+        <div class="mb-3">
+            <label for="bebes" class="form-label">Bebês (0 a 3 anos):</label>
+            <input type="number" 
+                   class="form-control" 
+                   id="bebes" 
+                   name="bebes" 
+                   placeholder="Ex: 1" 
+                   min="0"
+                   value="{% if is_editing %}{{ form_data.bebes }}{% endif %}">
+        </div>
+        
+        <div class="mb-3">
+            <label for="criancas" class="form-label">Crianças (4 a 12 anos):</label>
+            <input type="number" 
+                   class="form-control" 
+                   id="criancas" 
+                   name="criancas" 
+                   placeholder="Ex: 2" 
+                   min="0"
+                   value="{% if is_editing %}{{ form_data.criancas }}{% endif %}">
+        </div>
+        
+        <div class="mb-3">
+            <label for="adolescentes" class="form-label">Adolescentes (13 a 17 anos):</label>
+            <input type="number" 
+                   class="form-control" 
+                   id="adolescentes" 
+                   name="adolescentes" 
+                   placeholder="Ex: 1" 
+                   min="0"
+                   value="{% if is_editing %}{{ form_data.adolescentes }}{% endif %}">
+        </div>
+        
+        <div class="mb-3">
+            <label for="adultos" class="form-label">Adultos (18 a 59 anos):</label>
+            <input type="number" 
+                   class="form-control" 
+                   id="adultos" 
+                   name="adultos" 
+                   placeholder="Ex: 2" 
+                   min="0"
+                   value="{% if is_editing %}{{ form_data.adultos }}{% endif %}">
+        </div>
+        
+        <div class="mb-3">
+            <label for="idosos" class="form-label">Idosos (60 anos ou mais):</label>
+            <input type="number" 
+                   class="form-control" 
+                   id="idosos" 
+                   name="idosos" 
+                   placeholder="Ex: 1" 
+                   min="0"
+                   value="{% if is_editing %}{{ form_data.idosos }}{% endif %}">
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label">Todas as crianças em idade escolar estão frequentando escola ou creche?</label>
+            <div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" 
+                           type="radio" 
+                           name="filhos_na_escola" 
+                           id="filhos_na_escola_sim" 
+                           value="sim"
+                           {% if is_editing and form_data.filhos_na_escola == 'sim' %}checked{% endif %}>
+                    <label class="form-check-label" for="filhos_na_escola_sim">Sim</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" 
+                           type="radio" 
+                           name="filhos_na_escola" 
+                           id="filhos_na_escola_nao" 
+                           value="nao" 
+                           data-toggle-field="motivo_nao_escola" 
+                           data-enable-on="nao"
+                           {% if is_editing and form_data.filhos_na_escola == 'nao' %}checked{% endif %}>
+                    <label class="form-check-label" for="filhos_na_escola_nao">Não</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" 
+                           type="radio" 
+                           name="filhos_na_escola" 
+                           id="filhos_na_escola_nao_se_aplica" 
+                           value="nao_se_aplica"
+                           {% if is_editing and form_data.filhos_na_escola == 'nao_se_aplica' %}checked{% endif %}>
+                    <label class="form-check-label" for="filhos_na_escola_nao_se_aplica">Não se aplica</label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label for="motivo_nao_escola" class="form-label">Se não, por que motivo?</label>
+            <textarea class="form-control" 
+                      id="motivo_nao_escola" 
+                      name="motivo_nao_escola" 
+                      rows="3" 
+                      placeholder="Descreva o motivo aqui">{% if is_editing %}{{ form_data.motivo_nao_escola }}{% endif %}</textarea>
+        </div>
+    </fieldset>
+    <fieldset class="form-section">
+        <legend>Contato</legend>        
+        <div class="mb-3">
+            <label for="telefone_responsavel" class="form-label">Celular</label>
+            <input type="text" 
+                   class="form-control" 
+                   id="telefone_responsavel" 
+                   name="telefone_responsavel" 
+                   placeholder="(00) 00000-0000"
+                   value="{% if is_editing %}{{ form_data.telefone_responsavel }}{% endif %}">
+        </div>
+        <div class="mb-3">
+            <label for="telefone_alternativo" class="form-label">Telefone alternativo</label>
+            <input type="text" 
+                   class="form-control phone-mask-alt" 
+                   id="telefone_alternativo" 
+                   name="telefone_alternativo" 
+                   placeholder="(00) 000000000" 
+                   maxlength="15" 
+                   inputmode="numeric"
+                   value="{% if is_editing %}{{ form_data.telefone_alternativo }}{% endif %}">
+        </div>  
+        <div class="mb-3">
+            <label for="observacoes_contato" class="form-label">Observações sobre os contatos</label>
+            <textarea class="form-control" id="observacoes_contato" name="observacoes_contato" rows="2"
+                      placeholder="Ex: O número é do marido; só atende por WhatsApp; não possui WhatsApp">{% if is_editing %}{{ form_data.observacoes_contato }}{% endif %}</textarea>
+        </div>  
+        <div class="mb-3">
+            <label for="email_responsavel" class="form-label">E-mail</label>
+            <input type="email" 
+                   class="form-control email-validation" 
+                   id="email_responsavel" 
+                   name="email_responsavel" 
+                   pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                   placeholder="exemplo@email.com"
+                   value="{% if is_editing %}{{ form_data.email_responsavel }}{% endif %}"
+                   oninvalid="this.setCustomValidity('Por favor, insira um email válido ou deixe em branco')"
+                   oninput="this.setCustomValidity('')">
+        </div>
+    </fieldset>        
+
+    <fieldset class="form-section">
+        <legend>Moradia e serviços básicos</legend> 
+        <div class="mb-3">
+            <label class="form-label">Tipo de moradia:</label>
+            <div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" 
+                           type="radio" 
+                           name="tipo_moradia" 
+                           id="moradia_propria" 
+                           value="propria"
+                           {% if is_editing and form_data.tipo_moradia == 'propria' %}checked{% endif %}>
+                    <label class="form-check-label" for="moradia_propria">Própria</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" 
+                           type="radio" 
+                           name="tipo_moradia" 
+                           id="moradia_alugada" 
+                           value="alugada"
+                           {% if is_editing and form_data.tipo_moradia == 'alugada' %}checked{% endif %}>
+                    <label class="form-check-label" for="moradia_alugada">Alugada</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" 
+                           type="radio" 
+                           name="tipo_moradia" 
+                           id="moradia_cedida" 
+                           value="cedida"
+                           {% if is_editing and form_data.tipo_moradia == 'cedida' %}checked{% endif %}>
+                    <label class="form-check-label" for="moradia_cedida">Cedida</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" 
+                           type="radio" 
+                           name="tipo_moradia" 
+                           id="moradia_ocupacao" 
+                           value="ocupacao"
+                           {% if is_editing and form_data.tipo_moradia == 'ocupacao' %}checked{% endif %}>
+                    <label class="form-check-label" for="moradia_ocupacao">Ocupação</label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label for="valor_aluguel" class="form-label">Valor do aluguel (se aplicável) - (R$):</label>
+            <input type="text" 
+                   class="form-control renda-decimal" 
+                   id="valor_aluguel" 
+                   name="valor_aluguel" 
+                   placeholder="Digite apenas números"
+                   value="{% if is_editing %}{{ form_data.valor_aluguel }}{% endif %}">
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label">Acesso à água encanada:</label>
+            <div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="agua_encanada" id="agua_sim" value="sim" {% if is_editing and form_data.agua_encanada == 'sim' %}checked{% endif %}>
+                    <label class="form-check-label" for="agua_sim">Sim</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="agua_encanada" id="agua_nao" value="nao" {% if is_editing and form_data.agua_encanada == 'nao' %}checked{% endif %}>
+                    <label class="form-check-label" for="agua_nao">Não</label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label">Acesso à rede de esgoto:</label>
+            <div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="rede_esgoto" id="esgoto_sim" value="sim" {% if is_editing and form_data.rede_esgoto == 'sim' %}checked{% endif %}>
+                    <label class="form-check-label" for="esgoto_sim">Sim</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="rede_esgoto" id="esgoto_nao" value="nao" {% if is_editing and form_data.rede_esgoto == 'nao' %}checked{% endif %}>
+                    <label class="form-check-label" for="esgoto_nao">Não</label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label">Acesso à energia elétrica:</label>
+            <div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="energia_eletrica" id="energia_sim" value="sim" {% if is_editing and form_data.energia_eletrica == 'sim' %}checked{% endif %}>
+                    <label class="form-check-label" for="energia_sim">Sim</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="energia_eletrica" id="energia_nao" value="nao" {% if is_editing and form_data.energia_eletrica == 'nao' %}checked{% endif %}>
+                    <label class="form-check-label" for="energia_nao">Não</label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label">Tem fogão?</label>
+            <div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="tem_fogao" id="fogao_sim" value="sim" {% if is_editing and form_data.tem_fogao == 'sim' %}checked{% endif %}>
+                    <label class="form-check-label" for="fogao_sim">Sim</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="tem_fogao" id="fogao_nao" value="nao" {% if is_editing and form_data.tem_fogao == 'nao' %}checked{% endif %}>
+                    <label class="form-check-label" for="fogao_nao">Não</label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label">Tem geladeira?</label>
+            <div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="tem_geladeira" id="geladeira_sim" value="sim" {% if is_editing and form_data.tem_geladeira == 'sim' %}checked{% endif %}>
+                    <label class="form-check-label" for="geladeira_sim">Sim</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="tem_geladeira" id="geladeira_nao" value="nao" {% if is_editing and form_data.tem_geladeira == 'nao' %}checked{% endif %}>
+                    <label class="form-check-label" for="geladeira_nao">Não</label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label for="num_camas" class="form-label">Número de camas:</label>
+            <input type="number" 
+                   class="form-control" 
+                   id="num_camas" 
+                   name="num_camas" 
+                   placeholder="Ex: 3" 
+                   min="0"
+                   value="{% if is_editing %}{{ form_data.num_camas }}{% endif %}">
+        </div>
+        
+        <div class="mb-3">
+            <label for="num_tvs" class="form-label">Número de TVs:</label>
+            <input type="number" 
+                   class="form-control" 
+                   id="num_tvs" 
+                   name="num_tvs" 
+                   placeholder="Ex: 2" 
+                   min="0"
+                   value="{% if is_editing %}{{ form_data.num_tvs }}{% endif %}">
+        </div>
+        
+        <div class="mb-3">
+            <label for="num_ventiladores" class="form-label">Número de ventiladores:</label>
+            <input type="number" 
+                   class="form-control" 
+                   id="num_ventiladores" 
+                   name="num_ventiladores" 
+                   placeholder="Ex: 1" 
+                   min="0"
+                   value="{% if is_editing %}{{ form_data.num_ventiladores }}{% endif %}">
+        </div>        
+
+    </fieldset>
+
+    <fieldset class="form-section">
+        <legend>Saúde</legend> 
+        <div class="mb-3">
+            <label class="form-label">Algum morador da casa possui alguma doença crônica?</label>
+            <div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="doenca_cronica" id="doenca_cronica_sim" value="sim" 
+                        data-toggle-field="qual_doenca" data-enable-on="sim"
+                        {% if is_editing and form_data.doenca_cronica == 'sim' %}checked{% endif %}>
+                    <label class="form-check-label" for="doenca_cronica_sim">Sim</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="doenca_cronica" id="doenca_cronica_nao" value="nao"
+                        {% if is_editing and form_data.doenca_cronica == 'nao' %}checked{% endif %}>
+                    <label class="form-check-label" for="doenca_cronica_nao">Não</label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label for="qual_doenca" class="form-label">Se sim, qual?</label>
+            <textarea class="form-control" 
+                      id="qual_doenca" 
+                      name="qual_doenca" 
+                      rows="3" 
+                      placeholder="Descreva a doença crônica">{% if is_editing %}{{ form_data.qual_doenca }}{% endif %}</textarea>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label">Algum morador da casa faz uso contínuo de medicamentos?</label>
+            <div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="uso_continuo_medicamentos" id="medicamentos_sim" value="sim"
+                        data-toggle-field="qual_medicamento" data-enable-on="sim"
+                        {% if is_editing and form_data.uso_continuo_medicamentos == 'sim' %}checked{% endif %}>
+                    <label class="form-check-label" for="medicamentos_sim">Sim</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="uso_continuo_medicamentos" id="medicamentos_nao" value="nao"
+                        {% if is_editing and form_data.uso_continuo_medicamentos == 'nao' %}checked{% endif %}>
+                    <label class="form-check-label" for="medicamentos_nao">Não</label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label for="qual_medicamento" class="form-label">Se sim, qual(is) morador(es) e qual(is) medicamento(s)?</label>
+            <textarea class="form-control" 
+                      id="qual_medicamento" 
+                      name="qual_medicamento" 
+                      rows="3">{% if is_editing %}{{ form_data.qual_medicamento }}{% endif %}</textarea>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label">Algum morador da casa possui alguma deficiência?</label>
+            <div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="possui_deficiencia" id="deficiencia_sim" value="sim"
+                        data-toggle-field="bpc_section" data-enable-on="sim"
+                        {% if is_editing and form_data.possui_deficiencia == 'sim' %}checked{% endif %}>
+                    <label class="form-check-label" for="deficiencia_sim">Sim</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="possui_deficiencia" id="deficiencia_nao" value="nao"
+                        {% if is_editing and form_data.possui_deficiencia == 'nao' %}checked{% endif %}>
+                    <label class="form-check-label" for="deficiencia_nao">Não</label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label for="qual_deficiencia" class="form-label">Se sim, qual(is) morador(es) e qual(is) deficiência(s)?</label>
+            <textarea class="form-control" 
+                      id="qual_deficiencia" 
+                      name="qual_deficiencia" 
+                      rows="3">{% if is_editing %}{{ form_data.qual_deficiencia }}{% endif %}</textarea>
+        </div>
+        
+        <div class="mb-3" id="bpc_section">
+            <label class="form-label">A pessoa com deficiência recebe Benefício de Prestação Continuada (BPC) do Governo Federal?</label>
+            <div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="recebe_bpc" id="bpc_sim" value="sim"
+                        {% if is_editing and form_data.recebe_bpc == 'sim' %}checked{% endif %}>
+                    <label class="form-check-label" for="bpc_sim">Sim</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="recebe_bpc" id="bpc_nao" value="nao"
+                        {% if is_editing and form_data.recebe_bpc == 'nao' %}checked{% endif %}>
+                    <label class="form-check-label" for="bpc_nao">Não (Caso negativo, encaminhar para análise da Coordenadoria Jurídica)</label>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset class="form-section">
+        <legend>Situação de emprego e habilidades do principal provedor da família</legend> 
+        <div class="mb-3">
+            <label class="form-label">Provedor principal:</label>
+            <div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="provedor_principal" id="provedor_eu" value="eu" {% if is_editing and form_data.provedor_principal == 'eu' %}checked{% endif %}>
+                    <label class="form-check-label" for="provedor_eu">Eu mesmo(a)</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="provedor_principal" id="provedor_esposo" value="esposo" {% if is_editing and form_data.provedor_principal == 'esposo' %}checked{% endif %}>
+                    <label class="form-check-label" for="provedor_esposo">Esposo(a)</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="provedor_principal" id="provedor_filho" value="filho" {% if is_editing and form_data.provedor_principal == 'filho' %}checked{% endif %}>
+                    <label class="form-check-label" for="provedor_filho">Filho(a)</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="provedor_principal" id="provedor_familiar" value="outro_familiar" {% if is_editing and form_data.provedor_principal == 'outro_familiar' %}checked{% endif %}>
+                    <label class="form-check-label" for="provedor_familiar">Outro familiar</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="provedor_principal" id="provedor_nao_familiar" value="provedor_nao_familiar"
+                        data-toggle-field="quem_provedor_nao_familiar" data-enable-on="provedor_nao_familiar" {% if is_editing and form_data.provedor_principal == 'provedor_nao_familiar' %}checked{% endif %}>
+                    <label class="form-check-label" for="provedor_nao_familiar">Provedor não familiar</label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label for="quem_provedor_nao_familiar" class="form-label">Se provedor não familiar, descrever quem:</label>
+            <textarea class="form-control" id="quem_provedor_nao_familiar" name="quem_provedor_nao_familiar" rows="3" placeholder="Descreva aqui">{% if is_editing %}{{ form_data.quem_provedor_nao_familiar }}{% endif %}</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Situação de emprego atual do principal provedor:</label>
+            <div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="situacao_emprego" id="emprego_formal" value="empregado_formal" {% if is_editing and form_data.situacao_emprego == 'empregado_formal' %}checked{% endif %}>
+                    <label class="form-check-label" for="emprego_formal">Empregado formal</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="situacao_emprego" id="emprego_informal" value="empregado_informal" {% if is_editing and form_data.situacao_emprego == 'empregado_informal' %}checked{% endif %}>
+                    <label class="form-check-label" for="emprego_informal">Empregado informal</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="situacao_emprego" id="desempregado" value="desempregado" {% if is_editing and form_data.situacao_emprego == 'desempregado' %}checked{% endif %}>
+                    <label class="form-check-label" for="desempregado">Desempregado</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="situacao_emprego" id="autonomo" value="autonomo" {% if is_editing and form_data.situacao_emprego == 'autonomo' %}checked{% endif %}>
+                    <label class="form-check-label" for="autonomo">Autônomo</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="situacao_emprego" id="aposentado" value="aposentado" {% if is_editing and form_data.situacao_emprego == 'aposentado' %}checked{% endif %}>
+                    <label class="form-check-label" for="aposentado">Aposentado</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="situacao_emprego" id="outro" value="outro"
+                        data-toggle-field="descricao_outro_emprego" data-enable-on="outro" {% if is_editing and form_data.situacao_emprego == 'outro' %}checked{% endif %}>
+                    <label class="form-check-label" for="outro">Outro</label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label for="descricao_outro_emprego" class="form-label">Se outro, descrever:</label>
+            <textarea class="form-control" id="descricao_outro_emprego" name="descricao_outro_emprego" rows="2" placeholder="Descreva aqui">{% if is_editing %}{{ form_data.descricao_outro_emprego }}{% endif %}</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="profissao_provedor" class="form-label">Profissão do provedor principal:</label>
+            <textarea class="form-control" id="profissao_provedor" name="profissao_provedor" rows="2" placeholder="Descreva a profissão">{% if is_editing %}{{ form_data.profissao_provedor }}{% endif %}</textarea>
+        </div>   
+        
+        <div class="mb-3">
+            <label for="experiencia_profissional" class="form-label">Experiência profissional relevante:</label>
+            <textarea class="form-control" id="experiencia_profissional" name="experiencia_profissional" rows="3" placeholder="Descreva experiências relevantes">{% if is_editing %}{{ form_data.experiencia_profissional }}{% endif %}</textarea>
+        </div>
+        
+        <div class="mb-3">
+            <label for="formacao_profissional" class="form-label">Formação profissional (cursos especializantes):</label>
+            <textarea class="form-control" id="formacao_profissional" name="formacao_profissional" rows="3" placeholder="Liste os cursos ou formações">{% if is_editing %}{{ form_data.formacao_profissional }}{% endif %}</textarea>
+        </div>
+        
+        <div class="mb-3">
+            <label for="habilidades_relevantes" class="form-label">Outras habilidades relevantes:</label>
+            <textarea class="form-control" id="habilidades_relevantes" name="habilidades_relevantes" rows="3" placeholder="Descreva habilidades adicionais">{% if is_editing %}{{ form_data.habilidades_relevantes }}{% endif %}</textarea>
+        </div>
+    </fieldset>
+
+    <fieldset class="form-section">
+        <legend>Renda familiar</legend> 
+        <div class="mb-3">
+            <label for="renda_arrimo" class="form-label">Renda da ocupação principal do arrimo de família (R$):</label>
+            <input type="text" class="form-control renda-decimal" id="renda_arrimo" name="renda_arrimo" placeholder="Digite apenas números" maxlength="15" inputmode="numeric" value="{% if is_editing %}{{ form_data.renda_arrimo }}{% endif %}">
+        </div>
+        
+        <div class="mb-3">
+            <label for="renda_outros_familiares" class="form-label">Renda dos outros familiares (R$):</label>
+            <input type="text" class="form-control renda-decimal" id="renda_outros_familiares" name="renda_outros_familiares" placeholder="Digite apenas números" value="{% if is_editing %}{{ form_data.renda_outros_familiares }}{% endif %}">
+        </div>
+        
+        <div class="mb-3">
+            <label for="auxilio_parentes_amigos" class="form-label">Auxílio de parentes ou amigos (R$):</label>
+            <input type="text" class="form-control renda-decimal" id="auxilio_parentes_amigos" name="auxilio_parentes_amigos" placeholder="Digite apenas números" value="{% if is_editing %}{{ form_data.auxilio_parentes_amigos }}{% endif %}">
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label">Possui Cadastro Único?</label>
+            <div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="cadastro_unico" id="cadastro_sim" value="sim" {% if is_editing and form_data.cadastro_unico == 'sim' %}checked{% endif %}>
+                    <label class="form-check-label" for="cadastro_sim">Sim</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="cadastro_unico" id="cadastro_nao" value="nao" {% if is_editing and form_data.cadastro_unico == 'nao' %}checked{% endif %}>
+                    <label class="form-check-label" for="cadastro_nao">Não</label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label">Recebe algum benefício social?</label>
+            <div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="recebe_beneficio" id="beneficio_sim" value="sim"
+                        data-toggle-field="descricao_beneficios" data-enable-on="sim" {% if is_editing and form_data.recebe_beneficio == 'sim' %}checked{% endif %}>
+                    <label class="form-check-label" for="beneficio_sim">Sim</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="recebe_beneficio" id="beneficio_nao" value="nao" {% if is_editing and form_data.recebe_beneficio == 'nao' %}checked{% endif %}>
+                    <label class="form-check-label" for="beneficio_nao">Não</label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-3" id="beneficios_section">
+            <label for="descricao_beneficios" class="form-label">Se sim, qual(is)?</label>
+            <div class="beneficios-tags mb-2">
+                <span class="beneficio-tag" data-beneficio="Bolsa Família">Bolsa Família</span>
+                <span class="beneficio-tag" data-beneficio="Renda Cidadã">Renda Cidadã</span>
+                <span class="beneficio-tag" data-beneficio="Ação Jovem">Ação Jovem</span>
+                <span class="beneficio-tag" data-beneficio="Programa de Atendimento à Família (PAF)">PAF</span>
+            </div>
+            <textarea class="form-control" 
+                      id="descricao_beneficios" 
+                      name="descricao_beneficios" 
+                      rows="3" 
+                      placeholder="Descreva os benefícios sociais recebidos">{% if is_editing %}{{ form_data.descricao_beneficios }}{% endif %}</textarea>
+        </div>
+        
+        <div class="mb-3">
+            <label for="valor_total_beneficios" class="form-label">Valor total dos benefícios (R$):</label>
+            <input type="text" class="form-control renda-decimal" id="valor_total_beneficios" name="valor_total_beneficios" placeholder="Digite apenas números" value="{% if is_editing %}{{ form_data.valor_total_beneficios }}{% endif %}">
+        </div>
+        
+        <div class="mb-3">
+            <label for="renda_familiar_total" class="form-label">Renda familiar total (R$):</label>
+            <input type="text" class="form-control renda-decimal readonly-field" id="renda_familiar_total" name="renda_familiar_total" readonly placeholder="Calculado automaticamente" value="{% if is_editing %}{{ form_data.renda_familiar_total }}{% endif %}">
+        </div>        
+
+    </fieldset>    
+
+    <fieldset class="form-section">
+        <legend>Gastos Básicos Mensais</legend>   
+
+        <div class="mb-3">
+            <label for="gastos_supermercado" class="form-label">Supermercado (alimentação, produtos de limpeza, higiene pessoal, etc.) (R$):</label>
+            <input type="text" class="form-control renda-decimal" id="gastos_supermercado" name="gastos_supermercado" placeholder="Digite apenas números" maxlength="15" inputmode="numeric" value="{% if is_editing %}{{ form_data.gastos_supermercado }}{% endif %}">
+        </div>
+        
+        <div class="mb-3">
+            <label for="gastos_energia_eletrica" class="form-label">Energia elétrica (R$):</label>
+            <input type="text" class="form-control renda-decimal" id="gastos_energia_eletrica" name="gastos_energia_eletrica" placeholder="Digite apenas números" maxlength="15" inputmode="numeric" value="{% if is_editing %}{{ form_data.gastos_energia_eletrica }}{% endif %}">
+        </div>
+
+        <div class="mb-3">
+            <label for="gastos_agua" class="form-label">Água (R$):</label>
+            <input type="text" class="form-control renda-decimal" id="gastos_agua" name="gastos_agua" placeholder="Digite apenas números" maxlength="15" inputmode="numeric" value="{% if is_editing %}{{ form_data.gastos_agua }}{% endif %}">
+        </div>
+        
+        <div class="mb-3">
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="valor_botija_gas" class="form-label">Valor da botija de gás (R$):</label>
+                    <input type="text" class="form-control renda-decimal" id="valor_botija_gas" name="valor_botija_gas" placeholder="Digite o valor da botija" maxlength="15" inputmode="numeric" value="{% if is_editing %}{{ form_data.valor_botija_gas }}{% endif %}">
+                </div>
+                <div class="col-md-4">
+                    <label for="duracao_botija_gas" class="form-label">Duração média da botija (meses):</label>
+                    <input type="number" class="form-control" id="duracao_botija_gas" name="duracao_botija_gas" placeholder="Ex: 2" min="0.1" step="0.1" value="{% if is_editing %}{{ form_data.duracao_botija_gas }}{% endif %}">
+                </div>
+                <div class="col-md-4">
+                    <label for="gastos_gas" class="form-label">Gastos mensais com gás (R$):</label>
+                    <input type="text" class="form-control renda-decimal readonly-field" id="gastos_gas" name="gastos_gas" readonly placeholder="Calculado automaticamente" value="{% if is_editing %}{{ form_data.gastos_gas }}{% endif %}">
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label for="gastos_transporte" class="form-label">Transporte (R$):</label>
+            <input type="text" class="form-control renda-decimal" id="gastos_transporte" name="gastos_transporte" placeholder="Digite apenas números" maxlength="15" inputmode="numeric" value="{% if is_editing %}{{ form_data.gastos_transporte }}{% endif %}">
+        </div>
+        
+        <div class="mb-3">
+            <label for="gastos_medicamentos" class="form-label">Medicamentos (R$):</label>
+            <input type="text" class="form-control renda-decimal" id="gastos_medicamentos" name="gastos_medicamentos" placeholder="Digite apenas números" maxlength="15" inputmode="numeric" value="{% if is_editing %}{{ form_data.gastos_medicamentos }}{% endif %}">
+        </div>
+        
+        <div class="mb-3">
+            <label for="gastos_conta_celular" class="form-label">Conta de celular dos residentes (R$):</label>
+            <input type="text" class="form-control renda-decimal" id="gastos_conta_celular" name="gastos_conta_celular" placeholder="Digite apenas números" maxlength="15" inputmode="numeric" value="{% if is_editing %}{{ form_data.gastos_conta_celular }}{% endif %}">
+        </div>
+        
+        <div class="mb-3">
+            <label for="gastos_outros" class="form-label">Outros gastos (R$):</label>
+            <input type="text" class="form-control renda-decimal" id="gastos_outros" name="gastos_outros" placeholder="Digite apenas números" maxlength="15" inputmode="numeric" value="{% if is_editing %}{{ form_data.gastos_outros }}{% endif %}">
+        </div>
+
+        <div class="mb-3">
+            <label for="total_gastos" class="form-label">Total de Gastos (R$):</label>
+            <input type="text" 
+                   class="form-control renda-decimal readonly-field" 
+                   id="total_gastos" 
+                   name="total_gastos" 
+                   readonly 
+                   placeholder="Calculado automaticamente" 
+                   title="Soma de todos os gastos mensais: supermercado, energia, gás, transporte, medicamentos, celular, outros, aluguel e água"
+                   value="{% if is_editing %}{{ form_data.total_gastos }}{% endif %}">
+        </div>
+        
+        <div class="mb-3">
+            <label for="saldo" class="form-label">Saldo Restante (R$):</label>
+            <input type="text" 
+                   class="form-control renda-decimal readonly-field" 
+                   id="saldo" 
+                   name="saldo" 
+                   readonly 
+                   placeholder="Calculado automaticamente" 
+                   title="Renda Familiar Total menos Total de Gastos"
+                   value="{% if is_editing %}{{ form_data.saldo }}{% endif %}">
+        </div>
+    </fieldset>
+    
+
+    
+
+    <fieldset class="form-section">
+        <legend>Educação</legend> 
+        <div class="mb-3">
+            <label class="form-label">Nível de escolaridade da(o) entrevistada(o):</label>
+            <div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="nivel_escolaridade" id="analfabeto" value="analfabeto" {% if is_editing and form_data.nivel_escolaridade == 'analfabeto' %}checked{% endif %}>
+                    <label class="form-check-label" for="analfabeto">Analfabeto</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="nivel_escolaridade" id="fundamental_incompleto" value="ensino_fundamental_incompleto" {% if is_editing and form_data.nivel_escolaridade == 'ensino_fundamental_incompleto' %}checked{% endif %}>
+                    <label class="form-check-label" for="fundamental_incompleto">Ensino Fundamental Incompleto</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="nivel_escolaridade" id="fundamental_completo" value="ensino_fundamental_completo" {% if is_editing and form_data.nivel_escolaridade == 'ensino_fundamental_completo' %}checked{% endif %}>
+                    <label class="form-check-label" for="fundamental_completo">Ensino Fundamental Completo</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="nivel_escolaridade" id="medio_incompleto" value="ensino_medio_incompleto" {% if is_editing and form_data.nivel_escolaridade == 'ensino_medio_incompleto' %}checked{% endif %}>
+                    <label class="form-check-label" for="medio_incompleto">Ensino Médio Incompleto</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="nivel_escolaridade" id="medio_completo" value="ensino_medio_completo" {% if is_editing and form_data.nivel_escolaridade == 'ensino_medio_completo' %}checked{% endif %}>
+                    <label class="form-check-label" for="medio_completo">Ensino Médio Completo</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="nivel_escolaridade" id="superior_incompleto" value="ensino_superior_incompleto" {% if is_editing and form_data.nivel_escolaridade == 'ensino_superior_incompleto' %}checked{% endif %}>
+                    <label class="form-check-label" for="superior_incompleto">Ensino Superior Incompleto</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="nivel_escolaridade" id="superior_completo" value="ensino_superior_completo" {% if is_editing and form_data.nivel_escolaridade == 'ensino_superior_completo' %}checked{% endif %}>
+                    <label class="form-check-label" for="superior_completo">Ensino Superior Completo</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="nivel_escolaridade" id="pos_graduacao" value="pos_graduacao" {% if is_editing and form_data.nivel_escolaridade == 'pos_graduacao' %}checked{% endif %}>
+                    <label class="form-check-label" for="pos_graduacao">Pós-graduação</label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label">Está estudando atualmente?</label>
+            <div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="estudando_atualmente" id="estudando_sim" value="sim"
+                        data-toggle-field="curso_serie" data-enable-on="sim" {% if is_editing and form_data.estudando_atualmente == 'sim' %}checked{% endif %}>
+                    <label class="form-check-label" for="estudando_sim">Sim</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="estudando_atualmente" id="estudando_nao" value="nao" {% if is_editing and form_data.estudando_atualmente == 'nao' %}checked{% endif %}>
+                    <label class="form-check-label" for="estudando_nao">Não</label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label for="curso_serie" class="form-label">Se sim, qual curso/série?</label>
+            <textarea class="form-control" id="curso_serie" name="curso_serie" rows="2" placeholder="Descreva aqui">{% if is_editing %}{{ form_data.curso_serie }}{% endif %}</textarea>
+        </div>
+    </fieldset>
+    
+    <fieldset class="form-section">
+        <legend>Outras necessidades informadas</legend> 
+        <div class="mb-3">
+            <label class="form-label">Outras necessidades relatadas:</label>
+            <div>
+                <div class="form-check">
+                    <input type="hidden" name="cursos_profissionalizantes" value="0">
+                    <input class="form-check-input" type="checkbox" name="cursos_profissionalizantes" id="cursos_profissionalizantes" value="1" {% if is_editing and form_data.cursos_profissionalizantes == 1 %}checked{% endif %}>
+                    <label class="form-check-label" for="cursos_profissionalizantes">Cursos profissionalizantes</label>
+                </div>
+                <textarea class="form-control mt-2 d-none" id="detalhes_cursos_profissionalizantes" name="detalhes_cursos_profissionalizantes" rows="2" placeholder="Descreva os cursos profissionalizantes necessários">{% if is_editing %}{{ form_data.detalhes_cursos_profissionalizantes }}{% endif %}</textarea>
+
+                <div class="form-check">
+                    <input type="hidden" name="equipamentos_casa" value="0">
+                    <input class="form-check-input" type="checkbox" name="equipamentos_casa" id="equipamentos_casa" value="1" {% if is_editing and form_data.equipamentos_casa == 1 %}checked{% endif %}>
+                    <label class="form-check-label" for="equipamentos_casa">Equipamentos para casa (fogão, colchão, televisão, etc.)</label>
+                </div>
+                <textarea class="form-control mt-2 d-none" id="detalhes_equipamentos_casa" name="detalhes_equipamentos_casa" rows="2" placeholder="Descreva os equipamentos necessários">{% if is_editing %}{{ form_data.detalhes_equipamentos_casa }}{% endif %}</textarea>
+
+                <div class="form-check">
+                    <input type="hidden" name="servicos_domesticos" value="0">
+                    <input class="form-check-input" type="checkbox" name="servicos_domesticos" id="servicos_domesticos" value="1" {% if is_editing and form_data.servicos_domesticos == 1 %}checked{% endif %}>
+                    <label class="form-check-label" for="servicos_domesticos">Serviços domésticos (elétrica, montagem, etc.)</label>
+                </div>
+                <textarea class="form-control mt-2 d-none" id="detalhes_servicos_domesticos" name="detalhes_servicos_domesticos" rows="2" placeholder="Descreva os serviços domésticos necessários">{% if is_editing %}{{ form_data.detalhes_servicos_domesticos }}{% endif %}</textarea>
+
+                <div class="form-check">
+                    <input type="hidden" name="medicamentos" value="0">
+                    <input class="form-check-input" type="checkbox" name="medicamentos" id="medicamentos" value="1" {% if is_editing and form_data.medicamentos == 1 %}checked{% endif %}>
+                    <label class="form-check-label" for="medicamentos">Medicamentos</label>
+                </div>
+                <textarea class="form-control mt-2 d-none" id="detalhes_medicamentos" name="detalhes_medicamentos" rows="2" placeholder="Descreva os medicamentos necessários">{% if is_editing %}{{ form_data.detalhes_medicamentos }}{% endif %}</textarea>
+
+                <div class="form-check">
+                    <input type="hidden" name="vaga_escola" value="0">
+                    <input class="form-check-input" type="checkbox" name="vaga_escola" id="vaga_escola" value="1" {% if is_editing and form_data.vaga_escola == 1 %}checked{% endif %}>
+                    <label class="form-check-label" for="vaga_escola">Vaga em escola</label>
+                </div>
+                <textarea class="form-control mt-2 d-none" id="detalhes_vaga_escola" name="detalhes_vaga_escola" rows="2" placeholder="Detalhes da vaga em escola">{% if is_editing %}{{ form_data.detalhes_vaga_escola }}{% endif %}</textarea>
+
+                <div class="form-check">
+                    <input type="hidden" name="necessidades_juridicas" value="0">
+                    <input class="form-check-input" type="checkbox" name="necessidades_juridicas" id="necessidades_juridicas" value="1" {% if is_editing and form_data.necessidades_juridicas == 1 %}checked{% endif %}>
+                    <label class="form-check-label" for="necessidades_juridicas">Necessidades jurídicas</label>
+                </div>
+                <textarea class="form-control mt-2 d-none" id="detalhes_necessidades_juridicas" name="detalhes_necessidades_juridicas" rows="2" placeholder="Especificar e encaminhar à coordenação jurídica para providências">{% if is_editing %}{{ form_data.detalhes_necessidades_juridicas }}{% endif %}</textarea>
+
+                <div class="form-check">
+                    <input type="hidden" name="outros" value="0">
+                    <input class="form-check-input" type="checkbox" name="outros" id="outros" value="1" {% if is_editing and form_data.outros == 1 %}checked{% endif %}>
+                    <label class="form-check-label" for="outros">Outros/Observações</label>
+                </div>
+                <textarea class="form-control mt-2 d-none" id="detalhes_outros" name="detalhes_outros" rows="2" placeholder="Descreva outros motivos ou observações">{% if is_editing %}{{ form_data.detalhes_outros }}{% endif %}</textarea>
+            </div>
+        </div>              
+        
+        <div class="mb-3">
+            <label for="encaminhamentos" class="form-label">Encaminhamentos:</label>
+            <textarea class="form-control" id="encaminhamentos" name="encaminhamentos" rows="3" placeholder="Descrever se houve algum encaminhamento dado dentro da ONG ou para entidade externa para acompanhamento da situação" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Descrever se houve algum encaminhamento dado dentro da ONG ou para entidade externa para acompanhamento da situação'">{% if is_editing %}{{ form_data.encaminhamentos }}{% endif %}</textarea>
+        </div>
+    </fieldset>
+
+
+
+

@@ -4,11 +4,11 @@ from marshmallow import validates, validates_schema, ValidationError
 import re
 
 ESTADOS_CIVIS_VALIDOS = [
-    "Solteiro",
-    "Casado",
+    "Solteira(o)",
+    "Casada(o)",
     "União Estável",
-    "Divorciado",
-    "Viúvo",
+    "Divorciada(o)",
+    "Viúva(o)",
 ]
 
 class FamiliaSchema(ma.SQLAlchemySchema):

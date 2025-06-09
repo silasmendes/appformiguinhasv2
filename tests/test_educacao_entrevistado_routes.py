@@ -22,7 +22,7 @@ def test_post_educacao_entrevistado(client):
         "nome_responsavel": "Teste Pytest",
         "data_nascimento": "1990-01-01",
         "genero": "Masculino",
-        "estado_civil": "Solteiro",
+        "estado_civil": "Solteira(o)",
         "rg": "999999999",
         "cpf": "794.134.270-70",
         "autoriza_uso_imagem": True,
