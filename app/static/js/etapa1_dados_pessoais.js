@@ -64,7 +64,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const requiredInputs = form.querySelectorAll('[required]');
 
     function exibirValidacaoCPF() {
-        const valido = validarCPF(cpfInput.value);
+        const valor = cpfInput.value;
+        if (valor.trim() === '') {
+            cpfInput.classList.remove('is-invalid');
+            return true;
+        }
+
+        const valido = validarCPF(valor);
         if (!valido) {
             cpfInput.classList.add('is-invalid');
         } else {
