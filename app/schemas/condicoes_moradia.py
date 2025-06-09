@@ -19,3 +19,4 @@ class CondicaoMoradiaSchema(ma.SQLAlchemySchema):
     quantidade_camas = ma.auto_field()
     quantidade_tvs = ma.auto_field()
     quantidade_ventiladores = ma.auto_field()
+    data_hora_log_utc = ma.auto_field(dump_only=True)

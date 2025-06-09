@@ -1,4 +1,5 @@
 from app import db
+from datetime import datetime
 
 
 class CondicaoMoradia(db.Model):
@@ -16,3 +17,9 @@ class CondicaoMoradia(db.Model):
     quantidade_camas = db.Column(db.Integer)
     quantidade_tvs = db.Column(db.Integer)
     quantidade_ventiladores = db.Column(db.Integer)
+    data_hora_log_utc = db.Column(
+        db.DateTime(timezone=True),
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False,
+    )

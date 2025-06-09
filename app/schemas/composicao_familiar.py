@@ -16,3 +16,4 @@ class ComposicaoFamiliarSchema(ma.SQLAlchemySchema):
     quantidade_idosos = ma.auto_field()
     tem_menores_na_escola = ma.auto_field()
     motivo_ausencia_escola = ma.auto_field()
+    data_hora_log_utc = ma.auto_field(dump_only=True)

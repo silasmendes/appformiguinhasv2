@@ -12,3 +12,4 @@ class EducacaoEntrevistadoSchema(ma.SQLAlchemySchema):
     nivel_escolaridade = ma.auto_field()
     estuda_atualmente = ma.auto_field()
     curso_ou_serie_atual = ma.auto_field()
+    data_hora_log_utc = ma.auto_field(dump_only=True)

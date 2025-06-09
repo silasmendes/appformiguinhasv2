@@ -1,4 +1,5 @@
 from app import db
+from datetime import datetime
 
 class SaudeFamiliar(db.Model):
     __tablename__ = "saude_familiar"
@@ -12,3 +13,9 @@ class SaudeFamiliar(db.Model):
     tem_deficiencia = db.Column(db.Boolean)
     descricao_deficiencia = db.Column(db.Text)
     recebe_bpc = db.Column(db.Boolean)
+    data_hora_log_utc = db.Column(
+        db.DateTime(timezone=True),
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False,
+    )

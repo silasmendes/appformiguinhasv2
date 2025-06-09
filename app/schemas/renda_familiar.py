@@ -28,3 +28,4 @@ class RendaFamiliarSchema(ma.SQLAlchemySchema):
     renda_total_familiar = ma.auto_field()
     gastos_totais = ma.auto_field()
     saldo_mensal = ma.auto_field()
+    data_hora_log_utc = ma.auto_field(dump_only=True)

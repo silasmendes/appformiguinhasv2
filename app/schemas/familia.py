@@ -17,6 +17,7 @@ class FamiliaSchema(ma.SQLAlchemySchema):
     rg = ma.auto_field()
     cpf = ma.auto_field()
     autoriza_uso_imagem = ma.auto_field()
+    data_hora_log_utc = ma.auto_field(dump_only=True)
 
     @validates("cpf")
     # Recebe **kwargs para compatibilidade com marshmallow>=4,

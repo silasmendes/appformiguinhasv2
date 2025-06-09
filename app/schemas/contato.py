@@ -16,3 +16,4 @@ class ContatoSchema(ma.SQLAlchemySchema):
     telefone_alternativo_whatsapp = ma.auto_field()
     telefone_alternativo_nome_contato = ma.auto_field()
     email_responsavel = ma.auto_field()
+    data_hora_log_utc = ma.auto_field(dump_only=True)
