@@ -1,7 +1,15 @@
 from app import ma
 from app.models.familia import Familia
-from marshmallow import validates, ValidationError
+from marshmallow import validates, validates_schema, ValidationError
 import re
+
+ESTADOS_CIVIS_VALIDOS = [
+    "Solteiro",
+    "Casado",
+    "União Estável",
+    "Divorciado",
+    "Viúvo",
+]
 
 class FamiliaSchema(ma.SQLAlchemySchema):
     class Meta:
@@ -18,6 +26,11 @@ class FamiliaSchema(ma.SQLAlchemySchema):
     cpf = ma.auto_field()
     autoriza_uso_imagem = ma.auto_field()
     data_hora_log_utc = ma.auto_field(dump_only=True)
+
+    @validates("estado_civil")
+    def validar_estado_civil(self, value, **kwargs):
+        if value not in ESTADOS_CIVIS_VALIDOS:
+            raise ValidationError("Estado civil inválido.")
 
     @validates("cpf")
     # Recebe **kwargs para compatibilidade com marshmallow>=4,
@@ -38,3 +51,20 @@ class FamiliaSchema(ma.SQLAlchemySchema):
                 return False
 
         return True
+
+    @validates_schema
+    def validate_genero_autodeclarado(self, data, **kwargs):
+        genero = data.get("genero")
+        autodeclarado = data.get("genero_autodeclarado")
+
+        if genero != "Outro" and autodeclarado:
+            raise ValidationError(
+                "Campo 'genero_autodeclarado' só pode ser informado se genero = 'Outro'.",
+                field_name="genero_autodeclarado",
+            )
+
+        if genero == "Outro" and not autodeclarado:
+            raise ValidationError(
+                "Quando genero = 'Outro', o campo 'genero_autodeclarado' é obrigatório.",
+                field_name="genero_autodeclarado",
+            )

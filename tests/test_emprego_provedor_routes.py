@@ -22,7 +22,6 @@ def test_post_emprego_provedor(client):
         "nome_responsavel": "Teste Pytest",
         "data_nascimento": "1990-01-01",
         "genero": "Masculino",
-        "genero_autodeclarado": "Homem",
         "estado_civil": "Solteiro",
         "rg": "999999999",
         "cpf": "794.134.270-70",

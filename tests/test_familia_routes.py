@@ -20,7 +20,6 @@ def test_post_familia(client):
         "nome_responsavel": "Teste Pytest",
         "data_nascimento": "1990-01-01",
         "genero": "Masculino",
-        "genero_autodeclarado": "Homem",
         "estado_civil": "Solteiro",
         "rg": "999999999",
         "cpf": "794.134.270-70",
@@ -83,7 +82,6 @@ def test_post_familia_cpf_invalido(client):
         "nome_responsavel": "CPF Inválido",
         "data_nascimento": "1990-01-01",
         "genero": "Feminino",
-        "genero_autodeclarado": "Mulher",
         "estado_civil": "Solteira",
         "rg": "123456789",
         "cpf": "123.456.789-00",  # CPF inválido de propósito
