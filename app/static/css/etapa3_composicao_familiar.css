@@ -1,0 +1,17 @@
+.etapa3-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.campo-numerico {
+    flex: 1 1 120px;
+    max-width: 160px;
+}
+
+@media (max-width: 768px) {
+    .campo-numerico {
+        flex: 1 1 100%;
+        max-width: none;
+    }
+}
