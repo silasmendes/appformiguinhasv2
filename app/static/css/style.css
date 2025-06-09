@@ -661,3 +661,126 @@ input.enabled {
     background-color: #fff7e6;
     transition: background-color 0.3s ease;
 }
+
+.form-endereco-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 16px;
+}
+
+/* Grid de largura por linha */
+.form-full {
+    grid-column: 1 / -1;
+}
+.form-cep {
+    grid-column: span 4;
+}
+.form-logradouro {
+    grid-column: span 6;
+}
+.form-numero {
+    grid-column: span 2;
+}
+.form-complemento {
+    grid-column: span 4;
+}
+.form-bairro {
+    grid-column: span 4;
+}
+.form-cidade {
+    grid-column: span 5;
+}
+.form-estado {
+    grid-column: span 3;
+}
+.form-ponto-referencia {
+    grid-column: span 6;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .form-endereco-grid {
+        grid-template-columns: 1fr;
+    }
+    .form-cep,
+    .form-logradouro,
+    .form-numero,
+    .form-complemento,
+    .form-bairro,
+    .form-cidade,
+    .form-estado,
+    .form-ponto-referencia {
+        grid-column: 1 / -1;
+    }
+}
+
+.form-endereco-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Agrupamentos em linhas */
+.endereco-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    width: 100%;
+}
+
+/* Tamanhos proporcionais */
+.endereco-cep {
+    flex: 1 1 25%;
+    min-width: 150px;
+}
+
+.endereco-logradouro {
+    flex: 1 1 55%;
+}
+
+.endereco-numero {
+    flex: 1 1 10%;
+    min-width: 80px;
+    max-width: 100px;
+}
+
+.endereco-complemento {
+    flex: 1 1 30%;
+    min-width: 200px;
+}
+
+.endereco-bairro,
+.endereco-cidade {
+    flex: 1 1 40%;
+}
+
+.endereco-estado {
+    flex: 1 1 10%;
+    max-width: 80px;
+}
+
+.endereco-ponto-referencia {
+    flex: 1 1 50%;
+}
+
+.endereco-full {
+    flex: 1 1 100%;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .endereco-row {
+        flex-direction: column;
+    }
+
+    .endereco-cep,
+    .endereco-logradouro,
+    .endereco-numero,
+    .endereco-complemento,
+    .endereco-bairro,
+    .endereco-cidade,
+    .endereco-estado,
+    .endereco-ponto-referencia {
+        flex: 1 1 100%;
+    }
+}
