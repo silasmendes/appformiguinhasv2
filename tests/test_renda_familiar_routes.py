@@ -1,4 +1,5 @@
 import pytest
+from decimal import Decimal
 from app import create_app
 
 _familia_id_renda = None
@@ -84,7 +85,7 @@ def test_put_renda(client):
     response = client.put(f"/renda_familiar/{_renda_id_gerada}", json=update_payload)
     assert response.status_code == 200
     data = response.get_json()
-    assert data["gastos_supermercado"] == 150.0
+    assert Decimal(data["gastos_supermercado"]) == Decimal("150.00")
 
 
 def test_delete_renda(client):
