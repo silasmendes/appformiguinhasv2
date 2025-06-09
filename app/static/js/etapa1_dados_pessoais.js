@@ -1,7 +1,8 @@
 // JS para etapa 1 - dados pessoais
 function validarCPF(cpf) {
     cpf = cpf.replace(/\D/g, '');
-    if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+    if (cpf === '' || /^(\d)\1{10}$/.test(cpf)) return true;
+    if (cpf.length !== 11) return false;
     let soma = 0;
     for (let i = 0; i < 9; i++) soma += parseInt(cpf.charAt(i)) * (10 - i);
     let digito1 = 11 - (soma % 11);
@@ -44,19 +45,40 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     const cpfInput = document.getElementById('cpf');
-    cpfInput.addEventListener('input', function(e) {
-        this.value = aplicarMascaraCPF(this.value);
-    });
-    cpfInput.addEventListener('blur', function() {
-        const valido = validarCPF(this.value);
-        if (!valido && this.value !== '') {
-            alert('CPF inválido');
-            this.focus();
+    const btnProxima = document.getElementById('btnProxima');
+    const form = document.getElementById('formEtapa1');
+    const requiredInputs = form.querySelectorAll('[required]');
+
+    function exibirValidacaoCPF() {
+        const valido = validarCPF(cpfInput.value);
+        if (!valido) {
+            cpfInput.classList.add('is-invalid');
+        } else {
+            cpfInput.classList.remove('is-invalid');
         }
+        return valido;
+    }
+
+    function atualizarEstadoBotao() {
+        const cpfOk = exibirValidacaoCPF();
+        btnProxima.disabled = !(cpfOk && form.checkValidity());
+    }
+
+    cpfInput.addEventListener('input', function() {
+        this.value = aplicarMascaraCPF(this.value);
+        atualizarEstadoBotao();
     });
 
-    document.getElementById('btnProxima').addEventListener('click', function() {
-        const form = document.getElementById('formEtapa1');
+    cpfInput.addEventListener('blur', exibirValidacaoCPF);
+
+    requiredInputs.forEach(function(el) {
+        el.addEventListener('input', atualizarEstadoBotao);
+        el.addEventListener('change', atualizarEstadoBotao);
+    });
+
+    atualizarEstadoBotao();
+
+    btnProxima.addEventListener('click', function() {
         console.log('Dados do formulário etapa 1:', Object.fromEntries(new FormData(form).entries()));
     });
 });

@@ -42,6 +42,7 @@
     <div class="mb-3">
         <label for="cpf" class="form-label">CPF do responsável</label>
         <input type="text" class="form-control" id="cpf" name="cpf" placeholder="000.000.000-00" required>
+        <div id="cpf-feedback" class="invalid-feedback">CPF inválido</div>
     </div>
     <div class="mb-3">
         <label class="form-label">Autoriza o uso de imagem em registros e divulgações?</label>
@@ -57,7 +58,7 @@
         </div>
     </div>
     <div class="text-end">
-        <button type="button" class="btn btn-primary" id="btnProxima">Próxima etapa</button>
+        <button type="button" class="btn btn-primary" id="btnProxima" disabled>Próxima etapa</button>
     </div>
 </form>
 {% endblock %}

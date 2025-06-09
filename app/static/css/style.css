@@ -100,9 +100,12 @@ body {
     color: #dc3545;
 }
 
-/* Estilo movido do cadastrar_familia.html */
+/* Feedback de validação do CPF */
 #cpf-feedback {
     display: none;
+}
+.is-invalid ~ #cpf-feedback {
+    display: block;
 }
 
 /* Footer */
