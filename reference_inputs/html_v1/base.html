@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{% block title %}Formiguinhas App{% endblock %}</title>
+        <!-- Bootstrap CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <!-- CSS Personalizado -->
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+        <!-- Font Awesome -->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+        <!-- jQuery e Inputmask -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.8/jquery.inputmask.min.js"></script>
+        {% block extra_css %}{% endblock %}
+    </head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <img src="{{ url_for('static', filename='formiguinhas_logo.png') }}" alt="Formiguinhas Logo">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/cadastrar_familia">
+                            <i class="fas fa-user-plus me-1"></i>Cadastro inicial da família
+                        </a>
+                    </li>                
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('listar_familias_interacao') }}">
+                            <i class="fas fa-handshake me-1"></i>Entrevista para retirada da cesta
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('acompanhamento_demandas') }}">
+                            <i class="fas fa-tasks me-1"></i>Acompanhamento de Demandas
+                        </a>
+                    </li>
+                    {% if session.get('tipo_usuario') == 'ADMINISTRATIVO' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('relatorios') }}">
+                            <i class="fas fa-chart-bar me-1"></i>Relatórios
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('pagina_exportar_excel') }}">
+                            <i class="fas fa-file-excel me-1"></i>Exportar Excel
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('gerenciar_usuarios') }}">
+                            <i class="fas fa-users-cog me-1"></i>Gerenciar Usuários
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout">
+                            <i class="fas fa-sign-out-alt me-1"></i>Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Container Principal -->
+    <div class="container mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p class="mb-0">Formiguinhas Solidárias - v2025_06_07</p>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Scripts existentes -->
+    <script>
+        // Aplicando a máscara ao campo CPF
+        document.addEventListener("DOMContentLoaded", function () {
+            var cpfField = document.getElementById("cpf_responsavel");
+            Inputmask({
+                mask: "999.999.999-99",
+                placeholder: "000.000.000-00", // Placeholder opcional
+                clearIncomplete: true, // Apaga o input caso não seja completado
+            }).mask(cpfField);
+        });
+    </script>
+    <script>
+        // Aplicar a máscara para o CPF
+        Inputmask({
+            mask: "999.999.999-99",
+            placeholder: "000.000.000-00"
+        }).mask("#cpf_responsavel");
+
+        // Aplicar a máscara para o telefone
+        Inputmask({
+            mask: "(99) 99999-9999",
+            placeholder: "(00) 00000-0000",
+            clearIncomplete: false
+        }).mask("#telefone_responsavel");
+    </script>
+
+    <script>
+        // Aplicar a máscara para o CEP
+        Inputmask({
+            mask: "99999-999",
+            placeholder: "00000-000",
+            clearIncomplete: true
+        }).mask("#cep");
+    </script>    
+
+    <script>
+            // Captura todos os inputs e botões focáveis
+            document.addEventListener('DOMContentLoaded', function() {
+                // Seleciona todos os elementos focáveis em ordem de tabulação
+                const focusableElements = document.querySelectorAll(
+                    'input, select, textarea, button, a[href], [tabindex]:not([tabindex="-1"])'
+                );
+                
+                // Converte para array para facilitar a manipulação
+                const elements = Array.from(focusableElements);
+                
+                elements.forEach((element, index) => {
+                    element.addEventListener('keydown', (event) => {
+                        if (event.key === "Enter" && !event.shiftKey) {
+                            // Previne o comportamento padrão apenas se não for um botão ou textarea
+                            if (element.tagName !== 'BUTTON' && element.tagName !== 'TEXTAREA') {
+                                event.preventDefault();
+                            }
+                        }
+                    });
+                });
+            });
+    </script>
+
+    <script>
+        function formatCurrency(input) {
+            if (!input) return;
+
+            // Get the cursor position before formatting
+            const cursorPosition = input.selectionStart;
+            const previousLength = input.value.length;
+
+            // Remove any non-digit character except minus sign
+            let value = input.value.replace(/[^\d-]/g, '');
+            let isNegative = value.startsWith('-');
+            
+            // Remove minus sign for processing
+            value = value.replace(/-/g, '');
+            
+            // Convert to number and divide by 100 to handle cents
+            value = (parseInt(value || '0') / 100).toFixed(2);
+            
+            // Format to Brazilian currency
+            value = value.replace('.', ',');
+            value = value.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+            
+            // Add R$ prefix and minus sign if negative
+            input.value = `${isNegative ? '-' : ''}R$ ${value}`;
+            
+            // Store the raw decimal value in a data attribute (with minus sign if negative)
+            input.dataset.rawValue = (isNegative ? '-' : '') + (parseInt(input.value.replace(/\D/g, '')) / 100).toFixed(2);
+
+            // Adjust cursor position after formatting
+            if (document.activeElement === input) {
+                const newLength = input.value.length;
+                const lengthDiff = newLength - previousLength;
+                const newPosition = cursorPosition + lengthDiff;
+                input.setSelectionRange(newPosition, newPosition);
+            }
+        }
+        
+        // Add input event listeners to all currency inputs
+        document.addEventListener('DOMContentLoaded', function() {
+            const currencyInputs = document.querySelectorAll('.renda-decimal');
+            
+            currencyInputs.forEach(input => {
+                // Format on input
+                input.addEventListener('input', function(e) {
+                    const onlyNumbers = this.value.replace(/[^\d-]/g, '');
+                    if (onlyNumbers.length > 15) {
+                        this.value = this.dataset.previousValue || '';
+                        return;
+                    }
+                    this.dataset.previousValue = this.value;
+                    formatCurrency(this);
+                });
+                
+                // Keep formatting on focus
+                input.addEventListener('focus', function() {
+                    if (!this.value) {
+                        this.value = 'R$ 0,00';
+                        this.dataset.rawValue = '0.00';
+                    }
+                    // Move cursor to end if user clicks on empty field
+                    if (this.value === 'R$ 0,00') {
+                        this.setSelectionRange(this.value.length, this.value.length);
+                    }
+                });
+                
+                // Ensure proper formatting on blur
+                input.addEventListener('blur', function() {
+                    if (!this.value || this.value === 'R$ 0,00') {
+                        this.value = 'R$ 0,00';
+                        this.dataset.rawValue = '0.00';
+                    } else {
+                        formatCurrency(this);
+                    }
+                });
+
+                // Initial formatting
+                if (!input.value) {
+                    input.value = 'R$ 0,00';
+                    input.dataset.rawValue = '0.00';
+                } else {
+                    formatCurrency(input);
+                }
+            });
+
+            // Handle form submission
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    currencyInputs.forEach(input => {
+                        // Use the raw value stored in data attribute
+                        input.value = input.dataset.rawValue || '0.00';
+                    });
+                });
+            }
+        });
+    </script>
+
+        <script>
+            // Date validation
+            document.addEventListener('DOMContentLoaded', function() {
+                // Calculate the date 10 years ago
+                const today = new Date();
+                const tenYearsAgo = new Date(today.getFullYear() - 10, today.getMonth(), today.getDate());
+                
+                // Format the date to YYYY-MM-DD for the max attribute
+                const maxDate = tenYearsAgo.toISOString().split('T')[0];
+                
+                // Set the max attribute for the date input
+                const dateInput = document.getElementById('data_nascimento_resp');
+                if (dateInput) {
+                    dateInput.max = maxDate;
+                    
+                    // Add event listener for additional validation
+                    dateInput.addEventListener('change', function() {
+                        const selectedDate = new Date(this.value);
+                        if (selectedDate > tenYearsAgo) {
+                            alert('A data de nascimento deve ser anterior a ' + maxDate.split('-').reverse().join('/') + 
+                                ' (pessoa deve ter pelo menos 10 anos de idade).');
+                            this.value = ''; // Clear invalid input
+                        }
+                    });
+                }
+            });
+        </script>
+
+        <script>
+            // ... your existing code ...
+
+            // Phone mask for alternative phone
+            document.addEventListener('DOMContentLoaded', function() {
+                const phoneInputsAlt = document.querySelectorAll('.phone-mask-alt');
+                
+                phoneInputsAlt.forEach(input => {
+                    input.addEventListener('input', function(e) {
+                        let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+                        
+                        if (value.length > 0) {
+                            // Format the area code
+                            value = '(' + value;
+                            
+                            if (value.length > 3) {
+                                // Add closing parenthesis after area code
+                                value = value.substring(0, 3) + ') ' + value.substring(3);
+                            }
+                        }
+                        
+                        // Limit to max 11 digits (2 for area code + 9 for number)
+                        if (value.replace(/\D/g, '').length > 11) {
+                            value = value.substring(0, value.length - 1);
+                        }
+                        
+                        e.target.value = value;
+                    });
+                    
+                    // Clean up on blur if incomplete
+                    input.addEventListener('blur', function() {
+                        let value = this.value.replace(/\D/g, '');
+                        if (value.length < 3) {
+                            this.value = '';
+                        }
+                    });
+                });
+            });
+        </script>
+
+        <script>
+            // ... your existing code ...
+
+            // Email validation
+            document.addEventListener('DOMContentLoaded', function() {
+                const emailInputs = document.querySelectorAll('.email-validation');
+                
+                emailInputs.forEach(input => {
+                    input.addEventListener('blur', function() {
+                        // If field is empty, it's valid
+                        if (!this.value) {
+                            this.classList.remove('is-invalid');
+                            return;
+                        }
+                        
+                        // Email regex pattern
+                        const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                        
+                        if (!emailPattern.test(this.value)) {
+                            this.classList.add('is-invalid');
+                            // Create or update the feedback div
+                            let feedback = this.nextElementSibling;
+                            if (!feedback || !feedback.classList.contains('invalid-feedback')) {
+                                feedback = document.createElement('div');
+                                feedback.classList.add('invalid-feedback');
+                                this.parentNode.insertBefore(feedback, this.nextSibling);
+                            }
+                            feedback.textContent = 'Por favor, insira um email válido ou deixe em branco';
+                        } else {
+                            this.classList.remove('is-invalid');
+                            // Remove the feedback div if it exists
+                            const feedback = this.nextElementSibling;
+                            if (feedback && feedback.classList.contains('invalid-feedback')) {
+                                feedback.remove();
+                            }
+                        }
+                    });
+                });
+            });
+        </script>
+
+        <script>
+            // ... your existing code ...
+
+            // CEP auto-complete and manual address handling
+            document.addEventListener('DOMContentLoaded', function() {
+                const cepInput = document.getElementById('cep');
+                const manualAddressCheckbox = document.getElementById('manual_address');
+                const addressFields = ['logradouro', 'bairro', 'cidade', 'estado'];
+                
+                // Function to toggle readonly status of address fields
+                function toggleAddressFields(enableEdit) {
+                    addressFields.forEach(fieldId => {
+                        const field = document.getElementById(fieldId);
+                        field.readOnly = !enableEdit;
+                    });
+                }
+                
+                // Handle manual address checkbox
+                if (manualAddressCheckbox) {
+                    manualAddressCheckbox.addEventListener('change', function() {
+                        toggleAddressFields(this.checked);
+                        if (this.checked) {
+                            // Optional: Clear fields when switching to manual mode
+                            // clearAddressFields();
+                        }
+                    });
+                }
+
+                if (cepInput) {
+                    // Add CEP mask
+                    cepInput.addEventListener('input', function(e) {
+                        let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+                        if (value.length > 8) value = value.slice(0, 8);
+                        if (value.length > 5) {
+                            value = value.slice(0, 5) + '-' + value.slice(5);
+                        }
+                        e.target.value = value;
+                    });
+
+                    // Search address when CEP is complete
+                    cepInput.addEventListener('blur', function(e) {
+                        const cep = e.target.value.replace(/\D/g, '');
+                        if (cep.length === 8 && !manualAddressCheckbox.checked) {
+                            fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (!data.erro) {
+                                        document.getElementById('logradouro').value = data.logradouro;
+                                        document.getElementById('bairro').value = data.bairro;
+                                        document.getElementById('cidade').value = data.localidade;
+                                        document.getElementById('estado').value = data.estado;
+                                        
+                                        // Focus on número after auto-fill
+                                        document.getElementById('numero').focus();
+                                    } else {
+                                        alert('CEP não encontrado.');
+                                        clearAddressFields();
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Erro ao buscar CEP:', error);
+                                    alert('Erro ao buscar CEP. Tente novamente.');
+                                    clearAddressFields();
+                                });
+                        } else if (cep.length > 0 && !manualAddressCheckbox.checked) {
+                            alert('CEP inválido. Digite os 8 dígitos do CEP.');
+                            clearAddressFields();
+                        }
+                    });
+                }
+            });
+
+            function clearAddressFields() {
+                document.getElementById('logradouro').value = '';
+                document.getElementById('bairro').value = '';
+                document.getElementById('cidade').value = '';
+                document.getElementById('estado').value = '';
+            }
+        </script>
+
+        <script>
+            // ... your existing code ...
+
+            document.addEventListener('DOMContentLoaded', function() {
+                const form = document.querySelector('form');
+                
+                // Check if we're on the buscar_familia page
+                const isBuscaFamiliaPage = window.location.pathname.includes('buscar_familia');
+                
+                const requiredFields = {
+                    'nome_responsavel': 'Nome do responsável',
+                    'data_nascimento_resp': 'Data de nascimento',
+                    'autoriza_uso_imagem': 'Autorização de uso de imagem',
+                    'cpf_responsavel': 'CPF'
+                };
+
+                // Add error message elements after each field
+                Object.keys(requiredFields).forEach(fieldName => {
+                    const field = document.querySelector(`[name="${fieldName}"]`);
+                    if (field) {
+                        const container = field.type === 'radio' ? 
+                            field.closest('.form-check').parentElement : 
+                            field.parentElement;
+                        
+                        if (!container.querySelector('.error-message')) {
+                            const errorDiv = document.createElement('div');
+                            errorDiv.className = 'error-message';
+                            errorDiv.id = `${fieldName}-error`;
+                            errorDiv.textContent = isBuscaFamiliaPage && (fieldName === 'nome_responsavel' || fieldName === 'cpf_responsavel') ?
+                                'Informe ao menos um dos campos (CPF ou Nome)' :
+                                'Esta informação é obrigatória';
+                            container.appendChild(errorDiv);
+                        }
+                    }
+                });
+
+                // Validate individual fields on blur
+                Object.keys(requiredFields).forEach(fieldName => {
+                    const elements = document.getElementsByName(fieldName);
+                    
+                    if (elements[0].type === 'radio') {
+                        // For radio button groups
+                        elements.forEach(radio => {
+                            radio.addEventListener('change', () => validateField(fieldName));
+                        });
+                    } else {
+                        // For other input types
+                        elements[0].addEventListener('blur', () => {
+                            // Special handling for busca_familia page
+                            if (isBuscaFamiliaPage && (fieldName === 'nome_responsavel' || fieldName === 'cpf_responsavel')) {
+                                validateBuscaFields();
+                            } else {
+                                validateField(fieldName);
+                            }
+                        });
+                    }
+                });
+
+                // Special validation for busca_familia page
+                function validateBuscaFields() {
+                    const cpfField = document.getElementById('cpf_responsavel');
+                    const nomeField = document.getElementById('nome_responsavel');
+                    const cpfError = document.getElementById('cpf_responsavel-error');
+                    const nomeError = document.getElementById('nome_responsavel-error');
+                    
+                    if (!cpfField || !nomeField) return true;
+                    
+                    const cpfValue = cpfField.value.trim();
+                    const nomeValue = nomeField.value.trim();
+                    
+                    const isValid = cpfValue !== '' || nomeValue !== '';
+                    
+                    if (!isValid) {
+                        cpfField.classList.add('is-invalid');
+                        nomeField.classList.add('is-invalid');
+                        if (cpfError) cpfError.style.display = 'block';
+                        if (nomeError) nomeError.style.display = 'block';
+                    } else {
+                        cpfField.classList.remove('is-invalid');
+                        nomeField.classList.remove('is-invalid');
+                        if (cpfError) cpfError.style.display = 'none';
+                        if (nomeError) nomeError.style.display = 'none';
+                    }
+                    
+                    return isValid;
+                }
+
+                // Validate field
+                function validateField(fieldName) {
+                    // Skip validation for busca_familia fields as they're handled separately
+                    if (isBuscaFamiliaPage && (fieldName === 'nome_responsavel' || fieldName === 'cpf_responsavel')) {
+                        return true;
+                    }
+                    
+                    const elements = document.getElementsByName(fieldName);
+                    const errorDiv = document.getElementById(`${fieldName}-error`);
+                    let isValid = false;
+
+                    if (elements[0].type === 'radio') {
+                        isValid = Array.from(elements).some(radio => radio.checked);
+                        const container = elements[0].closest('.form-check').parentElement;
+                        
+                        if (!isValid) {
+                            container.classList.add('radio-group-invalid');
+                            errorDiv.style.display = 'block';
+                        } else {
+                            container.classList.remove('radio-group-invalid');
+                            errorDiv.style.display = 'none';
+                        }
+                    } else {
+                        isValid = elements[0].value.trim() !== '';
+                        
+                        if (!isValid) {
+                            elements[0].classList.add('is-invalid');
+                            errorDiv.style.display = 'block';
+                        } else {
+                            elements[0].classList.remove('is-invalid');
+                            errorDiv.style.display = 'none';
+                        }
+                    }
+
+                    return isValid;
+                }
+
+                // Form submission handler
+                form.addEventListener('submit', function(e) {
+                    let isValid = true;
+
+                    if (isBuscaFamiliaPage) {
+                        isValid = validateBuscaFields();
+                    } else {
+                    // Validate all required fields
+                    Object.keys(requiredFields).forEach(fieldName => {
+                        if (!validateField(fieldName)) {
+                            isValid = false;
+                        }
+                    });
+                    }
+
+                    if (!isValid) {
+                        e.preventDefault();
+                        if (isBuscaFamiliaPage) {
+                            alert('Por favor, informe ao menos um dos campos (CPF ou Nome) antes de enviar o formulário.');
+                        } else {
+                        alert('Por favor, preencha todos os campos obrigatórios antes de enviar o formulário.');
+                        }
+                        
+                        // Scroll to first error
+                        const firstError = document.querySelector('.is-invalid, .radio-group-invalid');
+                        if (firstError) {
+                            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }
+                });
+            });
+        </script>
+
+        <script>
+            function validarCPF(cpf) {
+                // Remove caracteres não numéricos
+                cpf = cpf.replace(/\D/g, '');
+
+                // Verifica se tem 11 dígitos
+                if (cpf.length !== 11) return false;
+
+                // Verifica se todos os dígitos são iguais
+                if (/^(\d)\1{10}$/.test(cpf)) return false;
+
+                // Validação do primeiro dígito verificador
+                let soma = 0;
+                for (let i = 0; i < 9; i++) {
+                    soma += parseInt(cpf.charAt(i)) * (10 - i);
+                }
+                let digito1 = 11 - (soma % 11);
+                if (digito1 > 9) digito1 = 0;
+                if (digito1 !== parseInt(cpf.charAt(9))) return false;
+
+                // Validação do segundo dígito verificador
+                soma = 0;
+                for (let i = 0; i < 10; i++) {
+                    soma += parseInt(cpf.charAt(i)) * (11 - i);
+                }
+                let digito2 = 11 - (soma % 11);
+                if (digito2 > 9) digito2 = 0;
+                if (digito2 !== parseInt(cpf.charAt(10))) return false;
+
+                return true;
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                const cpfInput = document.getElementById('cpf_responsavel');
+                
+                if (cpfInput) {
+                    // Verifica se está na página de busca
+                    const isBuscaPage = window.location.pathname.includes('buscar_familia');
+                    const isListarInteracaoPage = window.location.pathname.includes('listar_familias_interacao');
+                    const isRegistrarVisitaPage = window.location.pathname.includes('registrar_visita');
+                    const isAcompanhamentoDemandasPage = window.location.pathname.includes('acompanhamento_demandas');
+                    
+                    // Aplica apenas a máscara na página de busca e registro de interação
+                    if (isBuscaPage || isListarInteracaoPage || isRegistrarVisitaPage || isAcompanhamentoDemandasPage) {
+                        cpfInput.addEventListener('input', function(e) {
+                            let value = e.target.value.replace(/\D/g, '');
+                            if (value.length > 11) value = value.slice(0, 11);
+                            if (value.length > 9) {
+                                value = value.slice(0, 3) + '.' + 
+                                       value.slice(3, 6) + '.' + 
+                                       value.slice(6, 9) + '-' + 
+                                       value.slice(9);
+                            } else if (value.length > 6) {
+                                value = value.slice(0, 3) + '.' + 
+                                       value.slice(3, 6) + '.' + 
+                                       value.slice(6);
+                            } else if (value.length > 3) {
+                                value = value.slice(0, 3) + '.' + value.slice(3);
+                            }
+                            e.target.value = value;
+                        });
+                    } 
+                    // Aplica validação completa apenas nas páginas de cadastro/alteração
+                    else {
+                        // Adiciona validação quando o campo perde o foco
+                        cpfInput.addEventListener('blur', function() {
+                            const cpf = this.value.replace(/\D/g, '');
+                            
+                            // Se o campo não estiver vazio, valida o CPF
+                            if (cpf) {
+                                if (!validarCPF(cpf)) {
+                                    alert('CPF inválido. Por favor, verifique o número informado.');
+                                    this.value = '';
+                                    this.focus();
+                                    return;
+                                }
+                                
+                                // Se o CPF for válido, continua com a verificação existente no banco
+                                if (this.value.length === 14) {
+                                    fetch('/verificar_cpf', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/x-www-form-urlencoded',
+                                        },
+                                        body: 'cpf=' + encodeURIComponent(this.value)
+                                    })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.exists) {
+                                            alert(`CPF já cadastrado para ${data.nome} em ${data.data}`);
+                                            this.value = '';
+                                            this.focus();
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Erro ao verificar CPF:', error);
+                                    });
+                                }
+                            }
+                        });
+
+                        // Mantém a máscara
+                        cpfInput.addEventListener('input', function(e) {
+                            let value = e.target.value.replace(/\D/g, '');
+                            if (value.length > 11) value = value.slice(0, 11);
+                            if (value.length > 9) {
+                                value = value.slice(0, 3) + '.' + 
+                                       value.slice(3, 6) + '.' + 
+                                       value.slice(6, 9) + '-' + 
+                                       value.slice(9);
+                            } else if (value.length > 6) {
+                                value = value.slice(0, 3) + '.' + 
+                                       value.slice(3, 6) + '.' + 
+                                       value.slice(6);
+                            } else if (value.length > 3) {
+                                value = value.slice(0, 3) + '.' + value.slice(3);
+                            }
+                            e.target.value = value;
+                        });
+                    }
+                }
+            });
+        </script>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Obtém o formulário de busca
+                const searchForm = document.querySelector('form[action*="registrar_visita"]');
+                
+                if (searchForm) {
+                    const cpfInput = searchForm.querySelector('#cpf_responsavel');
+                    const nomeInput = searchForm.querySelector('#nome_responsavel');
+                    const submitButton = searchForm.querySelector('button[type="submit"]');
+
+                    // Função para processar o envio do formulário
+                    const handleSubmit = () => {
+                        if (cpfInput.value.trim() || nomeInput.value.trim()) {
+                            submitButton.focus(); // Move o foco para o botão "Buscar"
+                            searchForm.submit();  // Envia o formulário
+                        }
+                    };
+
+                    // Adiciona evento de tecla para os campos CPF e Nome
+                    [cpfInput, nomeInput].forEach(input => {
+                        if (input) {
+                            input.addEventListener('keypress', (e) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault(); // Impede o envio padrão
+                                    handleSubmit(); // Chama a função de envio
+                                }
+                            });
+                        }
+                    });
+
+                    // Aplica máscara ao CPF se estiver na página de registro de visita
+                    if (cpfInput) {
+                        cpfInput.addEventListener('input', function(e) {
+                            let value = e.target.value.replace(/\D/g, '');
+                            if (value.length > 11) value = value.slice(0, 11);
+                            if (value.length > 9) {
+                                value = value.slice(0, 3) + '.' + 
+                                       value.slice(3, 6) + '.' + 
+                                       value.slice(6, 9) + '-' + 
+                                       value.slice(9);
+                            } else if (value.length > 6) {
+                                value = value.slice(0, 3) + '.' + 
+                                       value.slice(3, 6) + '.' + 
+                                       value.slice(6);
+                            } else if (value.length > 3) {
+                                value = value.slice(0, 3) + '.' + value.slice(3);
+                            }
+                            e.target.value = value;
+                        });
+                    }
+                }
+            });
+        </script>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Função para controlar a visibilidade do campo "Outro"
+                function toggleSexoOutroInput(event) {
+                    const sexoOutroRadio = document.getElementById('sexo_outro');
+                    const sexoOutroInputContainer = document.querySelector('.sexo-outro-input-container');
+                    const sexoOutroInput = document.getElementById('sexo_outro_input');
+                    
+                    if (sexoOutroRadio.checked) {
+                        sexoOutroInputContainer.classList.add('visible');
+                        sexoOutroInput.disabled = false;
+                        // Só foca no campo se for uma interação do usuário (evento change)
+                        if (event && event.type === 'change') {
+                            sexoOutroInput.focus();
+                        }
+                    } else {
+                        sexoOutroInputContainer.classList.remove('visible');
+                        sexoOutroInput.disabled = true;
+                        sexoOutroInput.value = '';
+                    }
+                }
+
+                // Adicionar event listeners para os radio buttons de sexo
+                document.querySelectorAll('input[name="sexo"]').forEach(radio => {
+                    radio.addEventListener('change', toggleSexoOutroInput);
+                });
+
+                // Verificar o estado inicial sem evento (não vai focar)
+                toggleSexoOutroInput();
+            });
+        </script>
+        
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Campos que compõem a soma
+            const rendaInputs = [
+                'renda_arrimo',
+                'renda_outros_familiares',
+                'auxilio_parentes_amigos',
+                'valor_total_beneficios'
+            ];
+            
+            const rendaTotalInput = document.getElementById('renda_familiar_total');
+            
+            console.log('Total Gastos Input:', rendaTotalInput);
+            
+            // Função para calcular e atualizar a renda total
+            function updateRendaTotal() {
+                // Só procede se encontrou o campo de renda total
+                if (!rendaTotalInput) return;
+                
+                let total = 0;
+                
+                // Soma os valores de todos os campos
+                rendaInputs.forEach(inputId => {
+                    const input = document.getElementById(inputId);
+                    if (input && input.dataset.rawValue) {
+                        total += parseFloat(input.dataset.rawValue) || 0;
+                    }
+                });
+                
+                // Atualiza o campo de renda total
+                rendaTotalInput.value = total.toFixed(2);
+                rendaTotalInput.dataset.rawValue = total.toFixed(2);
+                formatCurrency(rendaTotalInput);
+            }
+            
+            // Adiciona listeners para todos os campos de renda
+            rendaInputs.forEach(inputId => {
+                const input = document.getElementById(inputId);
+                if (input) {
+                    input.addEventListener('input', updateRendaTotal);
+                    input.addEventListener('blur', updateRendaTotal);
+                }
+            });
+            
+            // Permite edição manual do campo de renda total
+            if (rendaTotalInput) {
+                rendaTotalInput.addEventListener('input', function() {
+                    // O formatCurrency já está sendo chamado pelo evento input
+                    // através do listener adicionado à classe .renda-decimal
+                });
+            }
+        });
+    </script>        
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Function to handle conditional field toggling
+            function setupConditionalFields() {
+                // Find all radio groups with conditional fields
+                document.querySelectorAll('[data-toggle-field]').forEach(radio => {
+                    const targetFieldId = radio.getAttribute('data-toggle-field');
+                    const enableOnValue = radio.getAttribute('data-enable-on') || radio.value;
+                    const targetField = document.getElementById(targetFieldId);
+                    
+                    if (!targetField) return;
+
+                    // Function to update field state
+                    function updateFieldState() {
+                        const radioGroup = document.getElementsByName(radio.name);
+                        let selectedValue = null;
+                        
+                        // Find which radio is selected
+                        radioGroup.forEach(rb => {
+                            if (rb.checked) {
+                                selectedValue = rb.value.toLowerCase();
+                            }
+                        });
+
+                        // Enable/disable based on selection
+                        // Handle both "True"/"False" and "sim"/"nao" values
+                        const shouldEnable = selectedValue === enableOnValue.toLowerCase() || 
+                                          (selectedValue === 'true' && enableOnValue.toLowerCase() === 'sim') ||
+                                          (selectedValue === 'sim' && enableOnValue.toLowerCase() === 'true');
+                        
+                        // Toggle visibility of the target field and its label
+                        if (shouldEnable) {
+                            targetField.style.display = 'block';
+                            const label = document.querySelector(`label[for="${targetFieldId}"]`);
+                            if (label) {
+                                label.style.display = 'block';
+                            }
+                        } else {
+                            targetField.style.display = 'none';
+                            const label = document.querySelector(`label[for="${targetFieldId}"]`);
+                            if (label) {
+                                label.style.display = 'none';
+                            }
+                        }
+                    }
+
+                    // Add change listener to all radios in the group
+                    document.getElementsByName(radio.name).forEach(rb => {
+                        rb.addEventListener('change', updateFieldState);
+                    });
+
+                    // Initial state - force update
+                    updateFieldState();
+                });
+
+                // Special handling for the deficiência fields
+                const possuiDeficienciaRadios = document.getElementsByName('possui_deficiencia');
+                const qualDeficienciaField = document.getElementById('qual_deficiencia');
+                const bpcSection = document.getElementById('bpc_section');
+
+                function updateDeficienciaFields() {
+                    const possuiDeficiencia = Array.from(possuiDeficienciaRadios).find(rb => rb.checked)?.value;
+                    
+                    if (qualDeficienciaField) {
+                        qualDeficienciaField.disabled = possuiDeficiencia !== 'sim';
+                    }
+                    
+                    if (bpcSection) {
+                        bpcSection.style.display = possuiDeficiencia === 'sim' ? 'block' : 'none';
+                    }
+                }
+
+                // Add change listeners
+                Array.from(possuiDeficienciaRadios).forEach(radio => {
+                    radio.addEventListener('change', updateDeficienciaFields);
+                });
+
+                // Initial state
+                updateDeficienciaFields();
+
+                // Special handling for the valor_aluguel field
+                const tipoMoradiaRadios = document.getElementsByName('tipo_moradia');
+                const valorAluguelField = document.getElementById('valor_aluguel');
+                const valorAluguelLabel = document.querySelector('label[for="valor_aluguel"]');
+
+                function updateValorAluguelField() {
+                    const tipoMoradia = Array.from(tipoMoradiaRadios).find(rb => rb.checked)?.value;
+                    const isAlugada = tipoMoradia === 'alugada';
+                    
+                    if (valorAluguelField) {
+                        valorAluguelField.disabled = !isAlugada;
+                        valorAluguelField.style.display = isAlugada ? 'block' : 'none';
+                    }
+                    
+                    if (valorAluguelLabel) {
+                        valorAluguelLabel.style.display = isAlugada ? 'block' : 'none';
+                    }
+                }
+
+                // Add change listeners
+                Array.from(tipoMoradiaRadios).forEach(radio => {
+                    radio.addEventListener('change', updateValorAluguelField);
+                });
+
+                // Initial state
+                updateValorAluguelField();
+            }
+
+            // Initialize conditional fields
+            setupConditionalFields();
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Campos que compõem os gastos básicos mensais
+            const gastosInputs = [
+                'gastos_supermercado',
+                'gastos_energia_eletrica',
+                'gastos_gas',
+                'gastos_transporte',
+                'gastos_medicamentos',
+                'gastos_conta_celular',
+                'gastos_outros',
+                'valor_aluguel',
+                'gastos_agua'
+            ];
+            
+            const totalGastosInput = document.getElementById('total_gastos');
+            const rendaFamiliarInput = document.getElementById('renda_familiar_total');
+            const saldoRestanteInput = document.getElementById('saldo');
+            
+            // Campos que compõem a renda familiar
+            const rendaInputs = [
+                'renda_arrimo',
+                'renda_outros_familiares',
+                'auxilio_parentes_amigos',
+                'valor_total_beneficios'
+            ];
+            
+            // Função para calcular e atualizar o total de gastos
+            function updateTotalGastos() {
+                if (!totalGastosInput) return;
+                
+                let total = 0;
+                
+                // Soma os valores de todos os campos de gastos
+                gastosInputs.forEach(inputId => {
+                    const input = document.getElementById(inputId);
+                    if (input && input.dataset.rawValue) {
+                        total += parseFloat(input.dataset.rawValue) || 0;
+                    }
+                });
+                
+                // Atualiza o campo de total de gastos
+                totalGastosInput.value = total.toFixed(2);
+                totalGastosInput.dataset.rawValue = total.toFixed(2);
+                formatCurrency(totalGastosInput);
+                
+                // Atualiza o saldo restante
+                updateSaldoRestante();
+            }
+
+            // Função para calcular e atualizar a renda total
+            function updateRendaTotal() {
+                if (!rendaFamiliarInput) return;
+                
+                let total = 0;
+                
+                // Soma os valores de todos os campos de renda
+                rendaInputs.forEach(inputId => {
+                    const input = document.getElementById(inputId);
+                    if (input && input.dataset.rawValue) {
+                        total += parseFloat(input.dataset.rawValue) || 0;
+                    }
+                });
+                
+                // Atualiza o campo de renda familiar total
+                rendaFamiliarInput.value = total.toFixed(2);
+                rendaFamiliarInput.dataset.rawValue = total.toFixed(2);
+                formatCurrency(rendaFamiliarInput);
+                
+                // Atualiza o saldo restante
+                updateSaldoRestante();
+            }
+            
+            // Função para calcular e atualizar o saldo restante
+            function updateSaldoRestante() {
+                if (!saldoRestanteInput || !rendaFamiliarInput || !totalGastosInput) return;
+                
+                const rendaTotal = parseFloat(rendaFamiliarInput.dataset.rawValue) || 0;
+                const totalGastos = parseFloat(totalGastosInput.dataset.rawValue) || 0;
+                const saldo = rendaTotal - totalGastos;
+                
+                // Atualiza o campo de saldo restante
+                saldoRestanteInput.value = saldo.toFixed(2);
+                saldoRestanteInput.dataset.rawValue = saldo.toFixed(2);
+                formatCurrency(saldoRestanteInput);
+                
+                // Adiciona classe para estilização baseada no saldo (positivo/negativo)
+                if (saldo < 0) {
+                    saldoRestanteInput.classList.add('text-danger');
+                    saldoRestanteInput.classList.remove('text-success');
+                } else {
+                    saldoRestanteInput.classList.add('text-success');
+                    saldoRestanteInput.classList.remove('text-danger');
+                }
+            }
+            
+            // Adiciona listeners para todos os campos de gastos
+            gastosInputs.forEach(inputId => {
+                const input = document.getElementById(inputId);
+                if (input) {
+                    input.addEventListener('input', updateTotalGastos);
+                }
+            });
+            
+            // Adiciona listeners para todos os campos de renda
+            rendaInputs.forEach(inputId => {
+                const input = document.getElementById(inputId);
+                if (input) {
+                    input.addEventListener('input', updateRendaTotal);
+                }
+            });
+            
+            // Calcula os valores iniciais
+            updateTotalGastos();
+            updateRendaTotal();
+        });
+    </script>
+
+    <script>
+        // Script para controlar o campo de data da visita
+        document.addEventListener('DOMContentLoaded', function() {
+            const dataVisitaInput = document.getElementById('data_visita');
+            if (dataVisitaInput) {
+                // Obtém a data atual no formato YYYY-MM-DD
+                const today = new Date().toISOString().split('T')[0];
+                
+                // Define a data atual como valor padrão
+                dataVisitaInput.value = today;
+                
+                // Define a data atual como data máxima permitida
+                dataVisitaInput.max = today;
+                
+                // Adiciona validação quando o usuário tenta mudar a data
+                dataVisitaInput.addEventListener('change', function() {
+                    const selectedDate = new Date(this.value);
+                    const currentDate = new Date();
+                    currentDate.setHours(0, 0, 0, 0); // Remove o horário para comparar apenas as datas
+                    
+                    if (selectedDate > currentDate) {
+                        alert('A data da visita não pode ser uma data futura.');
+                        this.value = today;
+                    }
+                });
+            }
+        });
+    </script>
+
+
+    <!-- Script para ordenação de tabelas -->
+    <script>
+    function sortTable(n) {
+        var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+        table = document.getElementById("tabelaAtendimentos");
+        switching = true;
+        dir = "asc";
+        
+        while (switching) {
+            switching = false;
+            rows = table.rows;
+            
+            for (i = 1; i < (rows.length - 1); i++) {
+                shouldSwitch = false;
+                x = rows[i].getElementsByTagName("TD")[n];
+                y = rows[i + 1].getElementsByTagName("TD")[n];
+                
+                // Handle date comparison
+                if (n === 1 || n === 2 || n === 7) {
+                    let dateX = x.innerHTML ? new Date(x.innerHTML.split('/').reverse().join('-')) : new Date(0);
+                    let dateY = y.innerHTML ? new Date(y.innerHTML.split('/').reverse().join('-')) : new Date(0);
+                    
+                    if (dir === "asc") {
+                        if (dateX > dateY) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    } else if (dir === "desc") {
+                        if (dateX < dateY) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                }
+                // Handle numeric comparison
+                else if (n === 3) {
+                    if (dir === "asc") {
+                        if (Number(x.innerHTML) > Number(y.innerHTML)) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    } else if (dir === "desc") {
+                        if (Number(x.innerHTML) < Number(y.innerHTML)) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                }
+                // Handle text comparison
+                else {
+                    if (dir === "asc") {
+                        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    } else if (dir === "desc") {
+                        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            if (shouldSwitch) {
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                switching = true;
+                switchcount++;
+            } else {
+                if (switchcount === 0 && dir === "asc") {
+                    dir = "desc";
+                    switching = true;
+                }
+            }
+        }
+    }
+    </script>
+
+    <script>
+        // Script para controlar a obrigatoriedade do campo CEP
+        document.addEventListener('DOMContentLoaded', function() {
+            const manualAddressCheckbox = document.getElementById('manual_address');
+            const cepInput = document.getElementById('cep');
+            
+            if (manualAddressCheckbox && cepInput) {
+                function toggleCepRequired() {
+                    if (manualAddressCheckbox.checked) {
+                        cepInput.removeAttribute('required');
+                    } else {
+                        cepInput.setAttribute('required', '');
+                    }
+                }
+
+                // Adiciona listener para mudanças no checkbox
+                manualAddressCheckbox.addEventListener('change', toggleCepRequired);
+                
+                // Verifica estado inicial do checkbox
+                toggleCepRequired();
+            }
+        });
+    </script>
+
+    {% if is_testing %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('/get_default_data')
+                .then(response => response.json())
+                .then(data => {
+                    for (const [key, value] of Object.entries(data)) {
+                        // First try to find the element by ID
+                        const element = document.getElementById(key);
+                        
+                        if (element) {
+                            // Handle regular inputs
+                            if (element.type !== 'radio') {
+                                element.value = value;
+                            }
+                        }
+                        
+                        // Special handling for radio buttons
+                        const radioButtons = document.querySelectorAll(`input[name="${key}"][type="radio"]`);
+                        if (radioButtons.length > 0) {
+                            radioButtons.forEach(radio => {
+                                if (radio.value === value) {
+                                    radio.checked = true;
+                                }
+                            });
+                        }
+                    }
+                });
+        });
+    </script>
+
+    {% endif %}         
+
+    <script>
+        // Script para controlar a exibição dos campos de detalhes das necessidades
+        document.addEventListener('DOMContentLoaded', function() {
+            // Lista de todos os IDs dos checkboxes que controlam campos de detalhes
+            const checkboxIds = [
+                'cursos_profissionalizantes',
+                'equipamentos_casa',
+                'servicos_domesticos',
+                'medicamentos',
+                'vaga_escola',
+                'necessidades_juridicas',
+                'outros'
+            ];
+
+            // Função para atualizar a visibilidade do campo de detalhes
+            function updateDetailsVisibility(checkbox) {
+                const textareaId = 'detalhes_' + checkbox.id;
+                const textarea = document.getElementById(textareaId);
+                if (textarea) {
+                    textarea.classList.toggle('d-none', !checkbox.checked);
+                }
+            }
+
+            // Adiciona listeners para cada checkbox
+            checkboxIds.forEach(checkboxId => {
+                const checkbox = document.getElementById(checkboxId);
+                const hiddenInput = document.querySelector(`input[type="hidden"][name="${checkboxId}"]`);
+                
+                if (checkbox && hiddenInput) {
+                    // Atualiza a visibilidade inicial
+                    updateDetailsVisibility(checkbox);
+
+                    // Adiciona listener para mudanças
+                    checkbox.addEventListener('change', function() {
+                        // Atualiza o valor do campo hidden
+                        hiddenInput.value = this.checked ? '1' : '0';
+                        
+                        // Atualiza a visibilidade do campo de detalhes
+                        updateDetailsVisibility(this);
+                    });
+
+                    // Adiciona listener para o envio do formulário
+                    const form = document.querySelector('form');
+                    if (form) {
+                        form.addEventListener('submit', function() {
+                            // Garante que o valor do hidden input esteja correto antes do envio
+                            hiddenInput.value = checkbox.checked ? '1' : '0';
+                        });
+                    }
+                }
+            });
+        });
+    </script>
+
+    <script>
+        // Cálculo do valor mensal do gás
+        document.addEventListener('DOMContentLoaded', function() {
+            const valorBotijaInput = document.getElementById('valor_botija_gas');
+            const duracaoBotijaInput = document.getElementById('duracao_botija_gas');
+            const gastosGasInput = document.getElementById('gastos_gas');
+
+            function calcularGastosMensaisGas() {
+                if (valorBotijaInput && duracaoBotijaInput && gastosGasInput) {
+                    const valorBotija = parseFloat(valorBotijaInput.dataset.rawValue || '0');
+                    const duracao = parseFloat(duracaoBotijaInput.value || '0');
+                    
+                    if (duracao > 0) {
+                        const valorMensal = valorBotija / duracao;
+                        gastosGasInput.value = `R$ ${valorMensal.toFixed(2).replace('.', ',')}`;
+                        gastosGasInput.dataset.rawValue = valorMensal.toFixed(2);
+                    } else {
+                        gastosGasInput.value = 'R$ 0,00';
+                        gastosGasInput.dataset.rawValue = '0.00';
+                    }
+                }
+            }
+
+            if (valorBotijaInput && duracaoBotijaInput) {
+                valorBotijaInput.addEventListener('input', calcularGastosMensaisGas);
+                duracaoBotijaInput.addEventListener('input', calcularGastosMensaisGas);
+            }
+        });
+    </script>
+
+    <!-- Script para zerar o valor do aluguel quando o tipo de moradia não for "alugada" -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tipoMoradiaRadios = document.querySelectorAll('input[name="tipo_moradia"]');
+            const valorAluguelInput = document.getElementById('valor_aluguel');
+
+            if (tipoMoradiaRadios && valorAluguelInput) {
+                tipoMoradiaRadios.forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        if (this.value !== 'alugada') {
+                            valorAluguelInput.value = '0';
+                            // Dispara o evento de input para atualizar os cálculos
+                            const event = new Event('input', {
+                                bubbles: true,
+                                cancelable: true,
+                            });
+                            valorAluguelInput.dispatchEvent(event);
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+
+    <script>
+        // Função para atualizar a barra de progresso
+        function updateProgressBar() {
+            const form = document.querySelector('form');
+            const progressBar = document.getElementById('formProgressBar');
+            
+            if (!form || !progressBar) return;
+
+            let totalHeight = form.offsetHeight;
+            let scrollPosition = window.scrollY;
+            let windowHeight = window.innerHeight;
+            let formTop = form.offsetTop;
+            
+            // Calcula a posição relativa do scroll em relação ao formulário
+            let scrollProgress = (scrollPosition - formTop) / (totalHeight - windowHeight);
+            
+            // Limita o progresso entre 0 e 100%
+            scrollProgress = Math.max(0, Math.min(1, scrollProgress));
+            
+            // Atualiza a largura da barra de progresso
+            progressBar.style.width = (scrollProgress * 100) + '%';
+        }
+
+        // Atualiza a barra de progresso quando a página é carregada
+        window.addEventListener('load', function() {
+            updateProgressBar();
+            
+            // Atualiza a barra de progresso quando o usuário rola a página
+            window.addEventListener('scroll', updateProgressBar);
+            
+            // Atualiza a barra de progresso quando a janela é redimensionada
+            window.addEventListener('resize', updateProgressBar);
+        });
+
+        // Função para alternar o status do usuário
+        function toggleUsuarioStatus(userId, currentStatus) {
+            if (confirm(`Deseja realmente ${currentStatus === 'Ativo' ? 'desativar' : 'ativar'} este usuário?`)) {
+                fetch(`/toggle_usuario_status/${userId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Erro ao alterar status do usuário');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    alert('Erro ao alterar status do usuário');
+                });
+            }
+        }
+    </script>
+
+    <script>
+        // Gerenciamento do campo valor_total_beneficios
+        document.addEventListener('DOMContentLoaded', function() {
+            const beneficioSim = document.getElementById('beneficio_sim');
+            const beneficioNao = document.getElementById('beneficio_nao');
+            const valorTotalBeneficiosLabel = document.querySelector('label[for="valor_total_beneficios"]');
+            const valorTotalBeneficiosInput = document.getElementById('valor_total_beneficios');
+            const valorTotalBeneficiosContainer = valorTotalBeneficiosLabel.parentElement;
+
+            function toggleValorTotalBeneficios() {
+                if (beneficioSim.checked) {
+                    valorTotalBeneficiosContainer.style.display = 'block';
+                } else {
+                    valorTotalBeneficiosContainer.style.display = 'none';
+                    if (valorTotalBeneficiosInput) {
+                        valorTotalBeneficiosInput.value = 'R$ 0,00';
+                        valorTotalBeneficiosInput.dataset.rawValue = '0.00';
+                        // Disparar evento de mudança para recalcular totais
+                        const event = new Event('input', { bubbles: true });
+                        valorTotalBeneficiosInput.dispatchEvent(event);
+                    }
+                }
+            }
+
+            if (beneficioSim && beneficioNao) {
+                beneficioSim.addEventListener('change', toggleValorTotalBeneficios);
+                beneficioNao.addEventListener('change', toggleValorTotalBeneficios);
+                
+                // Executar na inicialização
+                toggleValorTotalBeneficios();
+            }
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+
+    <script>
+        // Script para as tags de benefícios sociais
+        document.addEventListener('DOMContentLoaded', function() {
+            const beneficiosSection = document.getElementById('beneficios_section');
+            const beneficioSim = document.getElementById('beneficio_sim');
+            const beneficioNao = document.getElementById('beneficio_nao');
+            const beneficiosTags = document.querySelector('.beneficios-tags');
+            const descricaoBeneficios = document.getElementById('descricao_beneficios');
+
+            function toggleBeneficiosSection() {
+                if (beneficioSim.checked) {
+                    beneficiosSection.style.display = 'block';
+                    beneficiosTags.style.display = 'flex';
+                } else {
+                    beneficiosSection.style.display = 'none';
+                    beneficiosTags.style.display = 'none';
+                    if (descricaoBeneficios) {
+                        descricaoBeneficios.value = '';
+                    }
+                }
+            }
+
+            if (beneficioSim && beneficioNao) {
+                beneficioSim.addEventListener('change', toggleBeneficiosSection);
+                beneficioNao.addEventListener('change', toggleBeneficiosSection);
+                
+                // Executar na inicialização
+                toggleBeneficiosSection();
+            }
+
+            if (beneficiosSection) {
+                const tags = beneficiosSection.querySelectorAll('.beneficio-tag');
+                const textarea = document.getElementById('descricao_beneficios');
+
+                tags.forEach(tag => {
+                    tag.addEventListener('click', function() {
+                        const beneficio = this.getAttribute('data-beneficio');
+                        let currentValue = textarea.value.trim();
+                        
+                        if (currentValue) {
+                            // Verifica se o benefício já está na lista
+                            const beneficios = currentValue.split(',').map(b => b.trim());
+                            if (!beneficios.includes(beneficio)) {
+                                textarea.value = currentValue + ', ' + beneficio;
+                            }
+                        } else {
+                            textarea.value = beneficio;
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>
