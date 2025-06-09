@@ -62,9 +62,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnProxima = document.getElementById('btnProxima');
     const form = document.getElementById('formEtapa1');
     const requiredInputs = form.querySelectorAll('[required]');
+    const radiosImagem = form.querySelectorAll('input[name="autoriza_uso_imagem"]');
 
     function exibirValidacaoCPF() {
-        const valido = validarCPF(cpfInput.value);
+        const valor = cpfInput.value;
+        if (valor.trim() === '') {
+            cpfInput.classList.remove('is-invalid');
+            return true;
+        }
+
+        const valido = validarCPF(valor);
         if (!valido) {
             cpfInput.classList.add('is-invalid');
         } else {
@@ -87,6 +94,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     requiredInputs.forEach(function(el) {
         el.addEventListener('input', atualizarEstadoBotao);
+        el.addEventListener('change', atualizarEstadoBotao);
+    });
+
+    radiosImagem.forEach(function(el) {
         el.addEventListener('change', atualizarEstadoBotao);
     });
 

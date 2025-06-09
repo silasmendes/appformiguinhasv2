@@ -5,15 +5,15 @@
 <form id="formEtapa1">
     <div class="mb-3">
         <label for="nome_responsavel" class="form-label">Nome completo do responsável pela família</label>
-        <input type="text" class="form-control" id="nome_responsavel" name="nome_responsavel" required>
+        <input type="text" class="form-control" id="nome_responsavel" name="nome_responsavel" required autofocus>
     </div>
     <div class="mb-3">
         <label for="data_nascimento" class="form-label">Data de nascimento</label>
-        <input type="text" class="form-control" id="data_nascimento" name="data_nascimento" placeholder="dd/mm/aaaa" required>
+        <input type="text" class="form-control" id="data_nascimento" name="data_nascimento" placeholder="dd/mm/aaaa">
     </div>
     <div class="mb-3">
         <label for="genero" class="form-label">Gênero</label>
-        <select class="form-select" id="genero" name="genero" required>
+        <select class="form-select" id="genero" name="genero">
             <option value="" selected disabled>Selecione</option>
             <option value="Masculino">Masculino</option>
             <option value="Feminino">Feminino</option>
@@ -26,7 +26,7 @@
     </div>
     <div class="mb-3">
         <label for="estado_civil" class="form-label">Estado civil</label>
-        <select class="form-select" id="estado_civil" name="estado_civil" required>
+        <select class="form-select" id="estado_civil" name="estado_civil">
             <option value="" selected disabled>Selecione</option>
             <option value="Solteira(o)">Solteira(o)</option>
             <option value="Casada(o)">Casada(o)</option>
@@ -41,7 +41,7 @@
     </div>
     <div class="mb-3">
         <label for="cpf" class="form-label">CPF do responsável</label>
-        <input type="text" class="form-control" id="cpf" name="cpf" placeholder="000.000.000-00" required>
+        <input type="text" class="form-control" id="cpf" name="cpf" value="000.000.000-00">
         <div id="cpf-feedback" class="invalid-feedback">CPF inválido</div>
     </div>
     <div class="mb-3">
