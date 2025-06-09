@@ -43,6 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const altInput = fp.altInput;
         if (altInput) {
+            altInput.setAttribute('autocomplete', 'off');
             Inputmask({ alias: 'datetime', inputFormat: 'dd/mm/yyyy' }).mask(altInput);
         }
     }

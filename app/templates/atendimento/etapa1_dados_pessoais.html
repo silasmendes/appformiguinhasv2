@@ -2,14 +2,14 @@
 {% block title %}Atendimento à Família - Etapa 1{% endblock %}
 {% block content %}
 <h2 class="mb-4 text-center">Etapa 1 de 9 - Informações pessoais do(a) entrevistado(a)</h2>
-<form id="formEtapa1">
+<form id="formEtapa1" autocomplete="off">
     <div class="mb-3">
         <label for="nome_responsavel" class="form-label">Nome completo do responsável pela família</label>
-        <input type="text" class="form-control" id="nome_responsavel" name="nome_responsavel" required autofocus>
+        <input type="text" class="form-control" id="nome_responsavel" name="nome_responsavel" required autofocus autocomplete="off">
     </div>
     <div class="mb-3">
         <label for="data_nascimento" class="form-label">Data de nascimento</label>
-        <input type="text" class="form-control" id="data_nascimento" name="data_nascimento" placeholder="dd/mm/aaaa">
+        <input type="text" class="form-control" id="data_nascimento" name="data_nascimento" placeholder="dd/mm/aaaa" autocomplete="off">
     </div>
     <div class="mb-3">
         <label for="genero" class="form-label">Gênero</label>
@@ -22,7 +22,7 @@
     </div>
     <div class="mb-3 d-none" id="genero_autodeclarado_container">
         <label for="genero_autodeclarado" class="form-label">Se outro, como a pessoa se identifica?</label>
-        <input type="text" class="form-control" id="genero_autodeclarado" name="genero_autodeclarado">
+        <input type="text" class="form-control" id="genero_autodeclarado" name="genero_autodeclarado" autocomplete="off">
     </div>
     <div class="mb-3">
         <label for="estado_civil" class="form-label">Estado civil</label>
@@ -37,11 +37,11 @@
     </div>
     <div class="mb-3">
         <label for="rg" class="form-label">Documento de identidade (RG)</label>
-        <input type="text" class="form-control" id="rg" name="rg">
+        <input type="text" class="form-control" id="rg" name="rg" autocomplete="off">
     </div>
     <div class="mb-3">
         <label for="cpf" class="form-label">CPF do responsável</label>
-        <input type="text" class="form-control" id="cpf" name="cpf" value="000.000.000-00">
+        <input type="text" class="form-control" id="cpf" name="cpf" value="000.000.000-00" autocomplete="off">
         <div id="cpf-feedback" class="invalid-feedback">CPF inválido</div>
     </div>
     <div class="mb-3">
