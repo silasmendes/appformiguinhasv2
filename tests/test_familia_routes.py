@@ -94,3 +94,21 @@ def test_post_familia_cpf_invalido(client):
     data = response.get_json()
     assert "cpf" in data  # deve haver erro no campo cpf
     assert data["cpf"] == ["CPF inválido."]
+
+
+
+def test_post_familia_somente_campos_obrigatorios(client):
+    global _familia_id_gerada
+
+    payload = {
+        "nome_responsavel": "Teste Pytest",        
+        "autoriza_uso_imagem": True
+    }
+
+    response = client.post("/familias", json=payload)
+    assert response.status_code == 201
+
+    data = response.get_json()
+    assert "familia_id" in data
+
+    _familia_id_gerada = data["familia_id"]

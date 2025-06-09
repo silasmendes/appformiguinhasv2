@@ -36,19 +36,36 @@ class FamiliaSchema(ma.SQLAlchemySchema):
     # Recebe **kwargs para compatibilidade com marshmallow>=4,
     # que passa o argumento extra `data_key` aos validadores.
     def validar_cpf(self, value, **kwargs):
+        if not value:
+            return  # Aceita CPF em branco
+
         if not self._cpf_valido(value):
             raise ValidationError("CPF inválido.")
 
     def _cpf_valido(self, cpf):
         cpf = re.sub(r"\D", "", cpf)
-        if len(cpf) != 11 or cpf == cpf[0] * 11:
+
+        # Aceita CPFs com todos os dígitos iguais, como 00000000000 ou 11111111111
+        if re.fullmatch(r"(\d)\1{10}", cpf):
+            return True
+
+        if len(cpf) != 11:
             return False
 
-        for i in range(9, 11):
-            soma = sum(int(cpf[num]) * ((i + 1) - num) for num in range(0, i))
-            digito = ((soma * 10) % 11) % 10
-            if digito != int(cpf[i]):
-                return False
+        # Validação dos dígitos verificadores
+        soma = sum(int(cpf[i]) * (10 - i) for i in range(9))
+        digito1 = 11 - (soma % 11)
+        if digito1 > 9:
+            digito1 = 0
+        if digito1 != int(cpf[9]):
+            return False
+
+        soma = sum(int(cpf[i]) * (11 - i) for i in range(10))
+        digito2 = 11 - (soma % 11)
+        if digito2 > 9:
+            digito2 = 0
+        if digito2 != int(cpf[10]):
+            return False
 
         return True
 
