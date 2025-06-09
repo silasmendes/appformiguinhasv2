@@ -21,5 +21,11 @@ def atendimento_etapa2():
     return render_template("atendimento/etapa2_endereco.html")
 
 
+@app.route("/atendimento/etapa3")
+def atendimento_etapa3():
+    """Exibe a terceira etapa do atendimento à família."""
+    return render_template("atendimento/etapa3_composicao_familiar.html")
+
+
 if __name__ == "__main__":
     app.run(debug=True)
