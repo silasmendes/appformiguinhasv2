@@ -30,7 +30,21 @@ document.addEventListener('DOMContentLoaded', function() {
         const hoje = new Date();
         const ano = hoje.getFullYear() - 10;
         const dataPadrao = new Date(ano, hoje.getMonth(), hoje.getDate());
-        dataInput.value = dataPadrao.toISOString().split('T')[0];
+
+        flatpickr.localize(flatpickr.l10ns.pt);
+        const fp = flatpickr(dataInput, {
+            dateFormat: 'Y-m-d',
+            altInput: true,
+            altFormat: 'd/m/Y',
+            altInputClass: 'form-control',
+            defaultDate: dataPadrao,
+            allowInput: true
+        });
+
+        const altInput = fp.altInput;
+        if (altInput) {
+            Inputmask({ alias: 'datetime', inputFormat: 'dd/mm/yyyy' }).mask(altInput);
+        }
     }
 
     const generoSelect = document.getElementById('genero');
