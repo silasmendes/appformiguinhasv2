@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Atendimento à Família - Etapa 2{% endblock %}
+{% block content %}
+<h2 class="mb-4 text-center">Etapa 2 de 9 - Endereço da família</h2>
+<form id="formEtapa2" autocomplete="off">
+    <div class="mb-3 form-check">
+        <input class="form-check-input" type="checkbox" id="preenchimento_manual" name="preenchimento_manual">
+        <label class="form-check-label" for="preenchimento_manual">Preencher endereço manualmente?</label>
+    </div>
+    <div class="mb-3">
+        <label for="cep" class="form-label">CEP</label>
+        <input type="text" class="form-control" id="cep" name="cep" autocomplete="off">
+        <div id="cep-feedback" class="form-text text-danger d-none">Não foi possível encontrar o endereço. Se necessário, marque a opção de preenchimento manual.</div>
+    </div>
+    <div class="mb-3">
+        <label for="logradouro" class="form-label">Rua / Avenida / Travessa</label>
+        <input type="text" class="form-control" id="logradouro" name="logradouro" autocomplete="off" disabled>
+    </div>
+    <div class="mb-3">
+        <label for="numero" class="form-label">Número</label>
+        <input type="text" class="form-control" id="numero" name="numero" autocomplete="off">
+    </div>
+    <div class="mb-3">
+        <label for="complemento" class="form-label">Complemento</label>
+        <input type="text" class="form-control" id="complemento" name="complemento" autocomplete="off">
+    </div>
+    <div class="mb-3">
+        <label for="bairro" class="form-label">Bairro</label>
+        <input type="text" class="form-control" id="bairro" name="bairro" autocomplete="off" disabled>
+    </div>
+    <div class="mb-3">
+        <label for="cidade" class="form-label">Cidade</label>
+        <input type="text" class="form-control" id="cidade" name="cidade" autocomplete="off" disabled>
+    </div>
+    <div class="mb-3">
+        <label for="estado" class="form-label">Estado</label>
+        <input type="text" class="form-control" id="estado" name="estado" autocomplete="off" disabled>
+    </div>
+    <div class="mb-3">
+        <label for="ponto_referencia" class="form-label">Ponto de referência</label>
+        <input type="text" class="form-control" id="ponto_referencia" name="ponto_referencia" autocomplete="off">
+    </div>
+    <div class="text-end">
+        <button type="button" class="btn btn-primary" id="btnProxima">Próxima etapa</button>
+    </div>
+</form>
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/inputmask@5.0.8/dist/inputmask.min.js"></script>
+<script src="{{ url_for('static', filename='js/etapa2_endereco.js') }}"></script>
+{% endblock %}

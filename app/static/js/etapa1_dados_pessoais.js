@@ -106,5 +106,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     btnProxima.addEventListener('click', function() {
         console.log('Dados do formulário etapa 1:', Object.fromEntries(new FormData(form).entries()));
+        const nextUrl = btnProxima.getAttribute('data-next-url');
+        if (nextUrl) {
+            window.location.href = nextUrl;
+        }
     });
 });
