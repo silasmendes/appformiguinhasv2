@@ -50,7 +50,8 @@
         <label for="habilidades_relevantes" class="form-label">Outras habilidades (ex: costura, carpintaria, etc.)</label>
         <textarea class="form-control" id="habilidades_relevantes" name="habilidades_relevantes" rows="3" autocomplete="off"></textarea>
     </div>
-    <div class="text-end">
+    <div class="d-flex justify-content-between">
+        <button type="button" class="btn btn-secondary" id="btnVoltar" data-prev-url="{{ url_for('atendimento_etapa6') }}">Voltar</button>
         <button type="button" class="btn btn-primary" id="btnProxima" data-next-url="{{ url_for('atendimento_etapa8') }}">Próxima etapa</button>
     </div>
 </form>

@@ -64,7 +64,8 @@
     </div>
 
     <!-- Botão -->
-    <div class="endereco-row justify-content-end">
+    <div class="d-flex justify-content-between">
+        <button type="button" class="btn btn-secondary" id="btnVoltar" data-prev-url="{{ url_for('atendimento_etapa1') }}">Voltar</button>
         <button type="button" class="btn btn-primary" id="btnProxima" data-next-url="{{ url_for('atendimento_etapa3') }}">Próxima etapa</button>
     </div>
 </form>

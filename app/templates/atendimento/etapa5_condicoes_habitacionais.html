@@ -95,7 +95,8 @@
         <label for="num_ventiladores" class="form-label">Quantos ventiladores?</label>
         <input type="number" class="form-control" id="num_ventiladores" name="num_ventiladores" min="0" autocomplete="off">
     </div>
-    <div class="text-end">
+    <div class="d-flex justify-content-between">
+        <button type="button" class="btn btn-secondary" id="btnVoltar" data-prev-url="{{ url_for('atendimento_etapa4') }}">Voltar</button>
         <button type="button" class="btn btn-primary" id="btnProxima" data-next-url="{{ url_for('atendimento_etapa6') }}">Próxima etapa</button>
     </div>
 </form>

@@ -110,7 +110,8 @@
         <label for="saldo" class="form-label">Saldo</label>
         <input type="text" class="form-control renda-decimal readonly-field" id="saldo" name="saldo" readonly>
     </div>
-    <div class="text-end">
+    <div class="d-flex justify-content-between">
+        <button type="button" class="btn btn-secondary" id="btnVoltar" data-prev-url="{{ url_for('atendimento_etapa7') }}">Voltar</button>
         <button type="button" class="btn btn-primary" id="btnProxima" data-next-url="{{ url_for('atendimento_etapa9') }}">Próxima etapa</button>
     </div>
 </form>

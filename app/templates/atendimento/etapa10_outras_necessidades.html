@@ -9,7 +9,8 @@
     <div class="mb-3">
         <button type="button" class="btn btn-secondary" id="adicionarNecessidade">Adicionar nova necessidade</button>
     </div>
-    <div class="text-end">
+    <div class="d-flex justify-content-between">
+        <button type="button" class="btn btn-secondary" id="btnVoltar" data-prev-url="{{ url_for('atendimento_etapa9') }}">Voltar</button>
         <button type="button" class="btn btn-success" id="btnFinalizar" data-next-url="{{ url_for('home') }}">Finalizar atendimento</button>
     </div>
 </form>
