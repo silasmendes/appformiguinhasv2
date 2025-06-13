@@ -1,0 +1,8 @@
+.whatsapp-check {
+    padding-top: 1.8rem;
+}
+@media (max-width: 768px) {
+    .whatsapp-check {
+        padding-top: 0;
+    }
+}
