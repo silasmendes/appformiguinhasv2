@@ -111,7 +111,7 @@
         <input type="text" class="form-control renda-decimal readonly-field" id="saldo" name="saldo" readonly>
     </div>
     <div class="text-end">
-        <button type="button" class="btn btn-primary" id="btnProxima">Próxima etapa</button>
+        <button type="button" class="btn btn-primary" id="btnProxima" data-next-url="{{ url_for('atendimento_etapa9') }}">Próxima etapa</button>
     </div>
 </form>
 {% endblock %}

@@ -35,7 +35,7 @@
         <input type="text" class="form-control" id="curso_ou_serie_atual" name="curso_ou_serie_atual" autocomplete="off">
     </div>
     <div class="text-end">
-        <button type="button" class="btn btn-primary" id="btnProxima">Próxima etapa</button>
+        <button type="button" class="btn btn-primary" id="btnProxima" data-next-url="{{ url_for('atendimento_etapa10') }}">Próxima etapa</button>
     </div>
 </form>
 {% endblock %}

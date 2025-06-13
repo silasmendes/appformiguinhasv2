@@ -10,7 +10,7 @@
         <button type="button" class="btn btn-secondary" id="adicionarNecessidade">Adicionar nova necessidade</button>
     </div>
     <div class="text-end">
-        <button type="button" class="btn btn-success" id="btnFinalizar">Finalizar atendimento</button>
+        <button type="button" class="btn btn-success" id="btnFinalizar" data-next-url="{{ url_for('home') }}">Finalizar atendimento</button>
     </div>
 </form>
 {% endblock %}
