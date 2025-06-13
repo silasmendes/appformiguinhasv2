@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block title %}Atendimento à Família - Etapa 5{% endblock %}
+{% block content %}
+<h2 class="mb-4 text-center">Etapa 5 de 9 - Condições habitacionais da família</h2>
+<form id="formEtapa5" autocomplete="off">
+    <div class="mb-3">
+        <label for="tipo_moradia" class="form-label">Tipo de moradia</label>
+        <select class="form-select" id="tipo_moradia" name="tipo_moradia" autocomplete="off">
+            <option value="" selected disabled>Selecione</option>
+            <option value="Própria">Própria</option>
+            <option value="Alugada">Alugada</option>
+            <option value="Cedida">Cedida</option>
+            <option value="Ocupação">Ocupação</option>
+            <option value="Situação de rua">Situação de rua</option>
+        </select>
+    </div>
+    <div class="mb-3 d-none" id="valor_aluguel_container">
+        <label for="valor_aluguel" class="form-label">Valor do aluguel mensal</label>
+        <input type="number" class="form-control" id="valor_aluguel" name="valor_aluguel" autocomplete="off">
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Possui água encanada?</label>
+        <div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="agua_encanada" id="agua_encanada_sim" value="Sim" autocomplete="off">
+                <label class="form-check-label" for="agua_encanada_sim">Sim</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="agua_encanada" id="agua_encanada_nao" value="Não" autocomplete="off">
+                <label class="form-check-label" for="agua_encanada_nao">Não</label>
+            </div>
+        </div>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Possui rede de esgoto?</label>
+        <div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="rede_esgoto" id="rede_esgoto_sim" value="Sim" autocomplete="off">
+                <label class="form-check-label" for="rede_esgoto_sim">Sim</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="rede_esgoto" id="rede_esgoto_nao" value="Não" autocomplete="off">
+                <label class="form-check-label" for="rede_esgoto_nao">Não</label>
+            </div>
+        </div>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Possui energia elétrica?</label>
+        <div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="energia_eletrica" id="energia_eletrica_sim" value="Sim" autocomplete="off">
+                <label class="form-check-label" for="energia_eletrica_sim">Sim</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="energia_eletrica" id="energia_eletrica_nao" value="Não" autocomplete="off">
+                <label class="form-check-label" for="energia_eletrica_nao">Não</label>
+            </div>
+        </div>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Possui fogão?</label>
+        <div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="tem_fogao" id="tem_fogao_sim" value="Sim" autocomplete="off">
+                <label class="form-check-label" for="tem_fogao_sim">Sim</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="tem_fogao" id="tem_fogao_nao" value="Não" autocomplete="off">
+                <label class="form-check-label" for="tem_fogao_nao">Não</label>
+            </div>
+        </div>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Possui geladeira?</label>
+        <div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="tem_geladeira" id="tem_geladeira_sim" value="Sim" autocomplete="off">
+                <label class="form-check-label" for="tem_geladeira_sim">Sim</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="tem_geladeira" id="tem_geladeira_nao" value="Não" autocomplete="off">
+                <label class="form-check-label" for="tem_geladeira_nao">Não</label>
+            </div>
+        </div>
+    </div>
+    <div class="mb-3">
+        <label for="num_camas" class="form-label">Quantas camas na moradia?</label>
+        <input type="number" class="form-control" id="num_camas" name="num_camas" min="0" autocomplete="off">
+    </div>
+    <div class="mb-3">
+        <label for="num_tvs" class="form-label">Quantas TVs?</label>
+        <input type="number" class="form-control" id="num_tvs" name="num_tvs" min="0" autocomplete="off">
+    </div>
+    <div class="mb-3">
+        <label for="num_ventiladores" class="form-label">Quantos ventiladores?</label>
+        <input type="number" class="form-control" id="num_ventiladores" name="num_ventiladores" min="0" autocomplete="off">
+    </div>
+    <div class="text-end">
+        <button type="button" class="btn btn-primary" id="btnProxima">Próxima etapa</button>
+    </div>
+</form>
+{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/etapa5_condicoes_habitacionais.css') }}">
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/etapa5_condicoes_habitacionais.js') }}"></script>
+{% endblock %}
