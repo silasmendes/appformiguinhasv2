@@ -40,7 +40,8 @@
         <input type="email" class="form-control" id="email_responsavel" name="email_responsavel" autocomplete="off">
         <div id="email-feedback" class="invalid-feedback">Email inválido</div>
     </div>
-    <div class="text-end">
+    <div class="d-flex justify-content-between">
+        <button type="button" class="btn btn-secondary" id="btnVoltar" data-prev-url="{{ url_for('atendimento_etapa3') }}">Voltar</button>
         <button type="button" class="btn btn-primary" id="btnProxima" data-next-url="{{ url_for('atendimento_etapa5') }}">Próxima etapa</button>
     </div>
 </form>

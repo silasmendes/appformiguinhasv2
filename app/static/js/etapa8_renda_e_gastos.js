@@ -213,6 +213,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    document.getElementById("btnVoltar")?.addEventListener("click", function () {
+        window.location.href = this.dataset.prevUrl;
+    });
+
     updateTotais();
     calcularGastosGas();
 });

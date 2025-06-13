@@ -34,7 +34,8 @@
         <label for="curso_ou_serie_atual" class="form-label">Qual curso ou série está cursando?</label>
         <input type="text" class="form-control" id="curso_ou_serie_atual" name="curso_ou_serie_atual" autocomplete="off">
     </div>
-    <div class="text-end">
+    <div class="d-flex justify-content-between">
+        <button type="button" class="btn btn-secondary" id="btnVoltar" data-prev-url="{{ url_for('atendimento_etapa8') }}">Voltar</button>
         <button type="button" class="btn btn-primary" id="btnProxima" data-next-url="{{ url_for('atendimento_etapa10') }}">Próxima etapa</button>
     </div>
 </form>
