@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Atendimento à Família - Etapa 4{% endblock %}
+{% block content %}
+<h2 class="mb-4 text-center">Etapa 4 de 9 - Informações de contato da família</h2>
+<form id="formEtapa4" autocomplete="off">
+    <div class="row align-items-end mb-3">
+        <div class="col-md-6">
+            <label for="telefone_principal" class="form-label">Celular principal para contato</label>
+            <input type="text" class="form-control" id="telefone_principal" name="telefone_principal" autocomplete="off">
+        </div>
+        <div class="col-auto mt-md-4 whatsapp-check">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="telefone_principal_whatsapp" name="telefone_principal_whatsapp" autocomplete="off">
+                <label class="form-check-label" for="telefone_principal_whatsapp">Este número tem WhatsApp?</label>
+            </div>
+        </div>
+    </div>
+    <div class="mb-3">
+        <label for="telefone_principal_nome_contato" class="form-label">De quem é este telefone?</label>
+        <input type="text" class="form-control" id="telefone_principal_nome_contato" name="telefone_principal_nome_contato" autocomplete="off">
+    </div>
+    <div class="row align-items-end mb-3">
+        <div class="col-md-6">
+            <label for="telefone_alternativo" class="form-label">Outro telefone para contato</label>
+            <input type="text" class="form-control" id="telefone_alternativo" name="telefone_alternativo" autocomplete="off">
+        </div>
+        <div class="col-auto mt-md-4 whatsapp-check">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="telefone_alternativo_whatsapp" name="telefone_alternativo_whatsapp" autocomplete="off">
+                <label class="form-check-label" for="telefone_alternativo_whatsapp">Este número tem WhatsApp?</label>
+            </div>
+        </div>
+    </div>
+    <div class="mb-3">
+        <label for="telefone_alternativo_nome_contato" class="form-label">De quem é este telefone alternativo?</label>
+        <input type="text" class="form-control" id="telefone_alternativo_nome_contato" name="telefone_alternativo_nome_contato" autocomplete="off">
+    </div>
+    <div class="mb-3">
+        <label for="email_responsavel" class="form-label">E-mail da pessoa responsável (se tiver)</label>
+        <input type="email" class="form-control" id="email_responsavel" name="email_responsavel" autocomplete="off">
+        <div id="email-feedback" class="invalid-feedback">Email inválido</div>
+    </div>
+    <div class="text-end">
+        <button type="button" class="btn btn-primary" id="btnProxima">Próxima etapa</button>
+    </div>
+</form>
+{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/etapa4_contato.css') }}">
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/inputmask@5.0.8/dist/inputmask.min.js"></script>
+<script src="{{ url_for('static', filename='js/etapa4_contato.js') }}"></script>
+{% endblock %}
