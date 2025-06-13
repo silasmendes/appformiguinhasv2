@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Atendimento à Família - Etapa 10{% endblock %}
+{% block content %}
+<h2 class="mb-4 text-center">Etapa 10 de 10 - Outras necessidades informadas</h2>
+<form id="formEtapa10" autocomplete="off">
+    <div id="necessidadesLista" class="mb-3">
+        <p id="nenhumaNecessidade" class="text-muted">Nenhuma necessidade adicionada ainda.</p>
+    </div>
+    <div class="mb-3">
+        <button type="button" class="btn btn-secondary" id="adicionarNecessidade">Adicionar nova necessidade</button>
+    </div>
+    <div class="text-end">
+        <button type="button" class="btn btn-success" id="btnFinalizar">Finalizar atendimento</button>
+    </div>
+</form>
+{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/etapa10_outras_necessidades.css') }}">
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/etapa10_outras_necessidades.js') }}"></script>
+{% endblock %}
