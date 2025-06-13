@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% block title %}Atendimento à Família - Etapa 8{% endblock %}
+{% block content %}
+<h2 class="mb-4 text-center">Etapa 8 de 9 - Renda e gastos mensais da família</h2>
+<form id="formEtapa8" autocomplete="off">
+    <div class="mb-3">
+        <label for="gastos_supermercado" class="form-label">Quanto a família gasta com supermercado?</label>
+        <input type="text" class="form-control renda-decimal" id="gastos_supermercado" name="gastos_supermercado">
+    </div>
+    <div class="mb-3">
+        <label for="gastos_energia_eletrica" class="form-label">Com energia elétrica?</label>
+        <input type="text" class="form-control renda-decimal" id="gastos_energia_eletrica" name="gastos_energia_eletrica">
+    </div>
+    <div class="mb-3">
+        <label for="gastos_agua" class="form-label">Com água?</label>
+        <input type="text" class="form-control renda-decimal" id="gastos_agua" name="gastos_agua">
+    </div>
+    <div class="row mb-3">
+        <div class="col-md-4 mb-3 mb-md-0">
+            <label for="valor_botija_gas" class="form-label">Valor de um botijão de gás</label>
+            <input type="text" class="form-control renda-decimal" id="valor_botija_gas" name="valor_botija_gas">
+        </div>
+        <div class="col-md-4 mb-3 mb-md-0">
+            <label for="duracao_botija_gas" class="form-label">Quantos meses dura um botijão?</label>
+            <input type="number" class="form-control" id="duracao_botija_gas" name="duracao_botija_gas" min="1" step="1">
+        </div>
+        <div class="col-md-4">
+            <label for="gastos_gas" class="form-label">Gasto mensal com gás</label>
+            <input type="text" class="form-control renda-decimal readonly-field" id="gastos_gas" name="gastos_gas" readonly>
+        </div>
+    </div>
+    <div class="mb-3">
+        <label for="gastos_transporte" class="form-label">Com transporte?</label>
+        <input type="text" class="form-control renda-decimal" id="gastos_transporte" name="gastos_transporte">
+    </div>
+    <div class="mb-3">
+        <label for="gastos_medicamentos" class="form-label">Com medicamentos?</label>
+        <input type="text" class="form-control renda-decimal" id="gastos_medicamentos" name="gastos_medicamentos">
+    </div>
+    <div class="mb-3">
+        <label for="gastos_conta_celular" class="form-label">Com conta de celular?</label>
+        <input type="text" class="form-control renda-decimal" id="gastos_conta_celular" name="gastos_conta_celular">
+    </div>
+    <div class="mb-3">
+        <label for="gastos_outros" class="form-label">Outros gastos?</label>
+        <input type="text" class="form-control renda-decimal" id="gastos_outros" name="gastos_outros">
+    </div>
+    <hr>
+    <div class="mb-3">
+        <label for="renda_arrimo" class="form-label">Renda mensal do provedor principal</label>
+        <input type="text" class="form-control renda-decimal" id="renda_arrimo" name="renda_arrimo">
+    </div>
+    <div class="mb-3">
+        <label for="renda_outros_familiares" class="form-label">Renda mensal dos demais moradores</label>
+        <input type="text" class="form-control renda-decimal" id="renda_outros_familiares" name="renda_outros_familiares">
+    </div>
+    <div class="mb-3">
+        <label for="auxilio_parentes_amigos" class="form-label">Ajuda de parentes, amigos ou vizinhos</label>
+        <input type="text" class="form-control renda-decimal" id="auxilio_parentes_amigos" name="auxilio_parentes_amigos">
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Possui Cadastro Único?</label>
+        <div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="cadastro_unico" id="cadastro_sim" value="Sim">
+                <label class="form-check-label" for="cadastro_sim">Sim</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="cadastro_unico" id="cadastro_nao" value="Não">
+                <label class="form-check-label" for="cadastro_nao">Não</label>
+            </div>
+        </div>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Recebe algum benefício social?</label>
+        <div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="recebe_beneficio" id="beneficio_sim" value="Sim">
+                <label class="form-check-label" for="beneficio_sim">Sim</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="recebe_beneficio" id="beneficio_nao" value="Não">
+                <label class="form-check-label" for="beneficio_nao">Não</label>
+            </div>
+        </div>
+    </div>
+    <div class="mb-3" id="beneficios_section" style="display:none;">
+        <label for="descricao_beneficios" class="form-label">Quais benefícios são recebidos?</label>
+        <div class="beneficios-tags mb-2">
+            <span class="beneficio-tag" data-beneficio="Bolsa Família">Bolsa Família</span>
+            <span class="beneficio-tag" data-beneficio="Renda Cidadã">Renda Cidadã</span>
+            <span class="beneficio-tag" data-beneficio="Ação Jovem">Ação Jovem</span>
+            <span class="beneficio-tag" data-beneficio="PAF">PAF</span>
+        </div>
+        <textarea class="form-control" id="descricao_beneficios" name="descricao_beneficios" rows="2"></textarea>
+    </div>
+    <div class="mb-3" id="valor_total_beneficios_container" style="display:none;">
+        <label for="valor_total_beneficios" class="form-label">Valor total mensal dos benefícios</label>
+        <input type="text" class="form-control renda-decimal" id="valor_total_beneficios" name="valor_total_beneficios">
+    </div>
+    <div class="mb-3">
+        <label for="renda_familiar_total" class="form-label">Renda familiar total</label>
+        <input type="text" class="form-control renda-decimal readonly-field" id="renda_familiar_total" name="renda_familiar_total" readonly>
+    </div>
+    <div class="mb-3">
+        <label for="total_gastos" class="form-label">Total de gastos</label>
+        <input type="text" class="form-control renda-decimal readonly-field" id="total_gastos" name="total_gastos" readonly>
+    </div>
+    <div class="mb-3">
+        <label for="saldo" class="form-label">Saldo</label>
+        <input type="text" class="form-control renda-decimal readonly-field" id="saldo" name="saldo" readonly>
+    </div>
+    <div class="text-end">
+        <button type="button" class="btn btn-primary" id="btnProxima">Próxima etapa</button>
+    </div>
+</form>
+{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/etapa8_renda_e_gastos.css') }}">
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/etapa8_renda_e_gastos.js') }}"></script>
+{% endblock %}
