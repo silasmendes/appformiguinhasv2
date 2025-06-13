@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Atendimento à Família - Etapa 9{% endblock %}
+{% block content %}
+<h2 class="mb-4 text-center">Etapa 9 de 10 - Escolaridade do(a) entrevistado(a)</h2>
+<form id="formEtapa9" autocomplete="off">
+    <div class="mb-3">
+        <label for="nivel_escolaridade" class="form-label">Qual é o nível de escolaridade da pessoa entrevistada?</label>
+        <select class="form-select" id="nivel_escolaridade" name="nivel_escolaridade" autocomplete="off">
+            <option value="" selected disabled>Selecione</option>
+            <option value="Analfabeto">Analfabeto</option>
+            <option value="Ensino Fundamental Incompleto">Ensino Fundamental Incompleto</option>
+            <option value="Ensino Fundamental Completo">Ensino Fundamental Completo</option>
+            <option value="Ensino Médio Incompleto">Ensino Médio Incompleto</option>
+            <option value="Ensino Médio Completo">Ensino Médio Completo</option>
+            <option value="Ensino Superior Incompleto">Ensino Superior Incompleto</option>
+            <option value="Ensino Superior Completo">Ensino Superior Completo</option>
+            <option value="Pós-graduação">Pós-graduação</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Está estudando atualmente?</label>
+        <div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="estuda_atualmente" id="estuda_sim" value="Sim">
+                <label class="form-check-label" for="estuda_sim">Sim</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="estuda_atualmente" id="estuda_nao" value="Não">
+                <label class="form-check-label" for="estuda_nao">Não</label>
+            </div>
+        </div>
+    </div>
+    <div class="mb-3 d-none" id="curso_ou_serie_atual_container">
+        <label for="curso_ou_serie_atual" class="form-label">Qual curso ou série está cursando?</label>
+        <input type="text" class="form-control" id="curso_ou_serie_atual" name="curso_ou_serie_atual" autocomplete="off">
+    </div>
+    <div class="text-end">
+        <button type="button" class="btn btn-primary" id="btnProxima">Próxima etapa</button>
+    </div>
+</form>
+{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/etapa9_escolaridade.css') }}">
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/etapa9_escolaridade.js') }}"></script>
+{% endblock %}
