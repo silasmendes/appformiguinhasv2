@@ -1,0 +1,9 @@
+/* Estilos específicos para etapa 10 - outras necessidades */
+
+#necessidadesLista .necessidade-item {
+    background-color: rgba(255, 255, 255, 0.9);
+}
+
+#adicionarNecessidade {
+    font-weight: 500;
+}
