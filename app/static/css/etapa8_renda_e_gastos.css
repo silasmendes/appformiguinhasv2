@@ -1,0 +1,41 @@
+/* Estilos específicos para etapa 8 - renda e gastos */
+#formEtapa8 .mb-3 {
+    margin-bottom: 0.75rem;
+}
+
+#formEtapa8 .form-label {
+    font-size: 0.9rem;
+}
+
+#formEtapa8 .form-control,
+#formEtapa8 .form-select {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.7rem;
+}
+
+.beneficios-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.beneficio-tag {
+    background-color: #e9ecef;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.beneficio-tag:hover {
+    background-color: #dee2e6;
+    border-color: #ced4da;
+}
+
+.beneficio-tag:active {
+    background-color: #ced4da;
+    border-color: #adb5bd;
+}
