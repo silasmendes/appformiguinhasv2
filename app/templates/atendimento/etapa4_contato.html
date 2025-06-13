@@ -41,7 +41,7 @@
         <div id="email-feedback" class="invalid-feedback">Email inválido</div>
     </div>
     <div class="text-end">
-        <button type="button" class="btn btn-primary" id="btnProxima">Próxima etapa</button>
+        <button type="button" class="btn btn-primary" id="btnProxima" data-next-url="{{ url_for('atendimento_etapa5') }}">Próxima etapa</button>
     </div>
 </form>
 {% endblock %}

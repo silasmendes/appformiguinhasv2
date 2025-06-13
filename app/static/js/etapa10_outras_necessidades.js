@@ -105,6 +105,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         if (valido) {
             console.log('Dados do formulário etapa 10:', Object.fromEntries(new FormData(form).entries()));
+            const nextUrl = btnFinalizar.getAttribute('data-next-url');
+            if (nextUrl) {
+                window.location.href = nextUrl;
+            }
         }
     });
 

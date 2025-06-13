@@ -40,6 +40,10 @@ document.addEventListener('DOMContentLoaded', function() {
         btnProxima.addEventListener('click', function() {
             validarEmail();
             console.log('Dados do formulário etapa 4:', Object.fromEntries(new FormData(form).entries()));
+            const nextUrl = btnProxima.getAttribute('data-next-url');
+            if (nextUrl) {
+                window.location.href = nextUrl;
+            }
         });
     }
 });

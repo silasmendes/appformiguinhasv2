@@ -45,7 +45,7 @@
         <textarea class="form-control" id="motivo_ausencia_escola" name="motivo_ausencia_escola" rows="3" autocomplete="off"></textarea>
     </div>
     <div class="text-end w-100">
-        <button type="button" class="btn btn-primary" id="btnProxima">Próxima etapa</button>
+        <button type="button" class="btn btn-primary" id="btnProxima" data-next-url="{{ url_for('atendimento_etapa4') }}">Próxima etapa</button>
     </div>
 </form>
 {% endblock %}

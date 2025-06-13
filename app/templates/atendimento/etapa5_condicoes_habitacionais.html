@@ -96,7 +96,7 @@
         <input type="number" class="form-control" id="num_ventiladores" name="num_ventiladores" min="0" autocomplete="off">
     </div>
     <div class="text-end">
-        <button type="button" class="btn btn-primary" id="btnProxima">Próxima etapa</button>
+        <button type="button" class="btn btn-primary" id="btnProxima" data-next-url="{{ url_for('atendimento_etapa6') }}">Próxima etapa</button>
     </div>
 </form>
 {% endblock %}
