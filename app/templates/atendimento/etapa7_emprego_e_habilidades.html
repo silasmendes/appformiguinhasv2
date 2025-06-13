@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}Atendimento à Família - Etapa 7{% endblock %}
+{% block content %}
+<h2 class="mb-4 text-center">Etapa 7 de 9 - Emprego do provedor principal</h2>
+<form id="formEtapa7" autocomplete="off">
+    <div class="mb-3">
+        <label for="relacao_provedor_familia" class="form-label">Quem é o principal provedor da família?</label>
+        <select class="form-select" id="relacao_provedor_familia" name="relacao_provedor_familia" autocomplete="off">
+            <option value="" selected disabled>Selecione</option>
+            <option value="Eu mesma(o)">Eu mesma(o)</option>
+            <option value="Esposo(a)">Esposo(a)</option>
+            <option value="Filho(a)">Filho(a)</option>
+            <option value="Outro familiar">Outro familiar</option>
+            <option value="Provedor não familiar">Provedor não familiar</option>
+        </select>
+    </div>
+    <div class="mb-3 d-none" id="descricao_provedor_externo_container">
+        <label for="descricao_provedor_externo" class="form-label">Se não for da família, quem é o provedor?</label>
+        <input type="text" class="form-control" id="descricao_provedor_externo" name="descricao_provedor_externo" autocomplete="off">
+    </div>
+    <div class="mb-3">
+        <label for="situacao_emprego" class="form-label">Qual a situação de emprego do provedor principal?</label>
+        <select class="form-select" id="situacao_emprego" name="situacao_emprego" autocomplete="off">
+            <option value="" selected disabled>Selecione</option>
+            <option value="Empregado formal">Empregado formal</option>
+            <option value="Empregado informal">Empregado informal</option>
+            <option value="Desempregado">Desempregado</option>
+            <option value="Autônomo">Autônomo</option>
+            <option value="Aposentado">Aposentado</option>
+            <option value="Outro">Outro</option>
+        </select>
+    </div>
+    <div class="mb-3 d-none" id="descricao_situacao_emprego_outro_container">
+        <label for="descricao_situacao_emprego_outro" class="form-label">Descreva a situação de emprego</label>
+        <input type="text" class="form-control" id="descricao_situacao_emprego_outro" name="descricao_situacao_emprego_outro" autocomplete="off">
+    </div>
+    <div class="mb-3">
+        <label for="profissao_provedor" class="form-label">Qual a profissão atual do provedor?</label>
+        <input type="text" class="form-control" id="profissao_provedor" name="profissao_provedor" autocomplete="off">
+    </div>
+    <div class="mb-3">
+        <label for="experiencia_profissional" class="form-label">Há alguma experiência profissional relevante?</label>
+        <textarea class="form-control" id="experiencia_profissional" name="experiencia_profissional" rows="3" autocomplete="off"></textarea>
+    </div>
+    <div class="mb-3">
+        <label for="formacao_profissional" class="form-label">Formação profissional (cursos, treinamentos, etc.)</label>
+        <textarea class="form-control" id="formacao_profissional" name="formacao_profissional" rows="3" autocomplete="off"></textarea>
+    </div>
+    <div class="mb-3">
+        <label for="habilidades_relevantes" class="form-label">Outras habilidades (ex: costura, carpintaria, etc.)</label>
+        <textarea class="form-control" id="habilidades_relevantes" name="habilidades_relevantes" rows="3" autocomplete="off"></textarea>
+    </div>
+    <div class="text-end">
+        <button type="button" class="btn btn-primary" id="btnProxima">Próxima etapa</button>
+    </div>
+</form>
+{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/etapa7_emprego_e_habilidades.css') }}">
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/etapa7_emprego_e_habilidades.js') }}"></script>
+{% endblock %}
