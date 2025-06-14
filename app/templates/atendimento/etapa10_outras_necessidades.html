@@ -11,7 +11,9 @@
     </div>
     <div class="d-flex justify-content-between">
         <a href="{{ url_for('atendimento_etapa9') }}" class="btn btn-secondary" id="btnVoltar">Voltar</a>
-        <button type="submit" class="btn btn-success" id="btnFinalizar" data-next-url="{{ url_for('home') }}">Finalizar atendimento</button>
+        <!-- Envia o formulario para a propria rota para que os dados sejam
+        armazenados na sessão antes do redirecionamento -->
+        <button type="submit" class="btn btn-success" id="btnFinalizar" data-next-url="{{ url_for('atendimento_etapa10') }}">Finalizar atendimento</button>
     </div>
 </form>
 {% endblock %}
