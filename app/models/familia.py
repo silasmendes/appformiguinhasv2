@@ -13,6 +13,9 @@ class Familia(db.Model):
     rg = db.Column(db.String(20))
     cpf = db.Column(db.String(14))
     autoriza_uso_imagem = db.Column(db.Boolean)
+    status_cadastro = db.Column(
+        db.String(20), nullable=False, default="rascunho"
+    )
     data_hora_log_utc = db.Column(
         db.DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),

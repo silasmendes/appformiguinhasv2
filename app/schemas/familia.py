@@ -25,6 +25,7 @@ class FamiliaSchema(ma.SQLAlchemySchema):
     rg = ma.auto_field()
     cpf = ma.auto_field()
     autoriza_uso_imagem = ma.auto_field()
+    status_cadastro = ma.auto_field()
     data_hora_log_utc = ma.auto_field(dump_only=True)
 
     @validates("estado_civil")
@@ -68,6 +69,11 @@ class FamiliaSchema(ma.SQLAlchemySchema):
             return False
 
         return True
+
+    @validates("status_cadastro")
+    def validar_status(self, value, **kwargs):
+        if value not in ["rascunho", "finalizado"]:
+            raise ValidationError("Status inválido.")
 
     @validates_schema
     def validate_genero_autodeclarado(self, data, **kwargs):
