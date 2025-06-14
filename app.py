@@ -1,4 +1,5 @@
 from flask import render_template, session, request, redirect, url_for
+from datetime import datetime, timedelta
 from app import create_app
 
 app = create_app()
@@ -7,6 +8,31 @@ app = create_app()
 def home():
     """Renderiza a página inicial."""
     return render_template("index.html")
+
+@app.route("/menu_atendimento")
+def menu_atendimento():
+    return render_template("atendimento/etapa0_menu.html")
+
+@app.route("/atendimento_nova_familia")
+def atendimento_nova_familia():
+    session.pop("cadastro", None)
+    session.pop("cadastro_inicio", None)
+    return redirect(url_for("atendimento_etapa1"))
+
+@app.route("/retomar_atendimento")
+def retomar_atendimento():
+    cadastro = session.get("cadastro")
+    inicio_str = session.get("cadastro_inicio")
+    if cadastro and inicio_str:
+        try:
+            inicio = datetime.fromisoformat(inicio_str)
+            if datetime.utcnow() - inicio < timedelta(hours=1):
+                return redirect(url_for("atendimento_etapa1"))
+        except ValueError:
+            pass
+    error_msg = ("Nenhum atendimento em andamento foi encontrado ou o tempo expirou. "
+                 "Inicie um novo atendimento usando a opção \"Atender família\".")
+    return render_template("atendimento/etapa0_menu.html", error_msg=error_msg)
 
 
 def get_cadastro():
@@ -19,6 +45,8 @@ def get_cadastro():
 def atendimento_etapa1():
     """Exibe a primeira etapa do atendimento à família."""
     cadastro = get_cadastro()
+    if "cadastro_inicio" not in session:
+        session["cadastro_inicio"] = datetime.utcnow().isoformat()
     if request.method == "POST":
         cadastro.update(request.form.to_dict(flat=True))
         session["cadastro"] = cadastro
