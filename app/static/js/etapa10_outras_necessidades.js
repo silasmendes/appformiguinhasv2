@@ -105,9 +105,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         if (valido) {
             console.log('Dados do formulário etapa 10:', Object.fromEntries(new FormData(form).entries()));
+            console.log('Cadastro completo:', window.sessionCadastro);
             const nextUrl = btnFinalizar.getAttribute('data-next-url');
             if (nextUrl) {
-                window.location.href = nextUrl;
+                form.action = nextUrl;
+                form.method = 'post';
+                form.submit();
             }
         }
     });

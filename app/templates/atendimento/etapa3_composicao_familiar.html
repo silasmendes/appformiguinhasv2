@@ -1,58 +1,77 @@
 {% extends 'base.html' %}
-{% block title %}Atendimento à Família - Etapa 3{% endblock %}
+{% block title %}Atendimento à Família - Etapa 2{% endblock %}
 {% block content %}
-<h2 class="mb-4 text-center">Etapa 3 de 10 - Composição familiar</h2>
-<form id="formEtapa3" autocomplete="off">
-    <div class="mb-3 campo-numerico">
-        <label for="total_residentes" class="form-label">Quantas pessoas vivem na mesma residência?</label>
-        <input type="number" class="form-control" id="total_residentes" name="total_residentes" min="0" autocomplete="off">
+<h2 class="mb-4 text-center">Etapa 2 de 10 - Endereço da família</h2>
+<form id="formEtapa2" autocomplete="off" class="form-endereco-grid" method="post">
+
+    <!-- Checkbox -->
+    <div class="endereco-full">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="preenchimento_manual" name="preenchimento_manual" {% if session['cadastro'].get('preenchimento_manual') %}checked{% endif %}>
+            <label class="form-check-label" for="preenchimento_manual">Preencher endereço manualmente?</label>
+        </div>
     </div>
-    <div class="mb-3 campo-numerico">
-        <label for="quantidade_bebes" class="form-label">Quantos bebês (0 a 2 anos)?</label>
-        <input type="number" class="form-control" id="quantidade_bebes" name="quantidade_bebes" min="0" autocomplete="off">
-    </div>
-    <div class="mb-3 campo-numerico">
-        <label for="quantidade_criancas" class="form-label">Quantas crianças (3 a 11 anos)?</label>
-        <input type="number" class="form-control" id="quantidade_criancas" name="quantidade_criancas" min="0" autocomplete="off">
-    </div>
-    <div class="mb-3 campo-numerico">
-        <label for="quantidade_adolescentes" class="form-label">Quantos adolescentes (12 a 17 anos)?</label>
-        <input type="number" class="form-control" id="quantidade_adolescentes" name="quantidade_adolescentes" min="0" autocomplete="off">
-    </div>
-    <div class="mb-3 campo-numerico">
-        <label for="quantidade_adultos" class="form-label">Quantos adultos (18 a 59 anos)?</label>
-        <input type="number" class="form-control" id="quantidade_adultos" name="quantidade_adultos" min="0" autocomplete="off">
-    </div>
-    <div class="mb-3 campo-numerico">
-        <label for="quantidade_idosos" class="form-label">Quantos idosos (60 anos ou mais)?</label>
-        <input type="number" class="form-control" id="quantidade_idosos" name="quantidade_idosos" min="0" autocomplete="off">
-    </div>
-    <div id="menores_na_escola_container" class="mb-3 campo-numerico d-none">
-        <label class="form-label">As crianças e adolescentes estão frequentando a escola?</label>
-        <div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="menores_na_escola" id="menores_na_escola_sim" value="Sim">
-                <label class="form-check-label" for="menores_na_escola_sim">Sim</label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="menores_na_escola" id="menores_na_escola_nao" value="Não">
-                <label class="form-check-label" for="menores_na_escola_nao">Não</label>
+
+    <!-- Linha 1: CEP -->
+    <div class="endereco-row">
+        <div class="endereco-cep">
+            <label for="cep" class="form-label">CEP</label>
+            <input type="text" class="form-control" id="cep" name="cep" value="{{ session['cadastro'].get('cep', '') }}">
+            <div id="cep-feedback" class="form-text text-danger d-none">
+                Não foi possível encontrar o endereço. Se necessário, marque a opção de preenchimento manual.
             </div>
         </div>
     </div>
-    <div id="motivo_ausencia_escola_container" class="mb-3 d-none w-100">
-        <label for="motivo_ausencia_escola" class="form-label">Se não estiverem todos na escola, por quê?</label>
-        <textarea class="form-control" id="motivo_ausencia_escola" name="motivo_ausencia_escola" rows="3" autocomplete="off"></textarea>
+
+    <!-- Linha 2: Logradouro | Número | Complemento -->
+    <div class="endereco-row">
+        <div class="endereco-logradouro">
+            <label for="logradouro" class="form-label">Rua / Avenida / Travessa</label>
+            <input type="text" class="form-control" id="logradouro" name="logradouro" disabled value="{{ session['cadastro'].get('logradouro', '') }}">
+        </div>
+        <div class="endereco-numero">
+            <label for="numero" class="form-label">Número</label>
+            <input type="text" class="form-control" id="numero" name="numero" value="{{ session['cadastro'].get('numero', '') }}">
+        </div>
+        <div class="endereco-complemento">
+            <label for="complemento" class="form-label">Complemento</label>
+            <input type="text" class="form-control" id="complemento" name="complemento" value="{{ session['cadastro'].get('complemento', '') }}">
+        </div>
     </div>
-    <div class="d-flex justify-content-between w-100">
-        <button type="button" class="btn btn-secondary" id="btnVoltar" data-prev-url="{{ url_for('atendimento_etapa2') }}">Voltar</button>
-        <button type="button" class="btn btn-primary" id="btnProxima" data-next-url="{{ url_for('atendimento_etapa4') }}">Próxima etapa</button>
+
+    <!-- Linha 3: Bairro | Cidade | Estado -->
+    <div class="endereco-row">
+        <div class="endereco-bairro">
+            <label for="bairro" class="form-label">Bairro</label>
+            <input type="text" class="form-control" id="bairro" name="bairro" disabled value="{{ session['cadastro'].get('bairro', '') }}">
+        </div>
+        <div class="endereco-cidade">
+            <label for="cidade" class="form-label">Cidade</label>
+            <input type="text" class="form-control" id="cidade" name="cidade" disabled value="{{ session['cadastro'].get('cidade', '') }}">
+        </div>
+        <div class="endereco-estado">
+            <label for="estado" class="form-label">Estado</label>
+            <input type="text" class="form-control" id="estado" name="estado" disabled value="{{ session['cadastro'].get('estado', '') }}">
+        </div>
+    </div>
+
+    <!-- Linha 4: Ponto de referência -->
+    <div class="endereco-row">
+        <div class="endereco-ponto-referencia">
+            <label for="ponto_referencia" class="form-label">Ponto de referência</label>
+            <input type="text" class="form-control" id="ponto_referencia" name="ponto_referencia" value="{{ session['cadastro'].get('ponto_referencia', '') }}">
+        </div>
+    </div>
+
+    <!-- Botão -->
+    <div class="d-flex justify-content-between">
+        <a href="{{ url_for('atendimento_etapa1') }}" class="btn btn-secondary" id="btnVoltar">Voltar</a>
+        <button type="submit" class="btn btn-primary" id="btnProxima" data-next-url="{{ url_for('atendimento_etapa3') }}">Próxima etapa</button>
     </div>
 </form>
-{% endblock %}
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/etapa3_composicao_familiar.css') }}">
+
 {% endblock %}
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/etapa3_composicao_familiar.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/inputmask@5.0.8/dist/inputmask.min.js"></script>
+<script src="{{ url_for('static', filename='js/etapa2_endereco.js') }}"></script>
 {% endblock %}

@@ -2,12 +2,12 @@
 {% block title %}Atendimento à Família - Etapa 2{% endblock %}
 {% block content %}
 <h2 class="mb-4 text-center">Etapa 2 de 10 - Endereço da família</h2>
-<form id="formEtapa2" autocomplete="off" class="form-endereco-grid">
+<form id="formEtapa2" autocomplete="off" class="form-endereco-grid" method="post">
 
     <!-- Checkbox -->
     <div class="endereco-full">
         <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="preenchimento_manual" name="preenchimento_manual">
+            <input class="form-check-input" type="checkbox" id="preenchimento_manual" name="preenchimento_manual" {% if session['cadastro'].get('preenchimento_manual') %}checked{% endif %}>
             <label class="form-check-label" for="preenchimento_manual">Preencher endereço manualmente?</label>
         </div>
     </div>
@@ -16,7 +16,7 @@
     <div class="endereco-row">
         <div class="endereco-cep">
             <label for="cep" class="form-label">CEP</label>
-            <input type="text" class="form-control" id="cep" name="cep">
+            <input type="text" class="form-control" id="cep" name="cep" value="{{ session['cadastro'].get('cep', '') }}">
             <div id="cep-feedback" class="form-text text-danger d-none">
                 Não foi possível encontrar o endereço. Se necessário, marque a opção de preenchimento manual.
             </div>
@@ -27,15 +27,15 @@
     <div class="endereco-row">
         <div class="endereco-logradouro">
             <label for="logradouro" class="form-label">Rua / Avenida / Travessa</label>
-            <input type="text" class="form-control" id="logradouro" name="logradouro" disabled>
+            <input type="text" class="form-control" id="logradouro" name="logradouro" disabled value="{{ session['cadastro'].get('logradouro', '') }}">
         </div>
         <div class="endereco-numero">
             <label for="numero" class="form-label">Número</label>
-            <input type="text" class="form-control" id="numero" name="numero">
+            <input type="text" class="form-control" id="numero" name="numero" value="{{ session['cadastro'].get('numero', '') }}">
         </div>
         <div class="endereco-complemento">
             <label for="complemento" class="form-label">Complemento</label>
-            <input type="text" class="form-control" id="complemento" name="complemento">
+            <input type="text" class="form-control" id="complemento" name="complemento" value="{{ session['cadastro'].get('complemento', '') }}">
         </div>
     </div>
 
@@ -43,15 +43,15 @@
     <div class="endereco-row">
         <div class="endereco-bairro">
             <label for="bairro" class="form-label">Bairro</label>
-            <input type="text" class="form-control" id="bairro" name="bairro" disabled>
+            <input type="text" class="form-control" id="bairro" name="bairro" disabled value="{{ session['cadastro'].get('bairro', '') }}">
         </div>
         <div class="endereco-cidade">
             <label for="cidade" class="form-label">Cidade</label>
-            <input type="text" class="form-control" id="cidade" name="cidade" disabled>
+            <input type="text" class="form-control" id="cidade" name="cidade" disabled value="{{ session['cadastro'].get('cidade', '') }}">
         </div>
         <div class="endereco-estado">
             <label for="estado" class="form-label">Estado</label>
-            <input type="text" class="form-control" id="estado" name="estado" disabled>
+            <input type="text" class="form-control" id="estado" name="estado" disabled value="{{ session['cadastro'].get('estado', '') }}">
         </div>
     </div>
 
@@ -59,14 +59,14 @@
     <div class="endereco-row">
         <div class="endereco-ponto-referencia">
             <label for="ponto_referencia" class="form-label">Ponto de referência</label>
-            <input type="text" class="form-control" id="ponto_referencia" name="ponto_referencia">
+            <input type="text" class="form-control" id="ponto_referencia" name="ponto_referencia" value="{{ session['cadastro'].get('ponto_referencia', '') }}">
         </div>
     </div>
 
     <!-- Botão -->
     <div class="d-flex justify-content-between">
-        <button type="button" class="btn btn-secondary" id="btnVoltar" data-prev-url="{{ url_for('atendimento_etapa1') }}">Voltar</button>
-        <button type="button" class="btn btn-primary" id="btnProxima" data-next-url="{{ url_for('atendimento_etapa3') }}">Próxima etapa</button>
+        <a href="{{ url_for('atendimento_etapa1') }}" class="btn btn-secondary" id="btnVoltar">Voltar</a>
+        <button type="submit" class="btn btn-primary" id="btnProxima" data-next-url="{{ url_for('atendimento_etapa3') }}">Próxima etapa</button>
     </div>
 </form>
 

@@ -17,3 +17,6 @@ class Config:
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     ENV = os.getenv("FLASK_ENV", "production")
+    SECRET_KEY = os.getenv("SECRET_KEY", "dev")
+    SESSION_TYPE = "filesystem"
+    SESSION_FILE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "flask_session")

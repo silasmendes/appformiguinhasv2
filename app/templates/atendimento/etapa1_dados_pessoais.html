@@ -2,63 +2,63 @@
 {% block title %}Atendimento à Família - Etapa 1{% endblock %}
 {% block content %}
 <h2 class="mb-4 text-center">Etapa 1 de 10 - Informações pessoais do(a) entrevistado(a)</h2>
-<form id="formEtapa1" autocomplete="off">
+<form id="formEtapa1" autocomplete="off" method="post">
     <div class="mb-3">
         <label for="nome_responsavel" class="form-label">Nome completo do responsável pela família</label>
-        <input type="text" class="form-control" id="nome_responsavel" name="nome_responsavel" required autofocus autocomplete="off">
+        <input type="text" class="form-control" id="nome_responsavel" name="nome_responsavel" required autofocus autocomplete="off" value="{{ session['cadastro'].get('nome_responsavel', '') }}">
     </div>
     <div class="mb-3">
         <label for="data_nascimento" class="form-label">Data de nascimento</label>
-        <input type="text" class="form-control" id="data_nascimento" name="data_nascimento" placeholder="dd/mm/aaaa" autocomplete="off">
+        <input type="text" class="form-control" id="data_nascimento" name="data_nascimento" placeholder="dd/mm/aaaa" autocomplete="off" value="{{ session['cadastro'].get('data_nascimento', '') }}">
     </div>
     <div class="mb-3">
         <label for="genero" class="form-label">Gênero</label>
         <select class="form-select" id="genero" name="genero">
-            <option value="" selected disabled>Selecione</option>
-            <option value="Masculino">Masculino</option>
-            <option value="Feminino">Feminino</option>
-            <option value="Outro">Outro</option>
+            <option value="" disabled {% if not session['cadastro'].get('genero') %}selected{% endif %}>Selecione</option>
+            <option value="Masculino" {% if session['cadastro'].get('genero')=='Masculino' %}selected{% endif %}>Masculino</option>
+            <option value="Feminino" {% if session['cadastro'].get('genero')=='Feminino' %}selected{% endif %}>Feminino</option>
+            <option value="Outro" {% if session['cadastro'].get('genero')=='Outro' %}selected{% endif %}>Outro</option>
         </select>
     </div>
     <div class="mb-3 d-none" id="genero_autodeclarado_container">
         <label for="genero_autodeclarado" class="form-label">Se outro, como a pessoa se identifica?</label>
-        <input type="text" class="form-control" id="genero_autodeclarado" name="genero_autodeclarado" autocomplete="off">
+        <input type="text" class="form-control" id="genero_autodeclarado" name="genero_autodeclarado" autocomplete="off" value="{{ session['cadastro'].get('genero_autodeclarado', '') }}">
     </div>
     <div class="mb-3">
         <label for="estado_civil" class="form-label">Estado civil</label>
         <select class="form-select" id="estado_civil" name="estado_civil">
-            <option value="" selected disabled>Selecione</option>
-            <option value="Solteira(o)">Solteira(o)</option>
-            <option value="Casada(o)">Casada(o)</option>
-            <option value="Divorciada(o)">Divorciada(o)</option>
-            <option value="Viúva(o)">Viúva(o)</option>
-            <option value="União Estável">União Estável</option>
+            <option value="" disabled {% if not session['cadastro'].get('estado_civil') %}selected{% endif %}>Selecione</option>
+            <option value="Solteira(o)" {% if session['cadastro'].get('estado_civil')=='Solteira(o)' %}selected{% endif %}>Solteira(o)</option>
+            <option value="Casada(o)" {% if session['cadastro'].get('estado_civil')=='Casada(o)' %}selected{% endif %}>Casada(o)</option>
+            <option value="Divorciada(o)" {% if session['cadastro'].get('estado_civil')=='Divorciada(o)' %}selected{% endif %}>Divorciada(o)</option>
+            <option value="Viúva(o)" {% if session['cadastro'].get('estado_civil')=='Viúva(o)' %}selected{% endif %}>Viúva(o)</option>
+            <option value="União Estável" {% if session['cadastro'].get('estado_civil')=='União Estável' %}selected{% endif %}>União Estável</option>
         </select>
     </div>
     <div class="mb-3">
         <label for="rg" class="form-label">Documento de identidade (RG)</label>
-        <input type="text" class="form-control" id="rg" name="rg" autocomplete="off">
+        <input type="text" class="form-control" id="rg" name="rg" autocomplete="off" value="{{ session['cadastro'].get('rg', '') }}">
     </div>
     <div class="mb-3">
         <label for="cpf" class="form-label">CPF do responsável</label>
-        <input type="text" class="form-control" id="cpf" name="cpf" value="000.000.000-00" autocomplete="off">
+        <input type="text" class="form-control" id="cpf" name="cpf" autocomplete="off" value="{{ session['cadastro'].get('cpf', '') }}">
         <div id="cpf-feedback" class="invalid-feedback">CPF inválido</div>
     </div>
     <div class="mb-3">
         <label class="form-label">Autoriza o uso de imagem em registros e divulgações?</label>
         <div>
             <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="autoriza_uso_imagem" id="autoriza_sim" value="Sim" required>
+                <input class="form-check-input" type="radio" name="autoriza_uso_imagem" id="autoriza_sim" value="Sim" required {% if session['cadastro'].get('autoriza_uso_imagem')=='Sim' %}checked{% endif %}>
                 <label class="form-check-label" for="autoriza_sim">Sim</label>
             </div>
             <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="autoriza_uso_imagem" id="autoriza_nao" value="Não">
+                <input class="form-check-input" type="radio" name="autoriza_uso_imagem" id="autoriza_nao" value="Não" {% if session['cadastro'].get('autoriza_uso_imagem')=='Não' %}checked{% endif %}>
                 <label class="form-check-label" for="autoriza_nao">Não</label>
             </div>
         </div>
     </div>
     <div class="text-end">
-        <button type="button" class="btn btn-primary" id="btnProxima" disabled data-next-url="{{ url_for('atendimento_etapa2') }}">Próxima etapa</button>
+        <button type="submit" class="btn btn-primary" id="btnProxima" disabled data-next-url="{{ url_for('atendimento_etapa2') }}">Próxima etapa</button>
     </div>
 </form>
 {% endblock %}

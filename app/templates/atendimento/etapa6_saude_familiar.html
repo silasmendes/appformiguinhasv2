@@ -2,74 +2,74 @@
 {% block title %}Atendimento à Família - Etapa 6{% endblock %}
 {% block content %}
 <h2 class="mb-4 text-center">Etapa 6 de 10 - Saúde dos membros da família</h2>
-<form id="formEtapa6" autocomplete="off">
+<form id="formEtapa6" autocomplete="off" method="post">
     <div class="mb-3">
         <label class="form-label">Algum morador possui alguma doença crônica?</label>
         <div>
             <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="tem_doenca_cronica" id="tem_doenca_cronica_sim" value="Sim" autocomplete="off">
+                <input class="form-check-input" type="radio" name="tem_doenca_cronica" id="tem_doenca_cronica_sim" value="Sim" autocomplete="off" {% if session['cadastro'].get('tem_doenca_cronica')=='Sim' %}checked{% endif %}>
                 <label class="form-check-label" for="tem_doenca_cronica_sim">Sim</label>
             </div>
             <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="tem_doenca_cronica" id="tem_doenca_cronica_nao" value="Não" autocomplete="off">
+                <input class="form-check-input" type="radio" name="tem_doenca_cronica" id="tem_doenca_cronica_nao" value="Não" autocomplete="off" {% if session['cadastro'].get('tem_doenca_cronica')=='Não' %}checked{% endif %}>
                 <label class="form-check-label" for="tem_doenca_cronica_nao">Não</label>
             </div>
         </div>
     </div>
     <div class="mb-3 d-none" id="descricao_doenca_cronica_container">
         <label for="descricao_doenca_cronica" class="form-label">Qual(is) doença(s)?</label>
-        <textarea class="form-control" id="descricao_doenca_cronica" name="descricao_doenca_cronica" rows="3" autocomplete="off"></textarea>
+        <textarea class="form-control" id="descricao_doenca_cronica" name="descricao_doenca_cronica" rows="3" autocomplete="off">{{ session['cadastro'].get('descricao_doenca_cronica', '') }}</textarea>
     </div>
     <div class="mb-3">
         <label class="form-label">Alguém faz uso contínuo de medicamentos?</label>
         <div>
             <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="usa_medicacao_continua" id="usa_medicacao_continua_sim" value="Sim" autocomplete="off">
+                <input class="form-check-input" type="radio" name="usa_medicacao_continua" id="usa_medicacao_continua_sim" value="Sim" autocomplete="off" {% if session['cadastro'].get('usa_medicacao_continua')=='Sim' %}checked{% endif %}>
                 <label class="form-check-label" for="usa_medicacao_continua_sim">Sim</label>
             </div>
             <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="usa_medicacao_continua" id="usa_medicacao_continua_nao" value="Não" autocomplete="off">
+                <input class="form-check-input" type="radio" name="usa_medicacao_continua" id="usa_medicacao_continua_nao" value="Não" autocomplete="off" {% if session['cadastro'].get('usa_medicacao_continua')=='Não' %}checked{% endif %}>
                 <label class="form-check-label" for="usa_medicacao_continua_nao">Não</label>
             </div>
         </div>
     </div>
     <div class="mb-3 d-none" id="descricao_medicacao_container">
         <label for="descricao_medicacao" class="form-label">Qual(is) medicamento(s)?</label>
-        <textarea class="form-control" id="descricao_medicacao" name="descricao_medicacao" rows="3" autocomplete="off"></textarea>
+        <textarea class="form-control" id="descricao_medicacao" name="descricao_medicacao" rows="3" autocomplete="off">{{ session['cadastro'].get('descricao_medicacao', '') }}</textarea>
     </div>
     <div class="mb-3">
         <label class="form-label">Alguém na família possui alguma deficiência (física, mental, etc.)?</label>
         <div>
             <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="tem_deficiencia" id="tem_deficiencia_sim" value="Sim" autocomplete="off">
+                <input class="form-check-input" type="radio" name="tem_deficiencia" id="tem_deficiencia_sim" value="Sim" autocomplete="off" {% if session['cadastro'].get('tem_deficiencia')=='Sim' %}checked{% endif %}>
                 <label class="form-check-label" for="tem_deficiencia_sim">Sim</label>
             </div>
             <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="tem_deficiencia" id="tem_deficiencia_nao" value="Não" autocomplete="off">
+                <input class="form-check-input" type="radio" name="tem_deficiencia" id="tem_deficiencia_nao" value="Não" autocomplete="off" {% if session['cadastro'].get('tem_deficiencia')=='Não' %}checked{% endif %}>
                 <label class="form-check-label" for="tem_deficiencia_nao">Não</label>
             </div>
         </div>
     </div>
     <div class="mb-3 d-none" id="descricao_deficiencia_container">
         <label for="descricao_deficiencia" class="form-label">Qual tipo de deficiência?</label>
-        <textarea class="form-control" id="descricao_deficiencia" name="descricao_deficiencia" rows="3" autocomplete="off"></textarea>
+        <textarea class="form-control" id="descricao_deficiencia" name="descricao_deficiencia" rows="3" autocomplete="off">{{ session['cadastro'].get('descricao_deficiencia', '') }}</textarea>
     </div>
     <div class="mb-3 d-none" id="recebe_bpc_container">
         <label class="form-label">A pessoa com deficiência recebe Benefício de Prestação Continuada?</label>
         <div>
             <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="recebe_bpc" id="recebe_bpc_sim" value="Sim" autocomplete="off">
+                <input class="form-check-input" type="radio" name="recebe_bpc" id="recebe_bpc_sim" value="Sim" autocomplete="off" {% if session['cadastro'].get('recebe_bpc')=='Sim' %}checked{% endif %}>
                 <label class="form-check-label" for="recebe_bpc_sim">Sim</label>
             </div>
             <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="recebe_bpc" id="recebe_bpc_nao" value="Não" autocomplete="off">
+                <input class="form-check-input" type="radio" name="recebe_bpc" id="recebe_bpc_nao" value="Não" autocomplete="off" {% if session['cadastro'].get('recebe_bpc')=='Não' %}checked{% endif %}>
                 <label class="form-check-label" for="recebe_bpc_nao">Não</label>
             </div>
         </div>
     </div>
     <div class="d-flex justify-content-between">
-        <button type="button" class="btn btn-secondary" id="btnVoltar" data-prev-url="{{ url_for('atendimento_etapa5') }}">Voltar</button>
-        <button type="button" class="btn btn-primary" id="btnProxima" data-next-url="{{ url_for('atendimento_etapa7') }}">Próxima etapa</button>
+        <a href="{{ url_for('atendimento_etapa5') }}" class="btn btn-secondary" id="btnVoltar">Voltar</a>
+        <button type="submit" class="btn btn-primary" id="btnProxima" data-next-url="{{ url_for('atendimento_etapa7') }}">Próxima etapa</button>
     </div>
 </form>
 {% endblock %}

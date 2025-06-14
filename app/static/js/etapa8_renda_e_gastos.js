@@ -208,7 +208,9 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Dados do formulário etapa 8:', Object.fromEntries(new FormData(form).entries()));
             const nextUrl = btnProxima.getAttribute('data-next-url');
             if (nextUrl) {
-                window.location.href = nextUrl;
+                form.action = nextUrl;
+                form.method = 'post';
+                form.submit();
             }
         });
     }

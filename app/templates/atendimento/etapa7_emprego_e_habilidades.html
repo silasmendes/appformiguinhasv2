@@ -2,57 +2,57 @@
 {% block title %}Atendimento à Família - Etapa 7{% endblock %}
 {% block content %}
 <h2 class="mb-4 text-center">Etapa 7 de 10 - Emprego do provedor principal</h2>
-<form id="formEtapa7" autocomplete="off">
+<form id="formEtapa7" autocomplete="off" method="post">
     <div class="mb-3">
         <label for="relacao_provedor_familia" class="form-label">Quem é o principal provedor da família?</label>
         <select class="form-select" id="relacao_provedor_familia" name="relacao_provedor_familia" autocomplete="off">
-            <option value="" selected disabled>Selecione</option>
-            <option value="Eu mesma(o)">Eu mesma(o)</option>
-            <option value="Esposo(a)">Esposo(a)</option>
-            <option value="Filho(a)">Filho(a)</option>
-            <option value="Outro familiar">Outro familiar</option>
-            <option value="Provedor não familiar">Provedor não familiar</option>
+            <option value="" disabled {% if not session['cadastro'].get('relacao_provedor_familia') %}selected{% endif %}>Selecione</option>
+            <option value="Eu mesma(o)" {% if session['cadastro'].get('relacao_provedor_familia')=='Eu mesma(o)' %}selected{% endif %}>Eu mesma(o)</option>
+            <option value="Esposo(a)" {% if session['cadastro'].get('relacao_provedor_familia')=='Esposo(a)' %}selected{% endif %}>Esposo(a)</option>
+            <option value="Filho(a)" {% if session['cadastro'].get('relacao_provedor_familia')=='Filho(a)' %}selected{% endif %}>Filho(a)</option>
+            <option value="Outro familiar" {% if session['cadastro'].get('relacao_provedor_familia')=='Outro familiar' %}selected{% endif %}>Outro familiar</option>
+            <option value="Provedor não familiar" {% if session['cadastro'].get('relacao_provedor_familia')=='Provedor não familiar' %}selected{% endif %}>Provedor não familiar</option>
         </select>
     </div>
     <div class="mb-3 d-none" id="descricao_provedor_externo_container">
         <label for="descricao_provedor_externo" class="form-label">Se não for da família, quem é o provedor?</label>
-        <input type="text" class="form-control" id="descricao_provedor_externo" name="descricao_provedor_externo" autocomplete="off">
+        <input type="text" class="form-control" id="descricao_provedor_externo" name="descricao_provedor_externo" autocomplete="off" value="{{ session['cadastro'].get('descricao_provedor_externo', '') }}">
     </div>
     <div class="mb-3">
         <label for="situacao_emprego" class="form-label">Qual a situação de emprego do provedor principal?</label>
         <select class="form-select" id="situacao_emprego" name="situacao_emprego" autocomplete="off">
-            <option value="" selected disabled>Selecione</option>
-            <option value="Empregado formal">Empregado formal</option>
-            <option value="Empregado informal">Empregado informal</option>
-            <option value="Desempregado">Desempregado</option>
-            <option value="Autônomo">Autônomo</option>
-            <option value="Aposentado">Aposentado</option>
-            <option value="Outro">Outro</option>
+            <option value="" disabled {% if not session['cadastro'].get('situacao_emprego') %}selected{% endif %}>Selecione</option>
+            <option value="Empregado formal" {% if session['cadastro'].get('situacao_emprego')=='Empregado formal' %}selected{% endif %}>Empregado formal</option>
+            <option value="Empregado informal" {% if session['cadastro'].get('situacao_emprego')=='Empregado informal' %}selected{% endif %}>Empregado informal</option>
+            <option value="Desempregado" {% if session['cadastro'].get('situacao_emprego')=='Desempregado' %}selected{% endif %}>Desempregado</option>
+            <option value="Autônomo" {% if session['cadastro'].get('situacao_emprego')=='Autônomo' %}selected{% endif %}>Autônomo</option>
+            <option value="Aposentado" {% if session['cadastro'].get('situacao_emprego')=='Aposentado' %}selected{% endif %}>Aposentado</option>
+            <option value="Outro" {% if session['cadastro'].get('situacao_emprego')=='Outro' %}selected{% endif %}>Outro</option>
         </select>
     </div>
     <div class="mb-3 d-none" id="descricao_situacao_emprego_outro_container">
         <label for="descricao_situacao_emprego_outro" class="form-label">Descreva a situação de emprego</label>
-        <input type="text" class="form-control" id="descricao_situacao_emprego_outro" name="descricao_situacao_emprego_outro" autocomplete="off">
+        <input type="text" class="form-control" id="descricao_situacao_emprego_outro" name="descricao_situacao_emprego_outro" autocomplete="off" value="{{ session['cadastro'].get('descricao_situacao_emprego_outro', '') }}">
     </div>
     <div class="mb-3">
         <label for="profissao_provedor" class="form-label">Qual a profissão atual do provedor?</label>
-        <input type="text" class="form-control" id="profissao_provedor" name="profissao_provedor" autocomplete="off">
+        <input type="text" class="form-control" id="profissao_provedor" name="profissao_provedor" autocomplete="off" value="{{ session['cadastro'].get('profissao_provedor', '') }}">
     </div>
     <div class="mb-3">
         <label for="experiencia_profissional" class="form-label">Há alguma experiência profissional relevante?</label>
-        <textarea class="form-control" id="experiencia_profissional" name="experiencia_profissional" rows="3" autocomplete="off"></textarea>
+        <textarea class="form-control" id="experiencia_profissional" name="experiencia_profissional" rows="3" autocomplete="off">{{ session['cadastro'].get('experiencia_profissional', '') }}</textarea>
     </div>
     <div class="mb-3">
         <label for="formacao_profissional" class="form-label">Formação profissional (cursos, treinamentos, etc.)</label>
-        <textarea class="form-control" id="formacao_profissional" name="formacao_profissional" rows="3" autocomplete="off"></textarea>
+        <textarea class="form-control" id="formacao_profissional" name="formacao_profissional" rows="3" autocomplete="off">{{ session['cadastro'].get('formacao_profissional', '') }}</textarea>
     </div>
     <div class="mb-3">
         <label for="habilidades_relevantes" class="form-label">Outras habilidades (ex: costura, carpintaria, etc.)</label>
-        <textarea class="form-control" id="habilidades_relevantes" name="habilidades_relevantes" rows="3" autocomplete="off"></textarea>
+        <textarea class="form-control" id="habilidades_relevantes" name="habilidades_relevantes" rows="3" autocomplete="off">{{ session['cadastro'].get('habilidades_relevantes', '') }}</textarea>
     </div>
     <div class="d-flex justify-content-between">
-        <button type="button" class="btn btn-secondary" id="btnVoltar" data-prev-url="{{ url_for('atendimento_etapa6') }}">Voltar</button>
-        <button type="button" class="btn btn-primary" id="btnProxima" data-next-url="{{ url_for('atendimento_etapa8') }}">Próxima etapa</button>
+        <a href="{{ url_for('atendimento_etapa6') }}" class="btn btn-secondary" id="btnVoltar">Voltar</a>
+        <button type="submit" class="btn btn-primary" id="btnProxima" data-next-url="{{ url_for('atendimento_etapa8') }}">Próxima etapa</button>
     </div>
 </form>
 {% endblock %}
