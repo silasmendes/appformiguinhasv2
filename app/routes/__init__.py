@@ -7,6 +7,9 @@ from app.routes.endereco import bp as endereco_bp
 from app.routes.saude_familiar import bp as saude_familiar_bp
 from app.routes.educacao_entrevistado import bp as educacao_entrevistado_bp
 from app.routes.emprego_provedor import bp as emprego_provedor_bp
+from app.routes.demanda_tipo import bp as demanda_tipo_bp
+from app.routes.demanda_familia import bp as demanda_familia_bp
+from app.routes.demanda_etapa import bp as demanda_etapa_bp
 
 def register_routes(app):
     app.register_blueprint(familia_bp)
@@ -18,3 +21,6 @@ def register_routes(app):
     app.register_blueprint(saude_familiar_bp)
     app.register_blueprint(educacao_entrevistado_bp)
     app.register_blueprint(emprego_provedor_bp)
+    app.register_blueprint(demanda_tipo_bp)
+    app.register_blueprint(demanda_familia_bp)
+    app.register_blueprint(demanda_etapa_bp)
