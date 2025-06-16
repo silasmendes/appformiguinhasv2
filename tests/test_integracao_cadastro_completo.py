@@ -1,6 +1,10 @@
 import pytest
 from app import create_app
 
+_familia_id = None
+_demanda1_id = None
+_demanda2_id = None
+
 
 @pytest.fixture
 def client():
@@ -173,3 +177,76 @@ def test_cadastro_completo(client):
     assert client.get(f"/emprego_provedor/{emprego_id}").status_code == 200
     assert client.get(f"/renda_familiar/{renda_id}").status_code == 200
     assert client.get(f"/saude_familiar/{saude_id}").status_code == 200
+
+    global _familia_id
+    _familia_id = familia_id
+
+
+def test_demanda_criar_multiplas_para_familia(client):
+    global _familia_id, _demanda1_id, _demanda2_id
+
+    assert _familia_id is not None
+
+    payload1 = {
+        "familia_id": _familia_id,
+        "demanda_tipo_id": 4,
+        "descricao": "Av\u00f4 precisa de rem\u00e9dio para controlar press\u00e3o alta.",
+        "data_identificacao": "2024-01-01",
+    }
+    resp1 = client.post("/demandas", json=payload1)
+    assert resp1.status_code == 201
+    data1 = resp1.get_json()
+    assert data1["status"] == "Em análise"
+    _demanda1_id = data1["demanda_id"]
+
+    payload2 = {
+        "familia_id": _familia_id,
+        "demanda_tipo_id": 5,
+        "descricao": "Filho mais novo nao conseguiu vaga em creche.",
+        "data_identificacao": "2024-01-02",
+    }
+    resp2 = client.post("/demandas", json=payload2)
+    assert resp2.status_code == 201
+    data2 = resp2.get_json()
+    assert data2["status"] == "Em análise"
+    _demanda2_id = data2["demanda_id"]
+
+
+def test_demanda_etapa_atualiza_status(client):
+    global _demanda1_id
+    assert _demanda1_id is not None
+
+    etapa_payload = {
+        "demanda_id": _demanda1_id,
+        "status_atual": "Encaminhada",
+        "observacao": "Requisicao encaminhada para farmacia da familia na regiao. Aguardando resposta para concluirmos esta demanda",
+    }
+
+    resp_etapa = client.post("/demanda_etapas", json=etapa_payload)
+    assert resp_etapa.status_code == 201
+
+    update_resp = client.put(f"/demandas/{_demanda1_id}", json={"status": "Encaminhada"})
+    assert update_resp.status_code in [200, 201, 204]
+
+    resp_get = client.get(f"/demandas/{_demanda1_id}")
+    assert resp_get.status_code == 200
+    assert resp_get.get_json()["status"] == "Encaminhada"
+
+
+def test_demanda_tipo_invalido(client):
+    global _familia_id
+    assert _familia_id is not None
+
+    payload = {
+        "familia_id": _familia_id,
+        "demanda_tipo_id": 9,
+        "descricao": "Familia precisa de uma geladeira.",
+        "data_identificacao": "2024-01-03",
+    }
+
+    resp = client.post("/demandas", json=payload)
+    assert resp.status_code == 400
+    data = resp.get_json()
+    assert "demanda_tipo_id" in data
+
+
