@@ -3,6 +3,7 @@
 {% block content %}
 <h2 class="mb-4 text-center">Etapa 1 de 10 - Informações pessoais do(a) entrevistado(a)</h2>
 <form id="formEtapa1" autocomplete="off" method="post">
+    <input type="hidden" id="familia_id_hidden" name="familia_id" value="{{ session.get('familia_id', '') }}">
     <div class="mb-3">
         <label for="nome_responsavel" class="form-label">Nome completo do responsável pela família</label>
         <input type="text" class="form-control" id="nome_responsavel" name="nome_responsavel" required autofocus autocomplete="off" value="{{ session['cadastro'].get('nome_responsavel', '') }}">
