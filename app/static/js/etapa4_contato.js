@@ -49,7 +49,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    document.getElementById("btnVoltar")?.addEventListener("click", function () {
-        window.location.href = this.dataset.prevUrl;
+    document.getElementById("btnVoltar")?.addEventListener("click", function (e) {
+        const url = this.dataset.prevUrl;
+        if (url) {
+            e.preventDefault();
+            window.location.href = url;
+        }
     });
 });
