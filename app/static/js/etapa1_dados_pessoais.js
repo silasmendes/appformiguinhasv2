@@ -118,7 +118,9 @@ document.addEventListener('DOMContentLoaded', function() {
             dadosFormulario.autoriza_uso_imagem = dadosFormulario.autoriza_uso_imagem === 'Sim';
         }
 
-        const familiaId = sessionStorage.getItem('familia_id') || 0;
+        // Obtém o familia_id salvo na sessão (ou null se não existir)
+        const storedFamiliaId = sessionStorage.getItem('familia_id');
+        const familiaId = storedFamiliaId !== null ? storedFamiliaId : 'null';
 
         btnProxima.disabled = true;
 
