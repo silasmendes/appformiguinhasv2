@@ -121,6 +121,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const nextUrl = btnProxima.getAttribute('data-next-url');
         const dadosFormulario = Object.fromEntries(new FormData(form).entries());
+        if (!dadosFormulario.familia_id) {
+            delete dadosFormulario.familia_id;
+        }
         // Converter valor para booleano esperado pela API
         if (dadosFormulario.autoriza_uso_imagem) {
             dadosFormulario.autoriza_uso_imagem = dadosFormulario.autoriza_uso_imagem === 'Sim';
