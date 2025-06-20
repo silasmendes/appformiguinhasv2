@@ -56,6 +56,7 @@ def upsert_familia_por_familia(familia_id):
 
     data = request.get_json() or {}
     data.pop("familia_id", None)
+
     session_familia_id = session.get("familia_id")
 
     if familia_id == 0 and session_familia_id:
