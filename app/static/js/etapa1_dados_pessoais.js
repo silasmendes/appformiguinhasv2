@@ -118,9 +118,10 @@ document.addEventListener('DOMContentLoaded', function() {
             dadosFormulario.autoriza_uso_imagem = dadosFormulario.autoriza_uso_imagem === 'Sim';
         }
 
-        // Obtém o familia_id salvo na sessão (ou null se não existir)
+        // Obtém o familia_id salvo na sessão. Para uma nova família usamos 0,
+        // indicando que o backend deve gerar um novo registro.
         const storedFamiliaId = sessionStorage.getItem('familia_id');
-        const familiaId = storedFamiliaId !== null ? storedFamiliaId : 'null';
+        const familiaId = storedFamiliaId !== null ? storedFamiliaId : '0';
 
         btnProxima.disabled = true;
 
