@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
         addressFields.forEach(id => {
             const field = document.getElementById(id);
             if (field) {
-                field.disabled = !enabled;
+                field.readOnly = !enabled;
             }
         });
         if (enabled) {
@@ -70,7 +70,15 @@ document.addEventListener('DOMContentLoaded', function() {
                             document.getElementById('bairro').value = data.bairro || '';
                             document.getElementById('cidade').value = data.localidade || '';
                             document.getElementById('estado').value = data.uf || '';
+                            window.sessionCadastro = {
+                                ...window.sessionCadastro,
+                                logradouro: data.logradouro || '',
+                                bairro: data.bairro || '',
+                                cidade: data.localidade || '',
+                                estado: data.uf || ''
+                            };
                             cepFeedback.classList.add('d-none');
+                            console.log('Sessão atualizada com endereço:', window.sessionCadastro);
                             document.getElementById('numero').focus();
                         } else {
                             showCepError();
@@ -114,6 +122,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
 
                 if (resposta.ok) {
+                    const salvo = await resposta.json().catch(() => ({}));
+                    window.sessionCadastro = { ...window.sessionCadastro, ...dadosFormulario };
                     if (nextUrl) {
                         form.action = nextUrl;
                         form.method = 'post';
