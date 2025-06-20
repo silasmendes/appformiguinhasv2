@@ -64,13 +64,32 @@ def deletar_condicao_moradia(moradia_id):
 @bp.route("/upsert/familia/<int:familia_id>", methods=["PUT"])
 def upsert_condicao_moradia_por_familia(familia_id):
     """Rota de upsert (criação ou atualização baseada em familia_id)."""
-    data = request.get_json()
+    data = request.get_json() or {}
+
+    # converte strings vazias em None para evitar erros de validação em campos
+    # numéricos opcionais
+    num_fields = [
+        "valor_aluguel",
+        "quantidade_camas",
+        "quantidade_tvs",
+        "quantidade_ventiladores",
+    ]
+    for field in num_fields:
+        if field in data and data[field] == "":
+            data[field] = None
+
     existente = CondicaoMoradia.query.filter_by(familia_id=familia_id).first()
-    if existente:
-        condicao = condicao_schema.load(data, instance=existente, partial=True)
-    else:
-        data["familia_id"] = familia_id
-        condicao = condicao_schema.load(data)
-        db.session.add(condicao)
-    db.session.commit()
+
+    try:
+        if existente:
+            condicao = condicao_schema.load(data, instance=existente, partial=True)
+        else:
+            data["familia_id"] = familia_id
+            condicao = condicao_schema.load(data)
+            db.session.add(condicao)
+        db.session.commit()
+    except ValidationError as err:
+        db.session.rollback()
+        return jsonify(err.messages), 400
+
     return condicao_schema.jsonify(condicao)
