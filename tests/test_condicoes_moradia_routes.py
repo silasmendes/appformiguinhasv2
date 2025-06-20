@@ -80,6 +80,20 @@ def test_put_condicao_moradia(client):
     assert data["tipo_moradia"] == "Própria"
 
 
+def test_upsert_condicao_campos_vazios(client):
+    """Garante que o upsert trata campos vazios sem erro."""
+    global _familia_id_condicao
+
+    payload = {"quantidade_ventiladores": ""}
+    response = client.put(
+        f"/condicoes_moradia/upsert/familia/{_familia_id_condicao}",
+        json=payload,
+    )
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data.get("quantidade_ventiladores") is None
+
+
 def test_delete_condicao_moradia(client):
     global _moradia_id_gerada
     response = client.delete(f"/condicoes_moradia/{_moradia_id_gerada}")
