@@ -2,6 +2,15 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Estado atual da sessão:', window.sessionCadastro);
+    const hiddenIdInput = document.getElementById('familia_id_hidden');
+    if (window.sessionFamiliaId === null) {
+        sessionStorage.removeItem('familia_id');
+        if (hiddenIdInput) hiddenIdInput.value = '';
+    } else if (window.sessionFamiliaId) {
+        sessionStorage.setItem('familia_id', window.sessionFamiliaId);
+        if (hiddenIdInput) hiddenIdInput.value = window.sessionFamiliaId;
+    }
+
     const currencyInputs = document.querySelectorAll('.renda-decimal');
 
     let valorAluguel = 0;
@@ -219,14 +228,101 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnProxima = document.getElementById('btnProxima');
     const form = document.getElementById('formEtapa8');
     if (btnProxima && form) {
-        btnProxima.addEventListener('click', function() {
-            console.log('Dados do formulário etapa 8:', Object.fromEntries(new FormData(form).entries()));
-            console.log('Estado atual da sessão:', window.sessionCadastro);
+        btnProxima.addEventListener('click', async function(e) {
+            e.preventDefault();
+
             const nextUrl = btnProxima.getAttribute('data-next-url');
-            if (nextUrl) {
-                form.action = nextUrl;
-                form.method = 'post';
-                form.submit();
+
+            const dadosFormulario = {};
+            const formData = new FormData(form);
+            for (const [name, value] of formData.entries()) {
+                const el = form.querySelector(`[name="${name}"]`);
+                if (el && el.dataset.rawValue !== undefined) {
+                    dadosFormulario[name] = el.dataset.rawValue;
+                } else {
+                    dadosFormulario[name] = value;
+                }
+            }
+
+            if (dadosFormulario.cadastro_unico !== undefined) {
+                dadosFormulario.possui_cadastro_unico =
+                    dadosFormulario.cadastro_unico === 'Sim' || dadosFormulario.cadastro_unico === true;
+                delete dadosFormulario.cadastro_unico;
+            }
+            if (dadosFormulario.recebe_beneficio !== undefined) {
+                dadosFormulario.recebe_beneficios_governo =
+                    dadosFormulario.recebe_beneficio === 'Sim' || dadosFormulario.recebe_beneficio === true;
+                delete dadosFormulario.recebe_beneficio;
+            }
+            if (dadosFormulario.valor_botija_gas !== undefined) {
+                dadosFormulario.valor_botijao_gas = dadosFormulario.valor_botija_gas;
+                delete dadosFormulario.valor_botija_gas;
+            }
+            if (dadosFormulario.duracao_botija_gas !== undefined) {
+                dadosFormulario.duracao_botijao_gas = dadosFormulario.duracao_botija_gas;
+                delete dadosFormulario.duracao_botija_gas;
+            }
+            if (dadosFormulario.gastos_conta_celular !== undefined) {
+                dadosFormulario.gastos_celular = dadosFormulario.gastos_conta_celular;
+                delete dadosFormulario.gastos_conta_celular;
+            }
+            if (dadosFormulario.renda_arrimo !== undefined) {
+                dadosFormulario.renda_provedor_principal = dadosFormulario.renda_arrimo;
+                delete dadosFormulario.renda_arrimo;
+            }
+            if (dadosFormulario.renda_outros_familiares !== undefined) {
+                dadosFormulario.renda_outros_moradores = dadosFormulario.renda_outros_familiares;
+                delete dadosFormulario.renda_outros_familiares;
+            }
+            if (dadosFormulario.auxilio_parentes_amigos !== undefined) {
+                dadosFormulario.ajuda_terceiros = dadosFormulario.auxilio_parentes_amigos;
+                delete dadosFormulario.auxilio_parentes_amigos;
+            }
+            if (dadosFormulario.valor_total_beneficios !== undefined) {
+                dadosFormulario.valor_beneficios = dadosFormulario.valor_total_beneficios;
+                delete dadosFormulario.valor_total_beneficios;
+            }
+            if (dadosFormulario.renda_familiar_total !== undefined) {
+                dadosFormulario.renda_total_familiar = dadosFormulario.renda_familiar_total;
+                delete dadosFormulario.renda_familiar_total;
+            }
+            if (dadosFormulario.total_gastos !== undefined) {
+                dadosFormulario.gastos_totais = dadosFormulario.total_gastos;
+                delete dadosFormulario.total_gastos;
+            }
+            if (dadosFormulario.saldo !== undefined) {
+                dadosFormulario.saldo_mensal = dadosFormulario.saldo;
+                delete dadosFormulario.saldo;
+            }
+
+            const storedFamiliaId = sessionStorage.getItem('familia_id');
+            const familiaId = storedFamiliaId !== null ? storedFamiliaId : window.sessionFamiliaId || '0';
+
+            btnProxima.disabled = true;
+
+            try {
+                const resposta = await fetch(`/renda_familiar/upsert/familia/${familiaId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(dadosFormulario)
+                });
+
+                if (resposta.ok) {
+                    if (nextUrl) {
+                        form.action = nextUrl;
+                        form.method = 'post';
+                        form.submit();
+                    }
+                } else {
+                    const erro = await resposta.json().catch(() => ({ mensagem: 'Erro desconhecido' }));
+                    alert(JSON.stringify(erro));
+                    btnProxima.disabled = false;
+                }
+            } catch (err) {
+                alert('Erro ao enviar os dados. Tente novamente.');
+                btnProxima.disabled = false;
             }
         });
     }
