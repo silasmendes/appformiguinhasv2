@@ -20,3 +20,9 @@ class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "dev")
     SESSION_TYPE = "filesystem"
     SESSION_FILE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "flask_session")
+
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_recycle": 280,
+        "pool_pre_ping": True
+    }
+
