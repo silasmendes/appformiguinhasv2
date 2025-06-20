@@ -59,3 +59,18 @@ def deletar_condicao_moradia(moradia_id):
     db.session.delete(condicao)
     db.session.commit()
     return jsonify({"mensagem": "Condição de moradia deletada com sucesso"}), 200
+
+
+@bp.route("/upsert/familia/<int:familia_id>", methods=["PUT"])
+def upsert_condicao_moradia_por_familia(familia_id):
+    """Rota de upsert (criação ou atualização baseada em familia_id)."""
+    data = request.get_json()
+    existente = CondicaoMoradia.query.filter_by(familia_id=familia_id).first()
+    if existente:
+        condicao = condicao_schema.load(data, instance=existente, partial=True)
+    else:
+        data["familia_id"] = familia_id
+        condicao = condicao_schema.load(data)
+        db.session.add(condicao)
+    db.session.commit()
+    return condicao_schema.jsonify(condicao)

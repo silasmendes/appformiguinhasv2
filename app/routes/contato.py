@@ -50,6 +50,21 @@ def atualizar_contato(contato_id):
     return contato_schema.jsonify(contato)
 
 
+@bp.route("/upsert/familia/<int:familia_id>", methods=["PUT"])
+def upsert_contato_por_familia(familia_id):
+    """Rota de upsert (criação ou atualização baseada em familia_id)."""
+    data = request.get_json()
+    existente = Contato.query.filter_by(familia_id=familia_id).first()
+    if existente:
+        contato = contato_schema.load(data, instance=existente, partial=True)
+    else:
+        data["familia_id"] = familia_id
+        contato = contato_schema.load(data)
+        db.session.add(contato)
+    db.session.commit()
+    return contato_schema.jsonify(contato)
+
+
 @bp.route("/<int:contato_id>", methods=["DELETE"])
 def deletar_contato(contato_id):
     contato = db.session.get(Contato, contato_id)
