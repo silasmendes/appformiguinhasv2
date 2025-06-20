@@ -1,6 +1,14 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Estado atual da sessão:', window.sessionCadastro);
+    const hiddenIdInput = document.getElementById('familia_id_hidden');
+    if (window.sessionFamiliaId === null) {
+        sessionStorage.removeItem('familia_id');
+        if (hiddenIdInput) hiddenIdInput.value = '';
+    } else if (window.sessionFamiliaId) {
+        sessionStorage.setItem('familia_id', window.sessionFamiliaId);
+        if (hiddenIdInput) hiddenIdInput.value = window.sessionFamiliaId;
+    }
     const doencaRadios = document.querySelectorAll('input[name="tem_doenca_cronica"]');
     const doencaContainer = document.getElementById('descricao_doenca_cronica_container');
 
@@ -46,14 +54,53 @@ document.addEventListener('DOMContentLoaded', function() {
     atualizarDeficiencia();
 
     if (btnProxima && form) {
-        btnProxima.addEventListener('click', function() {
-            console.log('Dados do formulário etapa 6:', Object.fromEntries(new FormData(form).entries()));
-            console.log('Estado atual da sessão:', window.sessionCadastro);
+        btnProxima.addEventListener('click', async function(e) {
+            e.preventDefault();
+
             const nextUrl = btnProxima.getAttribute('data-next-url');
-            if (nextUrl) {
-                form.action = nextUrl;
-                form.method = 'post';
-                form.submit();
+            const dadosFormulario = Object.fromEntries(new FormData(form).entries());
+
+            if (dadosFormulario.tem_doenca_cronica !== undefined) {
+                dadosFormulario.tem_doenca_cronica = dadosFormulario.tem_doenca_cronica === 'Sim' || dadosFormulario.tem_doenca_cronica === true;
+            }
+            if (dadosFormulario.usa_medicacao_continua !== undefined) {
+                dadosFormulario.usa_medicacao_continua = dadosFormulario.usa_medicacao_continua === 'Sim' || dadosFormulario.usa_medicacao_continua === true;
+            }
+            if (dadosFormulario.tem_deficiencia !== undefined) {
+                dadosFormulario.tem_deficiencia = dadosFormulario.tem_deficiencia === 'Sim' || dadosFormulario.tem_deficiencia === true;
+            }
+            if (dadosFormulario.recebe_bpc !== undefined) {
+                dadosFormulario.recebe_bpc = dadosFormulario.recebe_bpc === 'Sim' || dadosFormulario.recebe_bpc === true;
+            }
+
+            const storedFamiliaId = sessionStorage.getItem('familia_id');
+            const familiaId = storedFamiliaId !== null ? storedFamiliaId : window.sessionFamiliaId || '0';
+
+            btnProxima.disabled = true;
+
+            try {
+                const resposta = await fetch(`/saude_familiar/upsert/familia/${familiaId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(dadosFormulario)
+                });
+
+                if (resposta.ok) {
+                    if (nextUrl) {
+                        form.action = nextUrl;
+                        form.method = 'post';
+                        form.submit();
+                    }
+                } else {
+                    const erro = await resposta.json().catch(() => ({ mensagem: 'Erro desconhecido' }));
+                    alert(JSON.stringify(erro));
+                    btnProxima.disabled = false;
+                }
+            } catch (err) {
+                alert('Erro ao enviar os dados. Tente novamente.');
+                btnProxima.disabled = false;
             }
         });
     }
