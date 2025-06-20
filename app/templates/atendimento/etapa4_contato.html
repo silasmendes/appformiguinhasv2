@@ -3,6 +3,7 @@
 {% block content %}
 <h2 class="mb-4 text-center">Etapa 4 de 10 - Informações de contato da família</h2>
 <form id="formEtapa4" autocomplete="off" method="post">
+    <input type="hidden" id="familia_id_hidden" name="familia_id" value="{{ session.get('familia_id', '') }}">
     <div class="row align-items-end mb-3">
         <div class="col-md-6">
             <label for="telefone_principal" class="form-label">Celular principal para contato</label>
