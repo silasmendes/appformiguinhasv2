@@ -77,6 +77,20 @@ def test_put_composicao(client):
     assert data["total_residentes"] == 5
 
 
+def test_upsert_composicao_campos_vazios(client):
+    """Garante que o upsert trata campos vazios sem erro."""
+    global _familia_id_composicao
+
+    payload = {"quantidade_idosos": ""}
+    response = client.put(
+        f"/composicao_familiar/upsert/familia/{_familia_id_composicao}",
+        json=payload,
+    )
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data.get("quantidade_idosos") is None
+
+
 def test_delete_composicao(client):
     global _composicao_id_gerado
     response = client.delete(f"/composicao_familiar/{_composicao_id_gerado}")
