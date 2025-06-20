@@ -28,7 +28,7 @@
     <div class="endereco-row">
         <div class="endereco-logradouro">
             <label for="logradouro" class="form-label">Rua / Avenida / Travessa</label>
-            <input type="text" class="form-control" id="logradouro" name="logradouro" disabled value="{{ session['cadastro'].get('logradouro', '') }}">
+            <input type="text" class="form-control" id="logradouro" name="logradouro" readonly value="{{ session['cadastro'].get('logradouro', '') }}">
         </div>
         <div class="endereco-numero">
             <label for="numero" class="form-label">Número</label>
@@ -44,15 +44,15 @@
     <div class="endereco-row">
         <div class="endereco-bairro">
             <label for="bairro" class="form-label">Bairro</label>
-            <input type="text" class="form-control" id="bairro" name="bairro" disabled value="{{ session['cadastro'].get('bairro', '') }}">
+            <input type="text" class="form-control" id="bairro" name="bairro" readonly value="{{ session['cadastro'].get('bairro', '') }}">
         </div>
         <div class="endereco-cidade">
             <label for="cidade" class="form-label">Cidade</label>
-            <input type="text" class="form-control" id="cidade" name="cidade" disabled value="{{ session['cadastro'].get('cidade', '') }}">
+            <input type="text" class="form-control" id="cidade" name="cidade" readonly value="{{ session['cadastro'].get('cidade', '') }}">
         </div>
         <div class="endereco-estado">
             <label for="estado" class="form-label">Estado</label>
-            <input type="text" class="form-control" id="estado" name="estado" disabled value="{{ session['cadastro'].get('estado', '') }}">
+            <input type="text" class="form-control" id="estado" name="estado" readonly value="{{ session['cadastro'].get('estado', '') }}">
         </div>
     </div>
 
