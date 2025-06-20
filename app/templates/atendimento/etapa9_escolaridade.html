@@ -3,6 +3,7 @@
 {% block content %}
 <h2 class="mb-4 text-center">Etapa 9 de 10 - Escolaridade do(a) entrevistado(a)</h2>
 <form id="formEtapa9" autocomplete="off" method="post">
+    <input type="hidden" id="familia_id_hidden" name="familia_id" value="{{ session.get('familia_id', '') }}">
     <div class="mb-3">
         <label for="nivel_escolaridade" class="form-label">Qual é o nível de escolaridade da pessoa entrevistada?</label>
         <select class="form-select" id="nivel_escolaridade" name="nivel_escolaridade" autocomplete="off">
