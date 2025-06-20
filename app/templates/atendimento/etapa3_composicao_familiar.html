@@ -3,6 +3,7 @@
 {% block content %}
 <h2 class="mb-4 text-center">Etapa 3 de 10 - Composição familiar</h2>
 <form id="formEtapa3" autocomplete="off">
+    <input type="hidden" id="familia_id_hidden" name="familia_id" value="{{ session.get('familia_id', '') }}">
     <div class="mb-3 campo-numerico">
         <label for="total_residentes" class="form-label">Quantas pessoas vivem na mesma residência?</label>
         <input type="number" class="form-control" id="total_residentes" name="total_residentes" min="0" autocomplete="off" value="{{ session['cadastro'].get('total_residentes', '') }}">
