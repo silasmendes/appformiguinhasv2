@@ -25,6 +25,7 @@ function aplicarMascaraCPF(valor) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Estado atual da sessão:', window.sessionCadastro);
     const dataInput = document.getElementById('data_nascimento');
     if (dataInput) {
         const hoje = new Date();
@@ -106,6 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     btnProxima.addEventListener('click', function() {
         console.log('Dados do formulário etapa 1:', Object.fromEntries(new FormData(form).entries()));
+        console.log('Estado atual da sessão:', window.sessionCadastro);
         const nextUrl = btnProxima.getAttribute('data-next-url');
         if (nextUrl) {
             form.action = nextUrl;

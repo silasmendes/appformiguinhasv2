@@ -1,6 +1,7 @@
 // JS para etapa 9 - escolaridade do entrevistado
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Estado atual da sessão:', window.sessionCadastro);
     const estudaSim = document.getElementById('estuda_sim');
     const estudaNao = document.getElementById('estuda_nao');
     const cursoContainer = document.getElementById('curso_ou_serie_atual_container');
@@ -26,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (btnProxima && form) {
         btnProxima.addEventListener('click', function() {
             console.log('Dados do formulário etapa 9:', Object.fromEntries(new FormData(form).entries()));
+            console.log('Estado atual da sessão:', window.sessionCadastro);
             const nextUrl = btnProxima.getAttribute('data-next-url');
             if (nextUrl) {
                 form.action = nextUrl;

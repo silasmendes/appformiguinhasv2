@@ -1,6 +1,7 @@
 // JS para etapa 3 - composicao familiar
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Estado atual da sessão:', window.sessionCadastro);
     const bebes = document.getElementById('quantidade_bebes');
     const criancas = document.getElementById('quantidade_criancas');
     const adolescentes = document.getElementById('quantidade_adolescentes');
@@ -42,9 +43,14 @@ document.addEventListener('DOMContentLoaded', function() {
         el.addEventListener('change', atualizarMotivo);
     });
 
+    // adjust visibility based on loaded values
+    atualizarCampoEscola();
+    atualizarMotivo();
+
     if (btnProxima && form) {
         btnProxima.addEventListener('click', function() {
             console.log('Dados do formulário etapa 3:', Object.fromEntries(new FormData(form).entries()));
+            console.log('Estado atual da sessão:', window.sessionCadastro);
             const nextUrl = btnProxima.getAttribute('data-next-url');
             if (nextUrl) {
                 form.action = nextUrl;

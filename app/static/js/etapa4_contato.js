@@ -1,6 +1,7 @@
 // JS para etapa 4 - contato
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Estado atual da sessão:', window.sessionCadastro);
     const telefonePrincipal = document.getElementById('telefone_principal');
     const telefoneAlternativo = document.getElementById('telefone_alternativo');
     const emailInput = document.getElementById('email_responsavel');
@@ -40,6 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
         btnProxima.addEventListener('click', function() {
             validarEmail();
             console.log('Dados do formulário etapa 4:', Object.fromEntries(new FormData(form).entries()));
+            console.log('Estado atual da sessão:', window.sessionCadastro);
             const nextUrl = btnProxima.getAttribute('data-next-url');
             if (nextUrl) {
                 form.action = nextUrl;

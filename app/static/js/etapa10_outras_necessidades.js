@@ -1,6 +1,7 @@
 // JS para etapa 10 - outras necessidades informadas
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Estado atual da sessão:', window.sessionCadastro);
     const lista = document.getElementById('necessidadesLista');
     const btnAdicionar = document.getElementById('adicionarNecessidade');
     const btnFinalizar = document.getElementById('btnFinalizar');

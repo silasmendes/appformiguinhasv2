@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Estado atual da sessão:', window.sessionCadastro);
     const tipoMoradiaSelect = document.getElementById('tipo_moradia');
     const valorAluguelContainer = document.getElementById('valor_aluguel_container');
     const valorAluguelInput = document.getElementById('valor_aluguel');
@@ -41,6 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (btnProxima && form) {
         btnProxima.addEventListener('click', function() {
             console.log('Dados do formulário etapa 5:', Object.fromEntries(new FormData(form).entries()));
+            console.log('Estado atual da sessão:', window.sessionCadastro);
             saveValorAluguel();
             const nextUrl = btnProxima.getAttribute('data-next-url');
             if (nextUrl) {
