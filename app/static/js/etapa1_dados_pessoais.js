@@ -26,6 +26,14 @@ function aplicarMascaraCPF(valor) {
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Estado atual da sessão:', window.sessionCadastro);
+    const hiddenIdInput = document.getElementById('familia_id_hidden');
+    if (window.sessionFamiliaId === null) {
+        sessionStorage.removeItem('familia_id');
+        if (hiddenIdInput) hiddenIdInput.value = '';
+    } else if (window.sessionFamiliaId) {
+        sessionStorage.setItem('familia_id', window.sessionFamiliaId);
+        if (hiddenIdInput) hiddenIdInput.value = window.sessionFamiliaId;
+    }
     const dataInput = document.getElementById('data_nascimento');
     if (dataInput) {
         const hoje = new Date();
@@ -138,6 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const dados = await resposta.json();
                 if (dados.familia_id !== undefined) {
                     sessionStorage.setItem('familia_id', dados.familia_id);
+                    if (hiddenIdInput) hiddenIdInput.value = dados.familia_id;
                 }
 
                 if (nextUrl) {

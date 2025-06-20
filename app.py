@@ -4,6 +4,13 @@ from app import create_app
 
 app = create_app()
 
+
+def reset_atendimento_sessao():
+    """Remove informações de atendimento da sessão."""
+    session.pop("cadastro", None)
+    session.pop("cadastro_inicio", None)
+    session.pop("familia_id", None)
+
 @app.route("/")
 def home():
     """Renderiza a página inicial."""
@@ -15,8 +22,7 @@ def menu_atendimento():
 
 @app.route("/atendimento_nova_familia")
 def atendimento_nova_familia():
-    session.pop("cadastro", None)
-    session.pop("cadastro_inicio", None)
+    reset_atendimento_sessao()
     return redirect(url_for("atendimento_etapa1"))
 
 @app.route("/retomar_atendimento")
@@ -30,6 +36,7 @@ def retomar_atendimento():
                 return redirect(url_for("atendimento_etapa1"))
         except ValueError:
             pass
+    reset_atendimento_sessao()
     error_msg = ("Nenhum atendimento em andamento foi encontrado ou o tempo expirou. "
                  "Inicie um novo atendimento usando a opção \"Atender família\".")
     return render_template("atendimento/etapa0_menu.html", error_msg=error_msg)
@@ -48,8 +55,11 @@ def atendimento_etapa1():
     if "cadastro_inicio" not in session:
         session["cadastro_inicio"] = datetime.utcnow().isoformat()
     if request.method == "POST":
-        cadastro.update(request.form.to_dict(flat=True))
+        form_data = request.form.to_dict(flat=True)
+        cadastro.update(form_data)
         session["cadastro"] = cadastro
+        if form_data.get("familia_id"):
+            session["familia_id"] = form_data["familia_id"]
         return redirect(url_for("atendimento_etapa2"))
     return render_template("atendimento/etapa1_dados_pessoais.html")
 
