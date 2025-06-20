@@ -3,6 +3,7 @@
 {% block content %}
 <h2 class="mb-4 text-center">Etapa 2 de 10 - Endereço da família</h2>
 <form id="formEtapa2" autocomplete="off" class="form-endereco-grid" method="post">
+    <input type="hidden" id="familia_id_hidden" name="familia_id" value="{{ session.get('familia_id', '') }}">
 
     <!-- Checkbox -->
     <div class="endereco-full">
