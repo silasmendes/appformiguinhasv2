@@ -64,13 +64,34 @@ def deletar_composicao(composicao_id):
 @bp.route("/upsert/familia/<int:familia_id>", methods=["PUT"])
 def upsert_composicao_familiar_por_familia(familia_id):
     """Rota de upsert (criação ou atualização baseada em familia_id)."""
-    data = request.get_json()
+    data = request.get_json() or {}
+
+    # converte strings vazias em None para evitar erros de validação em campos
+    # numéricos opcionais
+    int_fields = [
+        "total_residentes",
+        "quantidade_bebes",
+        "quantidade_criancas",
+        "quantidade_adolescentes",
+        "quantidade_adultos",
+        "quantidade_idosos",
+    ]
+    for field in int_fields:
+        if field in data and data[field] == "":
+            data[field] = None
+
     existente = ComposicaoFamiliar.query.filter_by(familia_id=familia_id).first()
-    if existente:
-        composicao = composicao_schema.load(data, instance=existente, partial=True)
-    else:
-        data["familia_id"] = familia_id
-        composicao = composicao_schema.load(data)
-        db.session.add(composicao)
-    db.session.commit()
+
+    try:
+        if existente:
+            composicao = composicao_schema.load(data, instance=existente, partial=True)
+        else:
+            data["familia_id"] = familia_id
+            composicao = composicao_schema.load(data)
+            db.session.add(composicao)
+        db.session.commit()
+    except ValidationError as err:
+        db.session.rollback()
+        return jsonify(err.messages), 400
+
     return composicao_schema.jsonify(composicao)
