@@ -54,3 +54,18 @@ def deletar_renda(renda_id):
     db.session.delete(renda)
     db.session.commit()
     return jsonify({"mensagem": "Renda familiar deletada com sucesso"}), 200
+
+
+@bp.route("/upsert/familia/<int:familia_id>", methods=["PUT"])
+def upsert_renda_familiar_por_familia(familia_id):
+    """Rota de upsert (criação ou atualização baseada em familia_id)."""
+    data = request.get_json()
+    existente = RendaFamiliar.query.filter_by(familia_id=familia_id).first()
+    if existente:
+        renda = renda_schema.load(data, instance=existente, partial=True)
+    else:
+        data["familia_id"] = familia_id
+        renda = renda_schema.load(data)
+        db.session.add(renda)
+    db.session.commit()
+    return renda_schema.jsonify(renda)

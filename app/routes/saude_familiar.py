@@ -54,3 +54,18 @@ def deletar_saude(saude_id):
     db.session.delete(saude)
     db.session.commit()
     return jsonify({"mensagem": "Saude familiar deletada com sucesso"}), 200
+
+
+@bp.route("/upsert/familia/<int:familia_id>", methods=["PUT"])
+def upsert_saude_familiar_por_familia(familia_id):
+    """Rota de upsert (criação ou atualização baseada em familia_id)."""
+    data = request.get_json()
+    existente = SaudeFamiliar.query.filter_by(familia_id=familia_id).first()
+    if existente:
+        saude = saude_schema.load(data, instance=existente, partial=True)
+    else:
+        data["familia_id"] = familia_id
+        saude = saude_schema.load(data)
+        db.session.add(saude)
+    db.session.commit()
+    return saude_schema.jsonify(saude)
