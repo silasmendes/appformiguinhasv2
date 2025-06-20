@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session
 from marshmallow import ValidationError
 from app.models.familia import Familia
 from app.schemas.familia import FamiliaSchema
@@ -54,13 +54,18 @@ def upsert_familia_por_familia(familia_id):
     deixamos o banco gerar a chave primária.
     """
 
-    data = request.get_json()
+    data = request.get_json() or {}
+    data.pop("familia_id", None)
+    session_familia_id = session.get("familia_id")
+
+    if familia_id == 0 and session_familia_id:
+        familia_id = session_familia_id
 
     if familia_id == 0:
-        # Criação de nova família sem especificar o ID
         familia = familia_schema.load(data)
         db.session.add(familia)
         db.session.commit()
+        session["familia_id"] = familia.familia_id
         return familia_schema.jsonify(familia), 201
 
     existente = db.session.get(Familia, familia_id)
@@ -72,6 +77,7 @@ def upsert_familia_por_familia(familia_id):
         db.session.add(familia)
 
     db.session.commit()
+    session["familia_id"] = familia.familia_id
     return familia_schema.jsonify(familia)
 
 @bp.route("/<int:familia_id>", methods=["DELETE"])

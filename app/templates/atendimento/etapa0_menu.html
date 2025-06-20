@@ -4,11 +4,22 @@
 <h2 class="mb-4 text-center">Menu de Atendimento</h2>
 <div class="d-flex flex-column align-items-center gap-3">
     <a href="#" class="btn btn-primary">Atender família</a>
-    <a href="{{ url_for('atendimento_nova_familia') }}" class="btn btn-success">Registrar nova família</a>
+    <a href="{{ url_for('atendimento_nova_familia') }}" id="btnNovaFamilia" class="btn btn-success">Registrar nova família</a>
     <a href="{{ url_for('retomar_atendimento') }}" class="btn btn-secondary">Retomar atendimento em andamento</a>
 </div>
 {% if error_msg %}
 <div id="retomar-feedback" class="invalid-feedback d-block text-center mt-3">{{ error_msg }}</div>
 {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const btnNova = document.getElementById('btnNovaFamilia');
+    if (btnNova) {
+        btnNova.addEventListener('click', function() {
+            sessionStorage.removeItem('familia_id');
+        });
+    }
+</script>
 {% endblock %}
 

@@ -26,6 +26,14 @@ function aplicarMascaraCPF(valor) {
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Estado atual da sessão:', window.sessionCadastro);
+    const hiddenIdInput = document.getElementById('familia_id_hidden');
+    if (window.sessionFamiliaId === null) {
+        sessionStorage.removeItem('familia_id');
+        if (hiddenIdInput) hiddenIdInput.value = '';
+    } else if (window.sessionFamiliaId) {
+        sessionStorage.setItem('familia_id', window.sessionFamiliaId);
+        if (hiddenIdInput) hiddenIdInput.value = window.sessionFamiliaId;
+    }
     const dataInput = document.getElementById('data_nascimento');
     if (dataInput) {
         const hoje = new Date();
@@ -113,6 +121,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const nextUrl = btnProxima.getAttribute('data-next-url');
         const dadosFormulario = Object.fromEntries(new FormData(form).entries());
+        if (!dadosFormulario.familia_id) {
+            delete dadosFormulario.familia_id;
+        }
         // Converter valor para booleano esperado pela API
         if (dadosFormulario.autoriza_uso_imagem) {
             dadosFormulario.autoriza_uso_imagem = dadosFormulario.autoriza_uso_imagem === 'Sim';
@@ -138,6 +149,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const dados = await resposta.json();
                 if (dados.familia_id !== undefined) {
                     sessionStorage.setItem('familia_id', dados.familia_id);
+                    if (hiddenIdInput) hiddenIdInput.value = dados.familia_id;
                 }
 
                 if (nextUrl) {
