@@ -3,6 +3,7 @@
 {% block content %}
 <h2 class="mb-4 text-center">Etapa 7 de 10 - Emprego do provedor principal</h2>
 <form id="formEtapa7" autocomplete="off" method="post">
+    <input type="hidden" id="familia_id_hidden" name="familia_id" value="{{ session.get('familia_id', '') }}">
     <div class="mb-3">
         <label for="relacao_provedor_familia" class="form-label">Quem é o principal provedor da família?</label>
         <select class="form-select" id="relacao_provedor_familia" name="relacao_provedor_familia" autocomplete="off">
