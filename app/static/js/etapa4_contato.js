@@ -2,6 +2,15 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Estado atual da sessão:', window.sessionCadastro);
+    const hiddenIdInput = document.getElementById('familia_id_hidden');
+    if (window.sessionFamiliaId === null) {
+        sessionStorage.removeItem('familia_id');
+        if (hiddenIdInput) hiddenIdInput.value = '';
+    } else if (window.sessionFamiliaId) {
+        sessionStorage.setItem('familia_id', window.sessionFamiliaId);
+        if (hiddenIdInput) hiddenIdInput.value = window.sessionFamiliaId;
+    }
+
     const telefonePrincipal = document.getElementById('telefone_principal');
     const telefoneAlternativo = document.getElementById('telefone_alternativo');
     const emailInput = document.getElementById('email_responsavel');
@@ -38,15 +47,52 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (btnProxima && form) {
-        btnProxima.addEventListener('click', function() {
-            validarEmail();
-            console.log('Dados do formulário etapa 4:', Object.fromEntries(new FormData(form).entries()));
-            console.log('Estado atual da sessão:', window.sessionCadastro);
+        btnProxima.addEventListener('click', async function(e) {
+            e.preventDefault();
+            if (!validarEmail()) {
+                return;
+            }
+
             const nextUrl = btnProxima.getAttribute('data-next-url');
-            if (nextUrl) {
-                form.action = nextUrl;
-                form.method = 'post';
-                form.submit();
+            const dadosFormulario = Object.fromEntries(new FormData(form).entries());
+
+            if (dadosFormulario.telefone_principal_whatsapp !== undefined) {
+                dadosFormulario.telefone_principal_whatsapp =
+                    dadosFormulario.telefone_principal_whatsapp === 'on' || dadosFormulario.telefone_principal_whatsapp === true;
+            }
+            if (dadosFormulario.telefone_alternativo_whatsapp !== undefined) {
+                dadosFormulario.telefone_alternativo_whatsapp =
+                    dadosFormulario.telefone_alternativo_whatsapp === 'on' || dadosFormulario.telefone_alternativo_whatsapp === true;
+            }
+
+            const storedFamiliaId = sessionStorage.getItem('familia_id');
+            const familiaId = storedFamiliaId !== null ? storedFamiliaId : window.sessionFamiliaId || '0';
+
+            btnProxima.disabled = true;
+
+            try {
+                const resposta = await fetch(`/contatos/upsert/familia/${familiaId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(dadosFormulario)
+                });
+
+                if (resposta.ok) {
+                    if (nextUrl) {
+                        form.action = nextUrl;
+                        form.method = 'post';
+                        form.submit();
+                    }
+                } else {
+                    const erro = await resposta.json().catch(() => ({ mensagem: 'Erro desconhecido' }));
+                    alert(JSON.stringify(erro));
+                    btnProxima.disabled = false;
+                }
+            } catch (err) {
+                alert('Erro ao enviar os dados. Tente novamente.');
+                btnProxima.disabled = false;
             }
         });
     }
