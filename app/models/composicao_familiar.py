@@ -5,7 +5,7 @@ class ComposicaoFamiliar(db.Model):
     __tablename__ = "composicao_familiar"
 
     composicao_id = db.Column(db.Integer, primary_key=True)
-    familia_id = db.Column(db.Integer, nullable=False)
+    familia_id = db.Column(db.Integer, db.ForeignKey("familias.familia_id"), nullable=False, unique=True)
     total_residentes = db.Column(db.Integer)
     quantidade_bebes = db.Column(db.Integer)
     quantidade_criancas = db.Column(db.Integer)

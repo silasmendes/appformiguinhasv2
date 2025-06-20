@@ -7,7 +7,7 @@ class SaudeFamiliarSchema(ma.SQLAlchemySchema):
         load_instance = True
 
     saude_id = ma.auto_field(dump_only=True)
-    familia_id = ma.auto_field()
+    familia_id = ma.auto_field(required=True)
     tem_doenca_cronica = ma.auto_field()
     descricao_doenca_cronica = ma.auto_field()
     usa_medicacao_continua = ma.auto_field()

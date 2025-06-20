@@ -8,7 +8,7 @@ class ContatoSchema(ma.SQLAlchemySchema):
         load_instance = True
 
     contato_id = ma.auto_field(dump_only=True)
-    familia_id = ma.auto_field()
+    familia_id = ma.auto_field(required=True)
     telefone_principal = ma.auto_field()
     telefone_principal_whatsapp = ma.auto_field()
     telefone_principal_nome_contato = ma.auto_field()

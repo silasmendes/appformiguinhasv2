@@ -8,7 +8,7 @@ class CondicaoMoradiaSchema(ma.SQLAlchemySchema):
         load_instance = True
 
     moradia_id = ma.auto_field(dump_only=True)
-    familia_id = ma.auto_field()
+    familia_id = ma.auto_field(required=True)
     tipo_moradia = ma.auto_field()
     valor_aluguel = ma.auto_field()
     tem_agua_encanada = ma.auto_field()

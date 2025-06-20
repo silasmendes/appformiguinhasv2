@@ -6,7 +6,7 @@ class Contato(db.Model):
     __tablename__ = "contatos"
 
     contato_id = db.Column(db.Integer, primary_key=True)
-    familia_id = db.Column(db.Integer, nullable=False)
+    familia_id = db.Column(db.Integer, db.ForeignKey("familias.familia_id"), nullable=False, unique=True)
     telefone_principal = db.Column(db.String(20))
     telefone_principal_whatsapp = db.Column(db.Boolean)
     telefone_principal_nome_contato = db.Column(db.String(100))

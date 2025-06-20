@@ -5,7 +5,7 @@ class Endereco(db.Model):
     __tablename__ = "enderecos"
 
     endereco_id = db.Column(db.Integer, primary_key=True)
-    familia_id = db.Column(db.Integer, nullable=False)
+    familia_id = db.Column(db.Integer, db.ForeignKey("familias.familia_id"), nullable=False, unique=True)
     cep = db.Column(db.String(10))
     preenchimento_manual = db.Column(db.Boolean)
     logradouro = db.Column(db.String(150))

@@ -5,7 +5,7 @@ class EmpregoProvedor(db.Model):
     __tablename__ = "emprego_provedor"
 
     emprego_id = db.Column(db.Integer, primary_key=True)
-    familia_id = db.Column(db.Integer, nullable=False)
+    familia_id = db.Column(db.Integer, db.ForeignKey("familias.familia_id"), nullable=False, unique=True)
     relacao_provedor_familia = db.Column(db.String(100))
     descricao_provedor_externo = db.Column(db.Text)
     situacao_emprego = db.Column(db.String(50))

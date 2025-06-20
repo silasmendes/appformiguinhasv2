@@ -5,7 +5,7 @@ class SaudeFamiliar(db.Model):
     __tablename__ = "saude_familiar"
 
     saude_id = db.Column(db.Integer, primary_key=True)
-    familia_id = db.Column(db.Integer, nullable=False)
+    familia_id = db.Column(db.Integer, db.ForeignKey("familias.familia_id"), nullable=False, unique=True)
     tem_doenca_cronica = db.Column(db.Boolean)
     descricao_doenca_cronica = db.Column(db.Text)
     usa_medicacao_continua = db.Column(db.Boolean)

@@ -7,7 +7,7 @@ class ComposicaoFamiliarSchema(ma.SQLAlchemySchema):
         load_instance = True
 
     composicao_id = ma.auto_field(dump_only=True)
-    familia_id = ma.auto_field()
+    familia_id = ma.auto_field(required=True)
     total_residentes = ma.auto_field()
     quantidade_bebes = ma.auto_field()
     quantidade_criancas = ma.auto_field()

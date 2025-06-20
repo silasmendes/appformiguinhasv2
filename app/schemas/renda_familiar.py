@@ -7,7 +7,7 @@ class RendaFamiliarSchema(ma.SQLAlchemySchema):
         load_instance = True
 
     renda_id = ma.auto_field(dump_only=True)
-    familia_id = ma.auto_field()
+    familia_id = ma.auto_field(required=True)
     gastos_supermercado = ma.auto_field()
     gastos_energia_eletrica = ma.auto_field()
     gastos_agua = ma.auto_field()

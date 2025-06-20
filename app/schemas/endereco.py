@@ -7,7 +7,7 @@ class EnderecoSchema(ma.SQLAlchemySchema):
         load_instance = True
 
     endereco_id = ma.auto_field(dump_only=True)
-    familia_id = ma.auto_field()
+    familia_id = ma.auto_field(required=True)
     cep = ma.auto_field()
     preenchimento_manual = ma.auto_field()
     logradouro = ma.auto_field()

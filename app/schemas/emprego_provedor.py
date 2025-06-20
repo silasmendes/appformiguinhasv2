@@ -7,7 +7,7 @@ class EmpregoProvedorSchema(ma.SQLAlchemySchema):
         load_instance = True
 
     emprego_id = ma.auto_field(dump_only=True)
-    familia_id = ma.auto_field()
+    familia_id = ma.auto_field(required=True)
     relacao_provedor_familia = ma.auto_field()
     descricao_provedor_externo = ma.auto_field()
     situacao_emprego = ma.auto_field()

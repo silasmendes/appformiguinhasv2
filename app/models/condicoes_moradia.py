@@ -6,7 +6,7 @@ class CondicaoMoradia(db.Model):
     __tablename__ = "condicoes_moradia"
 
     moradia_id = db.Column(db.Integer, primary_key=True)
-    familia_id = db.Column(db.Integer, nullable=False)
+    familia_id = db.Column(db.Integer, db.ForeignKey("familias.familia_id"), nullable=False, unique=True)
     tipo_moradia = db.Column(db.String(50))
     valor_aluguel = db.Column(db.Numeric(10, 2))
     tem_agua_encanada = db.Column(db.Boolean)

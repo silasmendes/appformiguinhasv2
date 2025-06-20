@@ -5,7 +5,7 @@ class RendaFamiliar(db.Model):
     __tablename__ = "renda_familiar"
 
     renda_id = db.Column(db.Integer, primary_key=True)
-    familia_id = db.Column(db.Integer, nullable=False)
+    familia_id = db.Column(db.Integer, db.ForeignKey("familias.familia_id"), nullable=False, unique=True)
     gastos_supermercado = db.Column(db.Numeric(10, 2))
     gastos_energia_eletrica = db.Column(db.Numeric(10, 2))
     gastos_agua = db.Column(db.Numeric(10, 2))
