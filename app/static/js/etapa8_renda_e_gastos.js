@@ -3,6 +3,20 @@
 document.addEventListener('DOMContentLoaded', function() {
     const currencyInputs = document.querySelectorAll('.renda-decimal');
 
+    let valorAluguel = 0;
+    function carregarValorAluguel() {
+        const armazenado = sessionStorage.getItem('valor_aluguel');
+        if (armazenado !== null) {
+            valorAluguel = parseFloat(armazenado) || 0;
+        } else {
+            const hidden = document.getElementById('valor_aluguel_hidden');
+            if (hidden) {
+                valorAluguel = parseFloat(hidden.dataset.rawValue || hidden.value || '0') || 0;
+            }
+        }
+        console.log('Valor aluguel recuperado:', valorAluguel);
+    }
+
     function formatCurrency(input) {
         if (!input) return;
         const cursorPos = input.selectionStart;
@@ -118,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function atualizarTotaisGastos() {
-        const total = somar(gastosIds);
+        const total = somar(gastosIds) + valorAluguel;
         totalGastosInput.dataset.rawValue = total.toFixed(2);
         totalGastosInput.value = `R$ ${total.toFixed(2).replace('.', ',')}`;
         atualizarSaldo();
@@ -219,6 +233,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = this.dataset.prevUrl;
     });
 
+    carregarValorAluguel();
     updateTotais();
     calcularGastosGas();
 });

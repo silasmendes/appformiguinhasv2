@@ -110,6 +110,7 @@
         <label for="saldo" class="form-label">Saldo</label>
         <input type="text" class="form-control renda-decimal readonly-field" id="saldo" name="saldo" readonly value="{{ session['cadastro'].get('saldo', '') }}">
     </div>
+    <input type="hidden" id="valor_aluguel_hidden" data-raw-value="{{ session['cadastro'].get('valor_aluguel', 0) }}">
     <div class="d-flex justify-content-between">
         <a href="{{ url_for('atendimento_etapa7') }}" class="btn btn-secondary" id="btnVoltar">Voltar</a>
         <button type="submit" class="btn btn-primary" id="btnProxima" data-next-url="{{ url_for('atendimento_etapa9') }}">Próxima etapa</button>
