@@ -5,44 +5,44 @@
 <form id="formEtapa3" autocomplete="off">
     <div class="mb-3 campo-numerico">
         <label for="total_residentes" class="form-label">Quantas pessoas vivem na mesma residência?</label>
-        <input type="number" class="form-control" id="total_residentes" name="total_residentes" min="0" autocomplete="off">
+        <input type="number" class="form-control" id="total_residentes" name="total_residentes" min="0" autocomplete="off" value="{{ session['cadastro'].get('total_residentes', '') }}">
     </div>
     <div class="mb-3 campo-numerico">
         <label for="quantidade_bebes" class="form-label">Quantos bebês (0 a 2 anos)?</label>
-        <input type="number" class="form-control" id="quantidade_bebes" name="quantidade_bebes" min="0" autocomplete="off">
+        <input type="number" class="form-control" id="quantidade_bebes" name="quantidade_bebes" min="0" autocomplete="off" value="{{ session['cadastro'].get('quantidade_bebes', '') }}">
     </div>
     <div class="mb-3 campo-numerico">
         <label for="quantidade_criancas" class="form-label">Quantas crianças (3 a 11 anos)?</label>
-        <input type="number" class="form-control" id="quantidade_criancas" name="quantidade_criancas" min="0" autocomplete="off">
+        <input type="number" class="form-control" id="quantidade_criancas" name="quantidade_criancas" min="0" autocomplete="off" value="{{ session['cadastro'].get('quantidade_criancas', '') }}">
     </div>
     <div class="mb-3 campo-numerico">
         <label for="quantidade_adolescentes" class="form-label">Quantos adolescentes (12 a 17 anos)?</label>
-        <input type="number" class="form-control" id="quantidade_adolescentes" name="quantidade_adolescentes" min="0" autocomplete="off">
+        <input type="number" class="form-control" id="quantidade_adolescentes" name="quantidade_adolescentes" min="0" autocomplete="off" value="{{ session['cadastro'].get('quantidade_adolescentes', '') }}">
     </div>
     <div class="mb-3 campo-numerico">
         <label for="quantidade_adultos" class="form-label">Quantos adultos (18 a 59 anos)?</label>
-        <input type="number" class="form-control" id="quantidade_adultos" name="quantidade_adultos" min="0" autocomplete="off">
+        <input type="number" class="form-control" id="quantidade_adultos" name="quantidade_adultos" min="0" autocomplete="off" value="{{ session['cadastro'].get('quantidade_adultos', '') }}">
     </div>
     <div class="mb-3 campo-numerico">
         <label for="quantidade_idosos" class="form-label">Quantos idosos (60 anos ou mais)?</label>
-        <input type="number" class="form-control" id="quantidade_idosos" name="quantidade_idosos" min="0" autocomplete="off">
+        <input type="number" class="form-control" id="quantidade_idosos" name="quantidade_idosos" min="0" autocomplete="off" value="{{ session['cadastro'].get('quantidade_idosos', '') }}">
     </div>
     <div id="menores_na_escola_container" class="mb-3 campo-numerico d-none">
         <label class="form-label">As crianças e adolescentes estão frequentando a escola?</label>
         <div>
             <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="menores_na_escola" id="menores_na_escola_sim" value="Sim">
+                <input class="form-check-input" type="radio" name="menores_na_escola" id="menores_na_escola_sim" value="Sim" {% if session['cadastro'].get('menores_na_escola')=='Sim' %}checked{% endif %}>
                 <label class="form-check-label" for="menores_na_escola_sim">Sim</label>
             </div>
             <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="menores_na_escola" id="menores_na_escola_nao" value="Não">
+                <input class="form-check-input" type="radio" name="menores_na_escola" id="menores_na_escola_nao" value="Não" {% if session['cadastro'].get('menores_na_escola')=='Não' %}checked{% endif %}>
                 <label class="form-check-label" for="menores_na_escola_nao">Não</label>
             </div>
         </div>
     </div>
     <div id="motivo_ausencia_escola_container" class="mb-3 d-none w-100">
         <label for="motivo_ausencia_escola" class="form-label">Se não estiverem todos na escola, por quê?</label>
-        <textarea class="form-control" id="motivo_ausencia_escola" name="motivo_ausencia_escola" rows="3" autocomplete="off"></textarea>
+        <textarea class="form-control" id="motivo_ausencia_escola" name="motivo_ausencia_escola" rows="3" autocomplete="off">{{ session['cadastro'].get('motivo_ausencia_escola', '') }}</textarea>
     </div>
     <div class="d-flex justify-content-between w-100">
         <button type="button" class="btn btn-secondary" id="btnVoltar" data-prev-url="{{ url_for('atendimento_etapa2') }}">Voltar</button>

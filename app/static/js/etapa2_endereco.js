@@ -1,6 +1,7 @@
 // JS para etapa 2 - endereço da família
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Estado atual da sessão:', window.sessionCadastro);
     const cepInput = document.getElementById('cep');
     const manualCheckbox = document.getElementById('preenchimento_manual');
     const cepFeedback = document.getElementById('cep-feedback');
@@ -80,6 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (btnProxima && form) {
         btnProxima.addEventListener('click', function() {
             console.log('Dados do formulário etapa 2:', Object.fromEntries(new FormData(form).entries()));
+            console.log('Estado atual da sessão:', window.sessionCadastro);
             const nextUrl = btnProxima.getAttribute('data-next-url');
             if (nextUrl) {
                 form.action = nextUrl;

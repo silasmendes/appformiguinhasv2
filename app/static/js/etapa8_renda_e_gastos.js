@@ -1,6 +1,7 @@
 // JS para etapa 8 - renda e gastos mensais
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Estado atual da sessão:', window.sessionCadastro);
     const currencyInputs = document.querySelectorAll('.renda-decimal');
 
     let valorAluguel = 0;
@@ -220,6 +221,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (btnProxima && form) {
         btnProxima.addEventListener('click', function() {
             console.log('Dados do formulário etapa 8:', Object.fromEntries(new FormData(form).entries()));
+            console.log('Estado atual da sessão:', window.sessionCadastro);
             const nextUrl = btnProxima.getAttribute('data-next-url');
             if (nextUrl) {
                 form.action = nextUrl;

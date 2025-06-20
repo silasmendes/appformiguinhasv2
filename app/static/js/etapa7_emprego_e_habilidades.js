@@ -1,6 +1,7 @@
 // JS para etapa 7 - emprego e habilidades do provedor
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Estado atual da sessão:', window.sessionCadastro);
     const relacaoSelect = document.getElementById('relacao_provedor_familia');
     const provedorExternoContainer = document.getElementById('descricao_provedor_externo_container');
     const provedorExternoInput = document.getElementById('descricao_provedor_externo');
@@ -45,6 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (btnProxima && form) {
         btnProxima.addEventListener('click', function() {
             console.log('Dados do formulário etapa 7:', Object.fromEntries(new FormData(form).entries()));
+            console.log('Estado atual da sessão:', window.sessionCadastro);
             const nextUrl = btnProxima.getAttribute('data-next-url');
             if (nextUrl) {
                 form.action = nextUrl;
