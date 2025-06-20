@@ -5,6 +5,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnProxima = document.getElementById('btnProxima');
     const form = document.getElementById('formEtapa5');
 
+    function saveValorAluguel() {
+        if (!tipoMoradiaSelect) return;
+        if (tipoMoradiaSelect.value === 'Alugada' && valorAluguelInput) {
+            sessionStorage.setItem('valor_aluguel', valorAluguelInput.value || '0');
+        } else {
+            sessionStorage.removeItem('valor_aluguel');
+        }
+    }
+
     function atualizarValorAluguel() {
         if (!tipoMoradiaSelect) return;
         if (tipoMoradiaSelect.value === 'Alugada') {
@@ -18,13 +27,21 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (tipoMoradiaSelect) {
-        tipoMoradiaSelect.addEventListener('change', atualizarValorAluguel);
+        tipoMoradiaSelect.addEventListener('change', function() {
+            atualizarValorAluguel();
+            saveValorAluguel();
+        });
         atualizarValorAluguel();
+    }
+
+    if (valorAluguelInput) {
+        valorAluguelInput.addEventListener('input', saveValorAluguel);
     }
 
     if (btnProxima && form) {
         btnProxima.addEventListener('click', function() {
             console.log('Dados do formulário etapa 5:', Object.fromEntries(new FormData(form).entries()));
+            saveValorAluguel();
             const nextUrl = btnProxima.getAttribute('data-next-url');
             if (nextUrl) {
                 form.action = nextUrl;
