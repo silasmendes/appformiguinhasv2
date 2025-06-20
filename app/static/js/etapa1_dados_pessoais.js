@@ -105,14 +105,54 @@ document.addEventListener('DOMContentLoaded', function() {
 
     atualizarEstadoBotao();
 
-    btnProxima.addEventListener('click', function() {
-        console.log('Dados do formulário etapa 1:', Object.fromEntries(new FormData(form).entries()));
-        console.log('Estado atual da sessão:', window.sessionCadastro);
+    btnProxima.addEventListener('click', async function (e) {
+        e.preventDefault();
+        if (btnProxima.disabled) {
+            return;
+        }
+
         const nextUrl = btnProxima.getAttribute('data-next-url');
-        if (nextUrl) {
-            form.action = nextUrl;
-            form.method = 'post';
-            form.submit();
+        const dadosFormulario = Object.fromEntries(new FormData(form).entries());
+        // Converter valor para booleano esperado pela API
+        if (dadosFormulario.autoriza_uso_imagem) {
+            dadosFormulario.autoriza_uso_imagem = dadosFormulario.autoriza_uso_imagem === 'Sim';
+        }
+
+        // Obtém o familia_id salvo na sessão. Para uma nova família usamos 0,
+        // indicando que o backend deve gerar um novo registro.
+        const storedFamiliaId = sessionStorage.getItem('familia_id');
+        const familiaId = storedFamiliaId !== null ? storedFamiliaId : '0';
+
+        btnProxima.disabled = true;
+
+        try {
+            const resposta = await fetch(`/familias/upsert/familia/${familiaId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dadosFormulario)
+            });
+
+            if (resposta.ok) {
+                const dados = await resposta.json();
+                if (dados.familia_id !== undefined) {
+                    sessionStorage.setItem('familia_id', dados.familia_id);
+                }
+
+                if (nextUrl) {
+                    form.action = nextUrl;
+                    form.method = 'post';
+                    form.submit();
+                }
+            } else {
+                const erro = await resposta.json().catch(() => ({ mensagem: 'Erro desconhecido' }));
+                alert(JSON.stringify(erro));
+                btnProxima.disabled = false;
+            }
+        } catch (err) {
+            alert('Erro ao enviar os dados. Tente novamente.');
+            btnProxima.disabled = false;
         }
     });
 });

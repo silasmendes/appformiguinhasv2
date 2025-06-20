@@ -48,8 +48,21 @@ def atualizar_familia(familia_id):
 
 @bp.route("/upsert/familia/<int:familia_id>", methods=["PUT"])
 def upsert_familia_por_familia(familia_id):
-    """Rota de upsert (criação ou atualização baseada em familia_id)."""
+    """Rota de upsert (criação ou atualização baseada em familia_id).
+
+    Quando ``familia_id`` é ``0`` consideramos uma criação de família e
+    deixamos o banco gerar a chave primária.
+    """
+
     data = request.get_json()
+
+    if familia_id == 0:
+        # Criação de nova família sem especificar o ID
+        familia = familia_schema.load(data)
+        db.session.add(familia)
+        db.session.commit()
+        return familia_schema.jsonify(familia), 201
+
     existente = db.session.get(Familia, familia_id)
     if existente:
         familia = familia_schema.load(data, instance=existente, partial=True)
@@ -57,6 +70,7 @@ def upsert_familia_por_familia(familia_id):
         data["familia_id"] = familia_id
         familia = familia_schema.load(data)
         db.session.add(familia)
+
     db.session.commit()
     return familia_schema.jsonify(familia)
 
