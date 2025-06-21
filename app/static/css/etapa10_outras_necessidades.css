@@ -7,3 +7,42 @@
 #adicionarNecessidade {
     font-weight: 500;
 }
+
+/* Exibir cor no SELECT conforme valor */
+select.prioridade:has(option[value="Alta"]:checked) {
+    color: #b30000;
+}
+select.prioridade:has(option[value="Média"]:checked) {
+    color: #d47300;
+}
+select.prioridade:has(option[value="Baixa"]:checked) {
+    color: #1f7a1f;
+}
+
+/* Redução de fontes nesta etapa */
+
+#formEtapa10 {
+    font-size: 0.92rem;
+}
+
+#formEtapa10 .form-label {
+    font-size: 0.9rem;
+}
+
+#formEtapa10 input,
+#formEtapa10 select {
+    font-size: 0.92rem;
+    padding: 0.5rem 0.75rem;
+}
+
+#formEtapa10 .btn {
+    font-size: 0.95rem;
+    padding: 0.5rem 1rem;
+}
+
+#formEtapa10 h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+

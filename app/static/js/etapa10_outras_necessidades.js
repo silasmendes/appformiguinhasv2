@@ -1,6 +1,6 @@
 // JS para etapa 10 - outras necessidades informadas
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     console.log('Estado atual da sessão:', window.sessionCadastro);
     const lista = document.getElementById('necessidadesLista');
     const btnAdicionar = document.getElementById('adicionarNecessidade');
@@ -11,13 +11,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function atualizarNumeracao() {
         const itens = lista.querySelectorAll('.necessidade-item');
         itens.forEach((item, index) => {
-            const titulo = item.querySelector('.necessidade-titulo');
-            if (titulo) {
-                titulo.textContent = `Necessidade ${index + 1}`;
+            const labelDesc = item.querySelector('label.form-label');
+            if (labelDesc) {
+                labelDesc.innerHTML = `Descrição da necessidade #${index + 1} <span class="text-danger">*</span>`;
             }
         });
         nenhuma.style.display = itens.length ? 'none' : 'block';
-    }
+    } 
 
     function criarSelectCategorias() {
         const select = document.createElement('select');
@@ -37,6 +37,20 @@ document.addEventListener('DOMContentLoaded', function() {
         return select;
     }
 
+    function criarSelectPrioridade() {
+        const select = document.createElement('select');
+        select.className = 'form-select prioridade';
+        select.name = 'prioridade[]';
+        select.required = true;
+        select.innerHTML = `
+            <option value="" selected disabled>Selecione</option>
+            <option value="Alta">🔴 Alta (urgente)</option>
+            <option value="Média">🟠 Média (importante)</option>
+            <option value="Baixa">🟢 Baixa (pode esperar)</option>
+        `;
+        return select;
+    }
+
     function adicionarNecessidade() {
         const item = document.createElement('div');
         item.className = 'necessidade-item border rounded p-3 mb-3';
@@ -49,10 +63,10 @@ document.addEventListener('DOMContentLoaded', function() {
         row.className = 'row g-2 align-items-end';
 
         const colDesc = document.createElement('div');
-        colDesc.className = 'col-md-6';
+        colDesc.className = 'col-md-4';
         const labelDesc = document.createElement('label');
         labelDesc.className = 'form-label';
-        labelDesc.textContent = 'Descrição da necessidade';
+        labelDesc.innerHTML = 'Descrição da necessidade <span class="text-danger">*</span>';
         const inputDesc = document.createElement('input');
         inputDesc.type = 'text';
         inputDesc.className = 'form-control descricao';
@@ -62,13 +76,22 @@ document.addEventListener('DOMContentLoaded', function() {
         colDesc.appendChild(inputDesc);
 
         const colCat = document.createElement('div');
-        colCat.className = 'col-md-5';
+        colCat.className = 'col-md-4';
         const labelCat = document.createElement('label');
         labelCat.className = 'form-label';
-        labelCat.textContent = 'Categoria';
+        labelCat.innerHTML = 'Categoria <span class="text-danger">*</span>';
         const selectCat = criarSelectCategorias();
         colCat.appendChild(labelCat);
         colCat.appendChild(selectCat);
+
+        const colPri = document.createElement('div');
+        colPri.className = 'col-md-3';
+        const labelPri = document.createElement('label');
+        labelPri.className = 'form-label';
+        labelPri.textContent = 'Prioridade';
+        const selectPri = criarSelectPrioridade();
+        colPri.appendChild(labelPri);
+        colPri.appendChild(selectPri);
 
         const colRemover = document.createElement('div');
         colRemover.className = 'col-md-1 text-end';
@@ -76,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function() {
         btnRemover.type = 'button';
         btnRemover.className = 'btn btn-link text-danger p-0 btn-remover';
         btnRemover.innerHTML = '<i class="fa fa-trash"></i>';
-        btnRemover.addEventListener('click', function() {
+        btnRemover.addEventListener('click', function () {
             item.remove();
             atualizarNumeracao();
         });
@@ -84,6 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         row.appendChild(colDesc);
         row.appendChild(colCat);
+        row.appendChild(colPri);
         row.appendChild(colRemover);
 
         item.appendChild(row);
@@ -93,17 +117,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
     btnAdicionar.addEventListener('click', adicionarNecessidade);
 
-    btnFinalizar.addEventListener('click', function() {
+    btnFinalizar.addEventListener('click', function () {
         let valido = true;
         lista.querySelectorAll('.necessidade-item').forEach(item => {
-            const select = item.querySelector('.categoria');
-            if (select && !select.value) {
-                select.classList.add('is-invalid');
+            const selectCat = item.querySelector('.categoria');
+            const selectPri = item.querySelector('.prioridade');
+
+            if (selectCat && !selectCat.value) {
+                selectCat.classList.add('is-invalid');
                 valido = false;
-            } else if (select) {
-                select.classList.remove('is-invalid');
+            } else {
+                selectCat.classList.remove('is-invalid');
+            }
+
+            if (selectPri && !selectPri.value) {
+                selectPri.classList.add('is-invalid');
+                valido = false;
+            } else {
+                selectPri.classList.remove('is-invalid');
             }
         });
+
         if (valido) {
             console.log('Dados do formulário etapa 10:', Object.fromEntries(new FormData(form).entries()));
             console.log('Cadastro completo:', window.sessionCadastro);
