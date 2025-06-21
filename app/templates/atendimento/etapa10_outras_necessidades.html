@@ -8,6 +8,8 @@
 </p>
 
 <form id="formEtapa10" autocomplete="off" method="post">
+    <input type="hidden" id="familia_id_hidden" name="familia_id" value="{{ session.get('familia_id', '') }}">
+    <input type="hidden" id="demandas_json" name="demandas_json" value="">
     <div id="necessidadesLista" class="mb-3">
         <p id="nenhumaNecessidade" class="text-muted">Nenhuma necessidade adicionada ainda.</p>
     </div>
