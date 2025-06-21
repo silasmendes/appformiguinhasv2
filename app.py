@@ -166,6 +166,10 @@ def atendimento_etapa10():
             except Exception:
                 cadastro["demandas"] = []
         session["cadastro"] = cadastro
+        
+        # ✅ Limpa a sessão ao concluir com sucesso
+        reset_atendimento_sessao()
+        
         return redirect(url_for("home"))
     return render_template("atendimento/etapa10_outras_necessidades.html")
 
