@@ -41,7 +41,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const select = document.createElement('select');
         select.className = 'form-select prioridade';
         select.name = 'prioridade[]';
-        select.required = true;
         select.innerHTML = `
             <option value="" selected disabled>Selecione</option>
             <option value="Alta">🔴 Alta (urgente)</option>
@@ -71,6 +70,7 @@ document.addEventListener('DOMContentLoaded', function () {
         inputDesc.type = 'text';
         inputDesc.className = 'form-control descricao';
         inputDesc.name = 'descricao[]';
+        inputDesc.required = true;
         inputDesc.setAttribute('autocomplete', 'off');
         colDesc.appendChild(labelDesc);
         colDesc.appendChild(inputDesc);
@@ -120,21 +120,21 @@ document.addEventListener('DOMContentLoaded', function () {
     btnFinalizar.addEventListener('click', function () {
         let valido = true;
         lista.querySelectorAll('.necessidade-item').forEach(item => {
+            const inputDesc = item.querySelector('.descricao');
             const selectCat = item.querySelector('.categoria');
-            const selectPri = item.querySelector('.prioridade');
+
+            if (inputDesc && !inputDesc.value.trim()) {
+                inputDesc.classList.add('is-invalid');
+                valido = false;
+            } else if (inputDesc) {
+                inputDesc.classList.remove('is-invalid');
+            }
 
             if (selectCat && !selectCat.value) {
                 selectCat.classList.add('is-invalid');
                 valido = false;
-            } else {
+            } else if (selectCat) {
                 selectCat.classList.remove('is-invalid');
-            }
-
-            if (selectPri && !selectPri.value) {
-                selectPri.classList.add('is-invalid');
-                valido = false;
-            } else {
-                selectPri.classList.remove('is-invalid');
             }
         });
 
