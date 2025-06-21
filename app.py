@@ -1,4 +1,5 @@
 from flask import render_template, session, request, redirect, url_for
+import json
 from datetime import datetime, timedelta
 from app import create_app
 
@@ -158,6 +159,12 @@ def atendimento_etapa10():
     cadastro = get_cadastro()
     if request.method == "POST":
         cadastro.update(request.form.to_dict(flat=True))
+        demandas_json = request.form.get("demandas_json")
+        if demandas_json:
+            try:
+                cadastro["demandas"] = json.loads(demandas_json)
+            except Exception:
+                cadastro["demandas"] = []
         session["cadastro"] = cadastro
         return redirect(url_for("home"))
     return render_template("atendimento/etapa10_outras_necessidades.html")

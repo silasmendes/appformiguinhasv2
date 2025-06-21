@@ -2,6 +2,15 @@
 
 document.addEventListener('DOMContentLoaded', function () {
     console.log('Estado atual da sessão:', window.sessionCadastro);
+    const hiddenIdInput = document.getElementById('familia_id_hidden');
+    if (window.sessionFamiliaId === null) {
+        sessionStorage.removeItem('familia_id');
+        if (hiddenIdInput) hiddenIdInput.value = '';
+    } else if (window.sessionFamiliaId) {
+        sessionStorage.setItem('familia_id', window.sessionFamiliaId);
+        if (hiddenIdInput) hiddenIdInput.value = window.sessionFamiliaId;
+    }
+
     const lista = document.getElementById('necessidadesLista');
     const btnAdicionar = document.getElementById('adicionarNecessidade');
     const btnFinalizar = document.getElementById('btnFinalizar');
@@ -50,7 +59,17 @@ document.addEventListener('DOMContentLoaded', function () {
         return select;
     }
 
-    function adicionarNecessidade() {
+    const MAP_CATEGORIA_TIPO = {
+        'Cursos profissionalizantes': 1,
+        'Equipamentos para casa': 2,
+        'Serviços domésticos': 3,
+        'Medicamentos': 4,
+        'Vaga em escola': 5,
+        'Necessidades jurídicas': 6,
+        'Outras': 7
+    };
+
+    function adicionarNecessidade(dados = null) {
         const item = document.createElement('div');
         item.className = 'necessidade-item border rounded p-3 mb-3';
 
@@ -111,13 +130,32 @@ document.addEventListener('DOMContentLoaded', function () {
         row.appendChild(colRemover);
 
         item.appendChild(row);
+
+        if (dados) {
+            if (dados.demanda_id) {
+                const hiddenId = document.createElement('input');
+                hiddenId.type = 'hidden';
+                hiddenId.className = 'demanda-id';
+                hiddenId.value = dados.demanda_id;
+                item.appendChild(hiddenId);
+            }
+            inputDesc.value = dados.descricao || '';
+            selectCat.value = dados.categoria || '';
+            if (dados.prioridade) selectPri.value = dados.prioridade;
+        }
+
         lista.appendChild(item);
         atualizarNumeracao();
     }
 
-    btnAdicionar.addEventListener('click', adicionarNecessidade);
+    btnAdicionar.addEventListener('click', () => adicionarNecessidade());
 
-    btnFinalizar.addEventListener('click', function () {
+    if (Array.isArray(window.sessionCadastro.demandas)) {
+        window.sessionCadastro.demandas.forEach(d => adicionarNecessidade(d));
+    }
+
+    btnFinalizar.addEventListener('click', async function (e) {
+        e.preventDefault();
         let valido = true;
         lista.querySelectorAll('.necessidade-item').forEach(item => {
             const inputDesc = item.querySelector('.descricao');
@@ -139,13 +177,56 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         if (valido) {
-            console.log('Dados do formulário etapa 10:', Object.fromEntries(new FormData(form).entries()));
-            console.log('Cadastro completo:', window.sessionCadastro);
-            const nextUrl = btnFinalizar.getAttribute('data-next-url');
-            if (nextUrl) {
-                form.action = nextUrl;
-                form.method = 'post';
-                form.submit();
+            const storedFamiliaId = sessionStorage.getItem('familia_id');
+            const familiaId = storedFamiliaId !== null ? storedFamiliaId : window.sessionFamiliaId || '0';
+
+            const demandas = [];
+            lista.querySelectorAll('.necessidade-item').forEach(item => {
+                const desc = item.querySelector('.descricao').value.trim();
+                const cat = item.querySelector('.categoria').value;
+                const priEl = item.querySelector('.prioridade');
+                const prioridade = priEl && priEl.value ? priEl.value : null;
+                const idEl = item.querySelector('.demanda-id');
+                const demanda = {
+                    familia_id: parseInt(familiaId),
+                    descricao: desc,
+                    categoria: cat,
+                    demanda_tipo_id: MAP_CATEGORIA_TIPO[cat],
+                    data_identificacao: new Date().toISOString().split('T')[0],
+                    status: 'Em análise'
+                };
+                if (prioridade) demanda.prioridade = prioridade;
+                if (idEl && idEl.value) demanda.demanda_id = parseInt(idEl.value);
+                demandas.push(demanda);
+            });
+
+            btnFinalizar.disabled = true;
+            try {
+                const resp = await fetch(`/demandas/upsert/lote/familia/${familiaId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(demandas)
+                });
+
+                if (resp.ok) {
+                    const salvas = await resp.json().catch(() => []);
+                    window.sessionCadastro.demandas = salvas;
+                    const hidden = document.getElementById('demandas_json');
+                    if (hidden) hidden.value = JSON.stringify(salvas);
+                    const nextUrl = btnFinalizar.getAttribute('data-next-url');
+                    if (nextUrl) {
+                        form.action = nextUrl;
+                        form.method = 'post';
+                        form.submit();
+                    }
+                } else {
+                    const erro = await resp.json().catch(() => ({ mensagem: 'Erro desconhecido' }));
+                    alert(JSON.stringify(erro));
+                    btnFinalizar.disabled = false;
+                }
+            } catch (err) {
+                alert('Erro ao enviar os dados. Tente novamente.');
+                btnFinalizar.disabled = false;
             }
         }
     });

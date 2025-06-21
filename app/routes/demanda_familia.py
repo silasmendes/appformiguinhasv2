@@ -63,20 +63,23 @@ def upsert_demandas_familia(familia_id):
 
     for entrada in dados:
         demanda_id = entrada.get("demanda_id")
-        if demanda_id:
-            # UPDATE
-            demanda = db.session.get(DemandaFamilia, demanda_id)
-            if demanda and demanda.familia_id == familia_id:
-                demanda = demanda_schema.load(entrada, instance=demanda, partial=True)
+        try:
+            if demanda_id:
+                demanda = db.session.get(DemandaFamilia, demanda_id)
+                if demanda and demanda.familia_id == familia_id:
+                    demanda = demanda_schema.load(entrada, instance=demanda, partial=True)
+                else:
+                    continue
             else:
-                continue  # ou retorne erro se demanda não existir ou não pertencer à família
-        else:
-            # INSERT
-            entrada["familia_id"] = familia_id
-            demanda = demanda_schema.load(entrada)
-            db.session.add(demanda)
+                entrada["familia_id"] = familia_id
+                demanda = demanda_schema.load(entrada)
+                db.session.add(demanda)
 
-        demandas_salvas.append(demanda)
+            db.session.commit()
+            demandas_salvas.append(demanda)
+        except ValidationError:
+            db.session.rollback()
+        except Exception:
+            db.session.rollback()
 
-    db.session.commit()
     return demandas_schema.jsonify(demandas_salvas), 200
