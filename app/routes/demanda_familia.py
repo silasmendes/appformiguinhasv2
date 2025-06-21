@@ -54,3 +54,29 @@ def deletar_demanda(demanda_id):
     db.session.delete(demanda)
     db.session.commit()
     return jsonify({"mensagem": "Demanda deletada com sucesso"}), 200
+
+
+@bp.route("/upsert/lote/familia/<int:familia_id>", methods=["PUT"])
+def upsert_demandas_familia(familia_id):
+    dados = request.get_json()  # lista de demandas
+    demandas_salvas = []
+
+    for entrada in dados:
+        demanda_id = entrada.get("demanda_id")
+        if demanda_id:
+            # UPDATE
+            demanda = db.session.get(DemandaFamilia, demanda_id)
+            if demanda and demanda.familia_id == familia_id:
+                demanda = demanda_schema.load(entrada, instance=demanda, partial=True)
+            else:
+                continue  # ou retorne erro se demanda não existir ou não pertencer à família
+        else:
+            # INSERT
+            entrada["familia_id"] = familia_id
+            demanda = demanda_schema.load(entrada)
+            db.session.add(demanda)
+
+        demandas_salvas.append(demanda)
+
+    db.session.commit()
+    return demandas_schema.jsonify(demandas_salvas), 200
