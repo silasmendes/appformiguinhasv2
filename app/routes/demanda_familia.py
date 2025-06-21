@@ -58,28 +58,37 @@ def deletar_demanda(demanda_id):
 
 @bp.route("/upsert/lote/familia/<int:familia_id>", methods=["PUT"])
 def upsert_demandas_familia(familia_id):
-    dados = request.get_json()  # lista de demandas
+    dados = request.get_json()
+    if not isinstance(dados, list):
+        return jsonify({"erro": "Esperado uma lista de demandas"}), 400
+
     demandas_salvas = []
 
-    for entrada in dados:
-        demanda_id = entrada.get("demanda_id")
-        try:
+    try:
+        for entrada in dados:
+            demanda_id = entrada.get("demanda_id")
+            entrada["familia_id"] = familia_id  # reforça vínculo correto
+
             if demanda_id:
                 demanda = db.session.get(DemandaFamilia, demanda_id)
                 if demanda and demanda.familia_id == familia_id:
                     demanda = demanda_schema.load(entrada, instance=demanda, partial=True)
                 else:
-                    continue
+                    continue  # ignora se não pertencer à família ou não encontrado
             else:
-                entrada["familia_id"] = familia_id
                 demanda = demanda_schema.load(entrada)
                 db.session.add(demanda)
 
-            db.session.commit()
             demandas_salvas.append(demanda)
-        except ValidationError:
-            db.session.rollback()
-        except Exception:
-            db.session.rollback()
 
-    return demandas_schema.jsonify(demandas_salvas), 200
+        db.session.commit()
+        return demandas_schema.jsonify(demandas_salvas), 200
+
+    except ValidationError as e:
+        db.session.rollback()
+        return jsonify({"erro": "Erro de validação", "detalhes": e.messages}), 400
+    except Exception as ex:
+        db.session.rollback()
+        print(f"Erro inesperado no upsert de demandas: {ex}")
+        return jsonify({"erro": "Erro interno ao salvar demandas"}), 500
+

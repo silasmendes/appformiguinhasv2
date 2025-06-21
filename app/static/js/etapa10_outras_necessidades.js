@@ -189,8 +189,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const idEl = item.querySelector('.demanda-id');
                 const demanda = {
                     familia_id: parseInt(familiaId),
-                    descricao: desc,
-                    categoria: cat,
+                    descricao: desc,                    
                     demanda_tipo_id: MAP_CATEGORIA_TIPO[cat],
                     data_identificacao: new Date().toISOString().split('T')[0],
                     status: 'Em análise'
