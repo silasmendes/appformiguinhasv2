@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from marshmallow import ValidationError
 from app.models.demanda_familia import DemandaFamilia
+from app.models.demanda_etapa import DemandaEtapa
 from app.schemas.demanda_familia import DemandaFamiliaSchema
 from app import db
 
@@ -18,6 +19,12 @@ def criar_demanda():
         return jsonify(err.messages), 400
 
     db.session.add(nova_demanda)
+    db.session.flush()
+    etapa_inicial = DemandaEtapa(
+        demanda_id=nova_demanda.demanda_id,
+        status_atual=nova_demanda.status,
+    )
+    db.session.add(etapa_inicial)
     db.session.commit()
     return demanda_schema.jsonify(nova_demanda), 201
 
@@ -40,7 +47,10 @@ def atualizar_demanda(demanda_id):
         return jsonify({"mensagem": "Demanda não encontrada"}), 404
 
     data = request.get_json()
-    demanda = demanda_schema.load(data, instance=demanda, partial=True)
+    try:
+        demanda = demanda_schema.load(data, instance=demanda, partial=True)
+    except ValidationError as err:
+        return jsonify(err.messages), 400
 
     db.session.commit()
     return demanda_schema.jsonify(demanda)
@@ -78,6 +88,12 @@ def upsert_demandas_familia(familia_id):
             else:
                 demanda = demanda_schema.load(entrada)
                 db.session.add(demanda)
+                db.session.flush()
+                etapa = DemandaEtapa(
+                    demanda_id=demanda.demanda_id,
+                    status_atual=demanda.status,
+                )
+                db.session.add(etapa)
 
             demandas_salvas.append(demanda)
 
