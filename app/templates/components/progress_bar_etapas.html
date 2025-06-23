@@ -1,0 +1,11 @@
+<div class="timeline-container mb-4">
+    <ul class="timeline list-unstyled">
+        {% for nome in etapas %}
+        {% set num = loop.index %}
+        <li class="timeline-item {% if num == etapa_atual %}active{% elif num < etapa_atual %}complete{% endif %}">
+            <div class="circle">{{ num }}</div>
+            <div class="timeline-label">{{ nome }}</div>
+        </li>
+        {% endfor %}
+    </ul>
+</div>

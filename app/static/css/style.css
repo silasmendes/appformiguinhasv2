@@ -296,3 +296,76 @@ h1, h2, h3, h4, h5, h6 {
         flex: 1 1 100%;
     }
 }
+
+/* Timeline de etapas */
+.timeline-container {
+    overflow-x: auto;
+    padding-bottom: 1rem;
+}
+
+.timeline {
+    display: flex;
+    position: relative;
+    margin: 0;
+    padding: 0;
+    width: max-content;
+}
+
+.timeline-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 0 0 auto;
+    padding: 0 1rem;
+    min-width: 80px;
+    text-align: center;
+}
+
+.timeline-item:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    top: 18px;
+    left: calc(50% + 18px);
+    width: calc(100% - 36px);
+    height: 2px;
+    background: #dee2e6;
+    z-index: 1;
+}
+
+.timeline-item.complete:not(:last-child)::after {
+    background: #28a745;
+}
+
+.timeline-item.active:not(:last-child)::after {
+    background: var(--primary-color);
+}
+
+.circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #dee2e6;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    z-index: 2;
+}
+
+.timeline-item.complete .circle {
+    background: #28a745;
+    color: #fff;
+}
+
+.timeline-item.active .circle {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+.timeline-label {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+}
+
