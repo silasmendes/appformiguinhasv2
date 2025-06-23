@@ -166,12 +166,20 @@ def atendimento_etapa10():
             except Exception:
                 cadastro["demandas"] = []
         session["cadastro"] = cadastro
-        
-        # ✅ Limpa a sessão ao concluir com sucesso
-        reset_atendimento_sessao()
-        
-        return redirect(url_for("home"))
+        return redirect(url_for("atendimento_etapa11"))
     return render_template("atendimento/etapa10_outras_necessidades.html")
+
+
+@app.route("/atendimento/etapa11", methods=["GET", "POST"])
+def atendimento_etapa11():
+    """Exibe a etapa final do atendimento à família."""
+    cadastro = get_cadastro()
+    if request.method == "POST":
+        cadastro.update(request.form.to_dict(flat=True))
+        session["cadastro"] = cadastro
+        reset_atendimento_sessao()
+        return redirect(url_for("home"))
+    return render_template("atendimento/etapa11_atendimento.html")
 
 
 if __name__ == "__main__":
