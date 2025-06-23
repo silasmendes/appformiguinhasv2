@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const lista = document.getElementById('necessidadesLista');
     const btnAdicionar = document.getElementById('adicionarNecessidade');
-    const btnFinalizar = document.getElementById('btnFinalizar');
+    const btnProxima = document.getElementById('btnProxima');
     const nenhuma = document.getElementById('nenhumaNecessidade');
     const form = document.getElementById('formEtapa10');
 
@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function () {
         window.sessionCadastro.demandas.forEach(d => adicionarNecessidade(d));
     }
 
-    btnFinalizar.addEventListener('click', async function (e) {
+    btnProxima.addEventListener('click', async function (e) {
         e.preventDefault();
         let valido = true;
         lista.querySelectorAll('.necessidade-item').forEach(item => {
@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 demandas.push(demanda);
             });
 
-            btnFinalizar.disabled = true;
+            btnProxima.disabled = true;
             try {
                 const resp = await fetch(`/demandas/upsert/lote/familia/${familiaId}`, {
                     method: 'PUT',
@@ -212,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     window.sessionCadastro.demandas = salvas;
                     const hidden = document.getElementById('demandas_json');
                     if (hidden) hidden.value = JSON.stringify(salvas);
-                    const nextUrl = btnFinalizar.getAttribute('data-next-url');
+                    const nextUrl = btnProxima.getAttribute('data-next-url');
                     if (nextUrl) {
                         form.action = nextUrl;
                         form.method = 'post';
@@ -221,11 +221,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 } else {
                     const erro = await resp.json().catch(() => ({ mensagem: 'Erro desconhecido' }));
                     alert(JSON.stringify(erro));
-                    btnFinalizar.disabled = false;
+                    btnProxima.disabled = false;
                 }
             } catch (err) {
                 alert('Erro ao enviar os dados. Tente novamente.');
-                btnFinalizar.disabled = false;
+                btnProxima.disabled = false;
             }
         }
     });

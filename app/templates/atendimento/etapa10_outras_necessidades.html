@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Atendimento à Família - Etapa 10{% endblock %}
 {% block content %}
-<h2 class="mb-4 text-center">Etapa 10 de 10 - Outras necessidades informadas</h2>
+<h2 class="mb-4 text-center">Etapa 10 de 11 - Outras necessidades informadas</h2>
 
 <p class="text-muted mb-4">
     Registre abaixo outras necessidades identificadas durante o atendimento. 
@@ -19,8 +19,8 @@
         </button>
     </div>
     <div class="text-end">
-        <button type="submit" class="btn btn-success" id="btnFinalizar" data-next-url="{{ url_for('atendimento_etapa10') }}">
-            Finalizar atendimento
+        <button type="submit" class="btn btn-primary" id="btnProxima" data-next-url="{{ url_for('atendimento_etapa10') }}">
+            Próxima etapa
         </button>
     </div>
 </form>

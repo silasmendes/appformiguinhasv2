@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Atendimento à Família - Etapa 11{% endblock %}
+{% block content %}
+<h2 class="mb-4 text-center">Etapa 11 de 11 - Conclusão do atendimento</h2>
+<form id="formEtapa11" autocomplete="off" method="post">
+    <input type="hidden" id="familia_id_hidden" name="familia_id" value="{{ session.get('familia_id', '') }}">
+    <div class="mb-3">
+        <label for="percepcao_necessidade" class="form-label">Percepção de necessidade</label>
+        <select class="form-select" name="percepcao_necessidade" id="percepcao_necessidade" required>
+            <option value="" disabled {% if not session['cadastro'].get('percepcao_necessidade') %}selected{% endif %}>Selecione</option>
+            <option value="Alta" {% if session['cadastro'].get('percepcao_necessidade')=='Alta' %}selected{% endif %}>Alta</option>
+            <option value="Media" {% if session['cadastro'].get('percepcao_necessidade')=='Media' %}selected{% endif %}>Média</option>
+            <option value="Baixa" {% if session['cadastro'].get('percepcao_necessidade')=='Baixa' %}selected{% endif %}>Baixa</option>
+            <option value="Inativo" {% if session['cadastro'].get('percepcao_necessidade')=='Inativo' %}selected{% endif %}>Inativo</option>
+            <option value="Excluído" {% if session['cadastro'].get('percepcao_necessidade')=='Excluído' %}selected{% endif %}>Excluído</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">A necessidade da família é temporária ou permanente?</label>
+        <div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="duracao_necessidade" id="duracao_temporaria" value="Temporária" {% if session['cadastro'].get('duracao_necessidade')=='Temporária' %}checked{% endif %}>
+                <label class="form-check-label" for="duracao_temporaria">Temporária</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="duracao_necessidade" id="duracao_permanente" value="Permanente" {% if session['cadastro'].get('duracao_necessidade')=='Permanente' %}checked{% endif %}>
+                <label class="form-check-label" for="duracao_permanente">Permanente</label>
+            </div>
+        </div>
+    </div>
+    <div class="mb-3">
+        <label for="motivo_duracao" class="form-label">Motivo da duração</label>
+        <input type="text" class="form-control" name="motivo_duracao" id="motivo_duracao" maxlength="255" placeholder="Descreva brevemente o motivo" autocomplete="off" value="{{ session['cadastro'].get('motivo_duracao', '') }}">
+    </div>
+    <div class="mb-3">
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="cesta_entregue" name="cesta_entregue" {% if session['cadastro'].get('cesta_entregue') %}checked{% endif %}>
+            <label class="form-check-label" for="cesta_entregue">Cesta básica será entregue à família neste atendimento</label>
+        </div>
+        <small id="avisoCesta" class="text-warning fst-italic {% if session['cadastro'].get('cesta_entregue') %}d-none{% endif %}">Nenhuma cesta básica será entregue neste atendimento.</small>
+    </div>
+    <div class="d-flex justify-content-between w-100">
+        <button type="submit" class="btn btn-success" id="btnFinalizar" data-next-url="{{ url_for('atendimento_etapa11') }}">Finalizar atendimento</button>
+    </div>
+</form>
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/etapa11_atendimento.js') }}"></script>
+{% endblock %}
