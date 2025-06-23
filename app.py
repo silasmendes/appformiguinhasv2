@@ -5,6 +5,20 @@ from app import create_app
 
 app = create_app()
 
+ETAPAS = [
+    "dados pessoais",
+    "endereço",
+    "composição familiar",
+    "contatos",
+    "condições habitação",
+    "saúde familiar",
+    "emprego",
+    "renda familiar",
+    "educação",
+    "outras necessidades",
+    "encerramento",
+]
+
 
 def reset_atendimento_sessao():
     """Remove informações de atendimento da sessão."""
@@ -62,7 +76,11 @@ def atendimento_etapa1():
         if form_data.get("familia_id"):
             session["familia_id"] = form_data["familia_id"]
         return redirect(url_for("atendimento_etapa2"))
-    return render_template("atendimento/etapa1_dados_pessoais.html")
+    return render_template(
+        "atendimento/etapa1_dados_pessoais.html",
+        etapa_atual=1,
+        etapas=ETAPAS,
+    )
 
 
 @app.route("/atendimento/etapa2", methods=["GET", "POST"])
@@ -73,7 +91,11 @@ def atendimento_etapa2():
         cadastro.update(request.form.to_dict(flat=True))
         session["cadastro"] = cadastro
         return redirect(url_for("atendimento_etapa3"))
-    return render_template("atendimento/etapa2_endereco.html")
+    return render_template(
+        "atendimento/etapa2_endereco.html",
+        etapa_atual=2,
+        etapas=ETAPAS,
+    )
 
 
 @app.route("/atendimento/etapa3", methods=["GET", "POST"])
@@ -84,7 +106,11 @@ def atendimento_etapa3():
         cadastro.update(request.form.to_dict(flat=True))
         session["cadastro"] = cadastro
         return redirect(url_for("atendimento_etapa4"))
-    return render_template("atendimento/etapa3_composicao_familiar.html")
+    return render_template(
+        "atendimento/etapa3_composicao_familiar.html",
+        etapa_atual=3,
+        etapas=ETAPAS,
+    )
 
 
 @app.route("/atendimento/etapa4", methods=["GET", "POST"])
@@ -95,7 +121,11 @@ def atendimento_etapa4():
         cadastro.update(request.form.to_dict(flat=True))
         session["cadastro"] = cadastro
         return redirect(url_for("atendimento_etapa5"))
-    return render_template("atendimento/etapa4_contato.html")
+    return render_template(
+        "atendimento/etapa4_contato.html",
+        etapa_atual=4,
+        etapas=ETAPAS,
+    )
 
 
 @app.route("/atendimento/etapa5", methods=["GET", "POST"])
@@ -106,7 +136,11 @@ def atendimento_etapa5():
         cadastro.update(request.form.to_dict(flat=True))
         session["cadastro"] = cadastro
         return redirect(url_for("atendimento_etapa6"))
-    return render_template("atendimento/etapa5_condicoes_habitacionais.html")
+    return render_template(
+        "atendimento/etapa5_condicoes_habitacionais.html",
+        etapa_atual=5,
+        etapas=ETAPAS,
+    )
 
 
 @app.route("/atendimento/etapa6", methods=["GET", "POST"])
@@ -117,7 +151,11 @@ def atendimento_etapa6():
         cadastro.update(request.form.to_dict(flat=True))
         session["cadastro"] = cadastro
         return redirect(url_for("atendimento_etapa7"))
-    return render_template("atendimento/etapa6_saude_familiar.html")
+    return render_template(
+        "atendimento/etapa6_saude_familiar.html",
+        etapa_atual=6,
+        etapas=ETAPAS,
+    )
 
 
 @app.route("/atendimento/etapa7", methods=["GET", "POST"])
@@ -128,7 +166,11 @@ def atendimento_etapa7():
         cadastro.update(request.form.to_dict(flat=True))
         session["cadastro"] = cadastro
         return redirect(url_for("atendimento_etapa8"))
-    return render_template("atendimento/etapa7_emprego_e_habilidades.html")
+    return render_template(
+        "atendimento/etapa7_emprego_e_habilidades.html",
+        etapa_atual=7,
+        etapas=ETAPAS,
+    )
 
 
 @app.route("/atendimento/etapa8", methods=["GET", "POST"])
@@ -139,7 +181,11 @@ def atendimento_etapa8():
         cadastro.update(request.form.to_dict(flat=True))
         session["cadastro"] = cadastro
         return redirect(url_for("atendimento_etapa9"))
-    return render_template("atendimento/etapa8_renda_e_gastos.html")
+    return render_template(
+        "atendimento/etapa8_renda_e_gastos.html",
+        etapa_atual=8,
+        etapas=ETAPAS,
+    )
 
 
 @app.route("/atendimento/etapa9", methods=["GET", "POST"])
@@ -150,7 +196,11 @@ def atendimento_etapa9():
         cadastro.update(request.form.to_dict(flat=True))
         session["cadastro"] = cadastro
         return redirect(url_for("atendimento_etapa10"))
-    return render_template("atendimento/etapa9_escolaridade.html")
+    return render_template(
+        "atendimento/etapa9_escolaridade.html",
+        etapa_atual=9,
+        etapas=ETAPAS,
+    )
 
 
 @app.route("/atendimento/etapa10", methods=["GET", "POST"])
@@ -167,7 +217,11 @@ def atendimento_etapa10():
                 cadastro["demandas"] = []
         session["cadastro"] = cadastro
         return redirect(url_for("atendimento_etapa11"))
-    return render_template("atendimento/etapa10_outras_necessidades.html")
+    return render_template(
+        "atendimento/etapa10_outras_necessidades.html",
+        etapa_atual=10,
+        etapas=ETAPAS,
+    )
 
 
 @app.route("/atendimento/etapa11", methods=["GET", "POST"])
@@ -179,7 +233,11 @@ def atendimento_etapa11():
         session["cadastro"] = cadastro
         reset_atendimento_sessao()
         return redirect(url_for("home"))
-    return render_template("atendimento/etapa11_atendimento.html")
+    return render_template(
+        "atendimento/etapa11_atendimento.html",
+        etapa_atual=11,
+        etapas=ETAPAS,
+    )
 
 
 if __name__ == "__main__":
