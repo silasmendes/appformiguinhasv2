@@ -1,8 +1,10 @@
 from flask import Blueprint, request, jsonify, session
 from marshmallow import ValidationError
 from app.models.familia import Familia
+from app.models.atendimento import Atendimento
 from app.schemas.familia import FamiliaSchema
 from app import db
+from sqlalchemy import func
 
 bp = Blueprint("familias", __name__, url_prefix="/familias")
 
@@ -25,6 +27,31 @@ def criar_familia():
 def listar_familias():
     familias = Familia.query.all()
     return familias_schema.jsonify(familias), 200
+
+
+@bp.route("/busca", methods=["GET"])
+def buscar_familias():
+    termo = request.args.get("q", "")
+    query = Familia.query
+    if termo.isdigit():
+        termo_num = f"%{termo}%"
+        query = query.filter(Familia.cpf.ilike(termo_num))
+    else:
+        termo_txt = f"%{termo}%"
+        query = query.filter(Familia.nome_responsavel.ilike(termo_txt))
+    familias = query.all()
+
+    resultados = []
+    for familia in familias:
+        ultimo = db.session.query(func.max(Atendimento.data_hora_atendimento)).filter_by(familia_id=familia.familia_id).scalar()
+        resultados.append({
+            "familia_id": familia.familia_id,
+            "nome_responsavel": familia.nome_responsavel,
+            "data_nascimento": familia.data_nascimento.isoformat() if familia.data_nascimento else None,
+            "cpf": familia.cpf,
+            "ultimo_atendimento": ultimo.date().isoformat() if ultimo else None,
+        })
+    return jsonify(resultados)
 
 @bp.route("/<int:familia_id>", methods=["GET"])
 def obter_familia(familia_id):
