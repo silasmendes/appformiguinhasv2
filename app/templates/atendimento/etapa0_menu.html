@@ -2,18 +2,62 @@
 {% block title %}Atendimento à Família - Menu{% endblock %}
 {% block content %}
 <h2 class="mb-4 text-center">Menu de Atendimento</h2>
-<div class="d-flex flex-column align-items-center gap-3">
-    <a href="#" id="btnAtenderFamilia" class="btn btn-primary">Atender família</a>
-    <a href="{{ url_for('atendimento_nova_familia') }}" id="btnNovaFamilia" class="btn btn-success">Registrar nova família</a>
-    <a href="{{ url_for('retomar_atendimento') }}" class="btn btn-secondary">Retomar atendimento em andamento</a>
-</div>
-<div id="buscaFamiliaContainer" class="mt-3 d-none" style="max-width:400px;margin:0 auto;">
-    <input type="text" id="buscaFamiliaInput" class="form-control" placeholder="Digite nome ou CPF">
-    <ul id="buscaFamiliaResultados" class="list-group mt-2"></ul>
+<div class="menu-buttons-container">
+    <a href="#" id="btnAtenderFamilia" class="menu-btn btn btn-primary">
+        <i class="fa-solid fa-search"></i>
+        <span>Atender família</span>
+        <small>Buscar cadastro existente</small>
+    </a>
+    <a href="{{ url_for('atendimento_nova_familia') }}" id="btnNovaFamilia" class="menu-btn btn btn-success">
+        <i class="fa-solid fa-user-plus"></i>
+        <span>Registrar nova família</span>
+        <small>Iniciar um novo cadastro</small>
+    </a>
+    <a href="{{ url_for('retomar_atendimento') }}" class="menu-btn btn btn-warning">
+        <i class="fa-solid fa-play"></i>
+        <span>Retomar atendimento</span>
+        <small>Continuar cadastro em andamento</small>
+    </a>
 </div>
 {% if error_msg %}
 <div id="retomar-feedback" class="invalid-feedback d-block text-center mt-3">{{ error_msg }}</div>
 {% endif %}
+
+<div id="buscaFamiliaModal" class="modal-overlay d-none">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title"><i class="fa-solid fa-search"></i> Buscar família</h5>
+            <button type="button" class="btn-close" id="fecharBuscaFamilia">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="search-instruction">
+                <i class="fa-solid fa-info-circle"></i>
+                <span>Digite parte do nome ou CPF e clique em Buscar.</span>
+            </div>
+            <form method="get" class="search-input-group">
+                <input type="text" name="q" id="buscaFamiliaInput" class="form-control" placeholder="Digite nome ou CPF" value="{{ request.args.get('q','') }}">
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-search"></i> Buscar</button>
+            </form>
+            {% if resultados is not none %}
+            <div id="resultadosContainer" class="mt-3">
+                <ul class="list-group">
+                    {% if resultados %}
+                        {% for f in resultados %}
+                        <li class="list-group-item">
+                            <a href="{{ url_for('atendimento_familia', familia_id=f.familia_id) }}" class="text-decoration-none">
+                                {{ f.nome_responsavel }} - {{ f.cpf or '' }} - {{ f.data_nascimento or '' }}{% if f.ultimo_atendimento %} - Último atendimento em {{ f.ultimo_atendimento }}{% endif %}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    {% else %}
+                        <li class="list-group-item">Nenhuma família encontrada</li>
+                    {% endif %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -24,7 +68,7 @@
             sessionStorage.removeItem('familia_id');
         });
     }
+    window.autoOpenBuscaFamilia = {{ auto_open|tojson }};
 </script>
 <script src="{{ url_for('static', filename='js/menu_busca_familia.js') }}"></script>
 {% endblock %}
-
