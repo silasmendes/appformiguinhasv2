@@ -5,7 +5,7 @@ from app import create_app
 from app import db
 from app.models.familia import Familia
 from app.models.atendimento import Atendimento
-from sqlalchemy import func, or_
+from sqlalchemy import func, or_, and_
 from app.models.endereco import Endereco
 from app.models.composicao_familiar import ComposicaoFamiliar
 from app.models.contato import Contato
@@ -14,6 +14,9 @@ from app.models.saude_familiar import SaudeFamiliar
 from app.models.emprego_provedor import EmpregoProvedor
 from app.models.renda_familiar import RendaFamiliar
 from app.models.educacao_entrevistado import EducacaoEntrevistado
+from app.models.demanda_familia import DemandaFamilia
+from app.models.demanda_etapa import DemandaEtapa
+from app.models.demanda_tipo import DemandaTipo
 
 app = create_app()
 
@@ -247,6 +250,59 @@ def atendimento_familia(familia_id):
         })
         if educacao.estuda_atualmente is not None:
             cadastro["estuda_atualmente"] = _bool_to_sim_nao(educacao.estuda_atualmente)
+
+    # Carrega demandas sociais ativas já cadastradas para a família
+    ult_etapa = (
+        db.session.query(
+            DemandaEtapa.demanda_id,
+            func.max(DemandaEtapa.etapa_id).label("etapa_id")
+        )
+        .group_by(DemandaEtapa.demanda_id)
+        .subquery()
+    )
+
+    active_statuses = [
+        "Em análise",
+        "Em andamento",
+        "Encaminhada",
+        "Aguardando resposta",
+        "Suspensa",
+    ]
+
+    demandas_rows = (
+        db.session.query(
+            DemandaFamilia.demanda_id,
+            DemandaTipo.demanda_tipo_nome,
+            DemandaFamilia.descricao,
+            DemandaFamilia.prioridade,
+            DemandaEtapa.status_atual,
+            DemandaEtapa.observacao,
+        )
+        .join(ult_etapa, DemandaFamilia.demanda_id == ult_etapa.c.demanda_id)
+        .join(
+            DemandaEtapa,
+            and_(
+                DemandaEtapa.demanda_id == ult_etapa.c.demanda_id,
+                DemandaEtapa.etapa_id == ult_etapa.c.etapa_id,
+            ),
+        )
+        .join(DemandaTipo, DemandaTipo.demanda_tipo_id == DemandaFamilia.demanda_tipo_id)
+        .filter(DemandaFamilia.familia_id == familia_id)
+        .filter(DemandaFamilia.status.in_(active_statuses))
+        .all()
+    )
+
+    cadastro["demandas"] = [
+        {
+            "demanda_id": row.demanda_id,
+            "categoria": row.demanda_tipo_nome,
+            "descricao": row.descricao,
+            "prioridade": row.prioridade,
+            "status_atual": row.status_atual,
+            "observacao": row.observacao,
+        }
+        for row in demandas_rows
+    ]
 
     session["cadastro"] = cadastro
     return redirect(url_for("atendimento_etapa1"))
