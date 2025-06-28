@@ -5,6 +5,7 @@ from app.models.atendimento import Atendimento
 from app.schemas.familia import FamiliaSchema
 from app import db
 from sqlalchemy import func
+import re
 
 bp = Blueprint("familias", __name__, url_prefix="/familias")
 
@@ -31,11 +32,16 @@ def listar_familias():
 
 @bp.route("/busca", methods=["GET"])
 def buscar_familias():
-    termo = request.args.get("q", "")
+    termo = request.args.get("q", "").strip()
     query = Familia.query
-    if termo.isdigit():
-        termo_num = f"%{termo}%"
-        query = query.filter(Familia.cpf.ilike(termo_num))
+
+    # Trata busca de CPF removendo caracteres não numéricos.
+    digitos = re.sub(r"\D", "", termo)
+
+    if digitos:
+        # Compara o CPF no banco desconsiderando pontuação
+        cpf_coluna = func.replace(func.replace(Familia.cpf, ".", ""), "-", "")
+        query = query.filter(cpf_coluna.ilike(f"%{digitos}%"))
     else:
         termo_txt = f"%{termo}%"
         query = query.filter(Familia.nome_responsavel.ilike(termo_txt))
