@@ -4,7 +4,7 @@ from app.models.familia import Familia
 from app.models.atendimento import Atendimento
 from app.schemas.familia import FamiliaSchema
 from app import db
-from sqlalchemy import func
+from sqlalchemy import func, or_
 
 bp = Blueprint("familias", __name__, url_prefix="/familias")
 
@@ -33,12 +33,13 @@ def listar_familias():
 def buscar_familias():
     termo = request.args.get("q", "")
     query = Familia.query
-    if termo.isdigit():
-        termo_num = f"%{termo}%"
-        query = query.filter(Familia.cpf.ilike(termo_num))
-    else:
-        termo_txt = f"%{termo}%"
-        query = query.filter(Familia.nome_responsavel.ilike(termo_txt))
+    # Busca tanto por CPF quanto por nome (similar à query T-SQL fornecida)
+    query = query.filter(
+        or_(
+            Familia.cpf.ilike(f"%{termo}%"),
+            Familia.nome_responsavel.ilike(f"%{termo}%")
+        )
+    )
     familias = query.all()
 
     resultados = []

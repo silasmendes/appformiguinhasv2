@@ -5,7 +5,7 @@ from app import create_app
 from app import db
 from app.models.familia import Familia
 from app.models.atendimento import Atendimento
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from app.models.endereco import Endereco
 from app.models.composicao_familiar import ComposicaoFamiliar
 from app.models.contato import Contato
@@ -56,10 +56,13 @@ def menu_atendimento():
     auto_open = False
     if termo:
         query = Familia.query
-        if termo.isdigit():
-            query = query.filter(Familia.cpf.ilike(f"%{termo}%"))
-        else:
-            query = query.filter(Familia.nome_responsavel.ilike(f"%{termo}%"))
+        # Busca tanto por CPF quanto por nome (similar à query T-SQL fornecida)
+        query = query.filter(
+            or_(
+                Familia.cpf.ilike(f"%{termo}%"),
+                Familia.nome_responsavel.ilike(f"%{termo}%")
+            )
+        )
         familias = query.all()
         resultados = []
         for familia in familias:
