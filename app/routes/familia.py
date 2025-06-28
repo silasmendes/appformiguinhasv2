@@ -33,23 +33,23 @@ def listar_familias():
 @bp.route("/busca", methods=["GET"])
 def buscar_familias():
     termo = request.args.get("q", "").strip()
-    query = Familia.query
-
-    # Trata busca de CPF removendo caracteres não numéricos.
-    digitos = re.sub(r"\D", "", termo)
-
-    if digitos:
-        # Compara o CPF no banco desconsiderando pontuação
-        cpf_coluna = func.replace(func.replace(Familia.cpf, ".", ""), "-", "")
-        query = query.filter(cpf_coluna.ilike(f"%{digitos}%"))
-    else:
-        termo_txt = f"%{termo}%"
-        query = query.filter(Familia.nome_responsavel.ilike(termo_txt))
-    familias = query.all()
-
+    
+    if not termo:
+        return jsonify([])
+    
+    # Busca simples: cpf LIKE '%termo%' OR nome_responsavel LIKE '%termo%'
+    familias = Familia.query.filter(
+        db.or_(
+            Familia.cpf.like(f"%{termo}%"),
+            Familia.nome_responsavel.like(f"%{termo}%")
+        )
+    ).limit(20).all()
+    
     resultados = []
     for familia in familias:
+        # Busca o último atendimento
         ultimo = db.session.query(func.max(Atendimento.data_hora_atendimento)).filter_by(familia_id=familia.familia_id).scalar()
+        
         resultados.append({
             "familia_id": familia.familia_id,
             "nome_responsavel": familia.nome_responsavel,
@@ -57,6 +57,7 @@ def buscar_familias():
             "cpf": familia.cpf,
             "ultimo_atendimento": ultimo.date().isoformat() if ultimo else None,
         })
+    
     return jsonify(resultados)
 
 @bp.route("/<int:familia_id>", methods=["GET"])
