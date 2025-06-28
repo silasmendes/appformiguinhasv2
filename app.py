@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 from app import create_app
 from app import db
 from app.models.familia import Familia
+from app.models.atendimento import Atendimento
+from sqlalchemy import func
 from app.models.endereco import Endereco
 from app.models.composicao_familiar import ComposicaoFamiliar
 from app.models.contato import Contato
@@ -49,7 +51,28 @@ def home():
 
 @app.route("/menu_atendimento")
 def menu_atendimento():
-    return render_template("atendimento/etapa0_menu.html")
+    termo = request.args.get("q", "").strip()
+    resultados = None
+    auto_open = False
+    if termo:
+        query = Familia.query
+        if termo.isdigit():
+            query = query.filter(Familia.cpf.ilike(f"%{termo}%"))
+        else:
+            query = query.filter(Familia.nome_responsavel.ilike(f"%{termo}%"))
+        familias = query.all()
+        resultados = []
+        for familia in familias:
+            ultimo = db.session.query(func.max(Atendimento.data_hora_atendimento)).filter_by(familia_id=familia.familia_id).scalar()
+            resultados.append({
+                "familia_id": familia.familia_id,
+                "nome_responsavel": familia.nome_responsavel,
+                "data_nascimento": familia.data_nascimento.isoformat() if familia.data_nascimento else None,
+                "cpf": familia.cpf,
+                "ultimo_atendimento": ultimo.date().isoformat() if ultimo else None,
+            })
+        auto_open = True
+    return render_template("atendimento/etapa0_menu.html", resultados=resultados, auto_open=auto_open)
 
 @app.route("/atendimento_nova_familia")
 def atendimento_nova_familia():
@@ -70,7 +93,7 @@ def retomar_atendimento():
     reset_atendimento_sessao()
     error_msg = ("Nenhum atendimento em andamento foi encontrado ou o tempo expirou. "
                  "Inicie um novo atendimento usando a opção \"Atender família\".")
-    return render_template("atendimento/etapa0_menu.html", error_msg=error_msg)
+    return render_template("atendimento/etapa0_menu.html", error_msg=error_msg, auto_open=False)
 
 
 @app.route("/atendimento_familia/<int:familia_id>")
