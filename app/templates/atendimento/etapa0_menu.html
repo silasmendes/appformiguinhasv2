@@ -2,14 +2,59 @@
 {% block title %}Atendimento à Família - Menu{% endblock %}
 {% block content %}
 <h2 class="mb-4 text-center">Menu de Atendimento</h2>
-<div class="d-flex flex-column align-items-center gap-3">
-    <a href="#" id="btnAtenderFamilia" class="btn btn-primary">Atender família</a>
-    <a href="{{ url_for('atendimento_nova_familia') }}" id="btnNovaFamilia" class="btn btn-success">Registrar nova família</a>
-    <a href="{{ url_for('retomar_atendimento') }}" class="btn btn-secondary">Retomar atendimento em andamento</a>
+<div class="menu-buttons-container">
+    <a href="#" id="btnAtenderFamilia" class="btn btn-primary menu-btn">
+        <i class="fas fa-users"></i>
+        <span>Atender família</span>
+        <small>Família já cadastrada</small>
+    </a>
+    <a href="{{ url_for('atendimento_nova_familia') }}" id="btnNovaFamilia" class="btn btn-success menu-btn">
+        <i class="fas fa-plus-circle"></i>
+        <span>Registrar nova família</span>
+        <small>Cadastrar nova família</small>
+    </a>
+    <a href="{{ url_for('retomar_atendimento') }}" class="btn btn-warning menu-btn">
+        <i class="fas fa-play-circle"></i>
+        <span>Retomar atendimento</span>
+        <small>Atendimento em andamento</small>
+    </a>
 </div>
-<div id="buscaFamiliaContainer" class="mt-3 d-none" style="max-width:400px;margin:0 auto;">
-    <input type="text" id="buscaFamiliaInput" class="form-control" placeholder="Digite nome ou CPF">
-    <ul id="buscaFamiliaResultados" class="list-group mt-2"></ul>
+
+<!-- Modal de Busca de Família -->
+<div id="modalBuscaFamilia" class="modal-overlay d-none">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">
+                <i class="fas fa-search"></i>
+                Buscar Família
+            </h5>
+            <button type="button" class="btn-close" id="fecharModal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="search-instruction">
+                <i class="fas fa-hand-point-right"></i>
+                <span>Digite parte do nome ou CPF do entrevistado</span>
+            </div>
+            <div class="search-input-group">
+                <input type="text" id="buscaFamiliaInput" class="form-control" placeholder="Nome ou CPF do entrevistado">
+                <button type="button" id="btnBuscar" class="btn btn-primary">
+                    <i class="fas fa-search"></i>
+                    Buscar
+                </button>
+            </div>
+            <div id="resultadosContainer" class="mt-3 d-none">
+                <ul id="buscaFamiliaResultados" class="list-group"></ul>
+            </div>
+            <div id="loadingSearch" class="text-center mt-3 d-none">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Buscando...</span>
+                </div>
+                <p class="mt-2 text-muted">Buscando famílias...</p>
+            </div>
+        </div>
+    </div>
 </div>
 {% if error_msg %}
 <div id="retomar-feedback" class="invalid-feedback d-block text-center mt-3">{{ error_msg }}</div>
@@ -24,7 +69,135 @@
             sessionStorage.removeItem('familia_id');
         });
     }
+
+    // Controle do Modal de Busca
+    const btnAtenderFamilia = document.getElementById('btnAtenderFamilia');
+    const modalBusca = document.getElementById('modalBuscaFamilia');
+    const fecharModal = document.getElementById('fecharModal');
+    const btnBuscar = document.getElementById('btnBuscar');
+    const inputBusca = document.getElementById('buscaFamiliaInput');
+    const resultadosContainer = document.getElementById('resultadosContainer');
+    const resultadosLista = document.getElementById('buscaFamiliaResultados');
+    const loadingSearch = document.getElementById('loadingSearch');
+
+    // Abrir modal
+    btnAtenderFamilia.addEventListener('click', function(e) {
+        e.preventDefault();
+        modalBusca.classList.remove('d-none');
+        inputBusca.focus();
+        // Limpar busca anterior
+        inputBusca.value = '';
+        resultadosContainer.classList.add('d-none');
+        resultadosLista.innerHTML = '';
+    });
+
+    // Fechar modal
+    fecharModal.addEventListener('click', function() {
+        modalBusca.classList.add('d-none');
+    });
+
+    // Fechar modal clicando no overlay
+    modalBusca.addEventListener('click', function(e) {
+        if (e.target === modalBusca) {
+            modalBusca.classList.add('d-none');
+        }
+    });
+
+    // Fechar modal com ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !modalBusca.classList.contains('d-none')) {
+            modalBusca.classList.add('d-none');
+        }
+    });
+
+    // Buscar ao clicar no botão
+    btnBuscar.addEventListener('click', function() {
+        realizarBusca();
+    });
+
+    // Buscar ao pressionar Enter
+    inputBusca.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            realizarBusca();
+        }
+    });
+
+    function realizarBusca() {
+        const termo = inputBusca.value.trim();
+        
+        if (termo.length < 2) {
+            alert('Digite pelo menos 2 caracteres para buscar');
+            return;
+        }
+
+        // Mostrar loading
+        loadingSearch.classList.remove('d-none');
+        resultadosContainer.classList.add('d-none');
+        
+        // Fazer a busca usando a rota GET existente
+        fetch(`/familias/busca?q=${encodeURIComponent(termo)}`)
+        .then(response => response.json())
+        .then(data => {
+            loadingSearch.classList.add('d-none');
+            
+            if (data && data.length > 0) {
+                exibirResultados(data);
+            } else {
+                exibirSemResultados();
+            }
+        })
+        .catch(error => {
+            console.error('Erro na busca:', error);
+            loadingSearch.classList.add('d-none');
+            alert('Erro ao buscar famílias. Tente novamente.');
+        });
+    }
+
+    function exibirResultados(familias) {
+        resultadosLista.innerHTML = '';
+        
+        familias.forEach(familia => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item';
+            
+            const ultimoAtendimento = familia.ultimo_atendimento 
+                ? ` - Último atendimento: ${new Date(familia.ultimo_atendimento).toLocaleDateString('pt-BR')}`
+                : '';
+            
+            li.innerHTML = `
+                <div>
+                    <strong>${familia.nome_responsavel}</strong>
+                    <br>
+                    <small class="text-muted">
+                        CPF: ${familia.cpf || 'Não informado'}
+                        ${ultimoAtendimento}
+                    </small>
+                </div>
+            `;
+            
+            li.addEventListener('click', function() {
+                sessionStorage.setItem('familia_id', familia.familia_id);
+                window.location.href = '/atendimento_familia/' + familia.familia_id;
+            });
+            
+            resultadosLista.appendChild(li);
+        });
+        
+        resultadosContainer.classList.remove('d-none');
+    }
+
+    function exibirSemResultados() {
+        resultadosLista.innerHTML = `
+            <li class="list-group-item text-center text-muted">
+                <i class="fas fa-search"></i>
+                <br>
+                Nenhuma família encontrada com esse termo
+                <br>
+                <small>Tente buscar por outro nome ou CPF</small>
+            </li>
+        `;
+        resultadosContainer.classList.remove('d-none');
+    }
 </script>
-<script src="{{ url_for('static', filename='js/menu_busca_familia.js') }}"></script>
 {% endblock %}
 
