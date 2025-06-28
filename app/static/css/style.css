@@ -702,6 +702,42 @@ h1, h2, h3, h4, h5, h6 {
     height: 2rem;
 }
 
+/* Estilos para resultados da busca de família */
+.familia-resultado {
+    padding: 0 !important;
+}
+
+.familia-link {
+    display: block;
+    padding: 1rem;
+    color: var(--text-color) !important;
+    transition: var(--transition-base);
+}
+
+.familia-link:hover {
+    background-color: #f8f9fa;
+    color: var(--primary-color) !important;
+}
+
+.familia-nome {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+    color: #2c3e50;
+}
+
+.familia-cpf {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+
+.familia-atendimento {
+    font-size: 0.85rem;
+    color: #28a745;
+    font-style: italic;
+}
+
 /* Animações */
 @keyframes fadeIn {
     from {

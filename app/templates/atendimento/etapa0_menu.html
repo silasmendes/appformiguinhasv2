@@ -43,9 +43,13 @@
                 <ul class="list-group">
                     {% if resultados %}
                         {% for f in resultados %}
-                        <li class="list-group-item">
-                            <a href="{{ url_for('atendimento_familia', familia_id=f.familia_id) }}" class="text-decoration-none">
-                                {{ f.nome_responsavel }} - {{ f.cpf or '' }} - {{ f.data_nascimento or '' }}{% if f.ultimo_atendimento %} - Último atendimento em {{ f.ultimo_atendimento }}{% endif %}
+                        <li class="list-group-item familia-resultado">
+                            <a href="{{ url_for('atendimento_familia', familia_id=f.familia_id) }}" class="text-decoration-none familia-link">
+                                <div class="familia-nome">Nome: {{ f.nome_responsavel }}</div>
+                                <div class="familia-cpf">CPF: {{ f.cpf or 'Não informado' }}</div>
+                                {% if f.ultimo_atendimento %}
+                                <div class="familia-atendimento">Atendimento mais recente: {{ f.ultimo_atendimento.strftime('%d/%m/%Y') if f.ultimo_atendimento else 'Não informado' }}</div>
+                                {% endif %}
                             </a>
                         </li>
                         {% endfor %}

@@ -67,9 +67,9 @@ def menu_atendimento():
             resultados.append({
                 "familia_id": familia.familia_id,
                 "nome_responsavel": familia.nome_responsavel,
-                "data_nascimento": familia.data_nascimento.isoformat() if familia.data_nascimento else None,
+                "data_nascimento": familia.data_nascimento,
                 "cpf": familia.cpf,
-                "ultimo_atendimento": ultimo.date().isoformat() if ultimo else None,
+                "ultimo_atendimento": ultimo.date() if ultimo else None,
             })
         auto_open = True
     return render_template("atendimento/etapa0_menu.html", resultados=resultados, auto_open=auto_open)
@@ -110,7 +110,7 @@ def atendimento_familia(familia_id):
 
     cadastro.update({
         "nome_responsavel": familia.nome_responsavel,
-        "data_nascimento": familia.data_nascimento.isoformat() if familia.data_nascimento else None,
+        "data_nascimento": familia.data_nascimento.strftime('%d/%m/%Y') if familia.data_nascimento else None,
         "genero": familia.genero,
         "genero_autodeclarado": familia.genero_autodeclarado,
         "estado_civil": familia.estado_civil,

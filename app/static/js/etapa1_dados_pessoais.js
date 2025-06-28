@@ -24,6 +24,13 @@ function aplicarMascaraCPF(valor) {
     return v;
 }
 
+function converterDataParaISO(dataBR) {
+    if (!dataBR || dataBR.length !== 10) return null;
+    const [dia, mes, ano] = dataBR.split('/');
+    if (!dia || !mes || !ano) return null;
+    return `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Estado atual da sessão:', window.sessionCadastro);
     const hiddenIdInput = document.getElementById('familia_id_hidden');
@@ -36,25 +43,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     const dataInput = document.getElementById('data_nascimento');
     if (dataInput) {
-        const hoje = new Date();
-        const ano = hoje.getFullYear() - 10;
-        const dataPadrao = new Date(ano, hoje.getMonth(), hoje.getDate());
-
-        flatpickr.localize(flatpickr.l10ns.pt);
-        const fp = flatpickr(dataInput, {
-            dateFormat: 'Y-m-d',
-            altInput: true,
-            altFormat: 'd/m/Y',
-            altInputClass: 'form-control',
-            defaultDate: dataPadrao,
-            allowInput: true
-        });
-
-        const altInput = fp.altInput;
-        if (altInput) {
-            altInput.setAttribute('autocomplete', 'off');
-            Inputmask({ alias: 'datetime', inputFormat: 'dd/mm/yyyy' }).mask(altInput);
-        }
+        dataInput.setAttribute('autocomplete', 'off');
+        Inputmask({ alias: 'datetime', inputFormat: 'dd/mm/yyyy' }).mask(dataInput);
     }
 
     const generoSelect = document.getElementById('genero');
@@ -124,6 +114,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!dadosFormulario.familia_id) {
             delete dadosFormulario.familia_id;
         }
+        
+        // Converter data de nascimento do formato brasileiro para ISO
+        if (dadosFormulario.data_nascimento) {
+            const dataISO = converterDataParaISO(dadosFormulario.data_nascimento);
+            if (dataISO) {
+                dadosFormulario.data_nascimento = dataISO;
+            }
+        }
+        
         // Converter valor para booleano esperado pela API
         if (dadosFormulario.autoriza_uso_imagem) {
             dadosFormulario.autoriza_uso_imagem = dadosFormulario.autoriza_uso_imagem === 'Sim';
