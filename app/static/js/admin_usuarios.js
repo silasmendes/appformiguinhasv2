@@ -2,9 +2,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     
-    // Inicializar estatísticas
-    initializeStats();
-    
     // Adicionar indicadores de status
     addStatusIndicators();
     
@@ -20,84 +17,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Tooltip para botões
     initializeTooltips();
 });
-
-function initializeStats() {
-    const tbody = document.querySelector('table tbody');
-    if (!tbody) return;
-    
-    const rows = tbody.querySelectorAll('tr');
-    const totalUsers = rows.length;
-    let adminCount = 0;
-    let tempCount = 0;
-    let expiredCount = 0;
-    
-    rows.forEach(row => {
-        const cells = row.querySelectorAll('td');
-        if (cells.length >= 4) {
-            const tipo = cells[2].textContent.trim();
-            const expiracao = cells[3].textContent.trim();
-            
-            if (tipo === 'admin') adminCount++;
-            if (tipo === 'temporario') tempCount++;
-            
-            // Verificar se expirou
-            if (expiracao && new Date(expiracao) < new Date()) {
-                expiredCount++;
-            }
-        }
-    });
-    
-    // Criar cards de estatísticas
-    createStatsCards(totalUsers, adminCount, tempCount, expiredCount);
-}
-
-function createStatsCards(total, admin, temp, expired) {
-    const header = document.querySelector('h2');
-    if (!header) return;
-    
-    const statsHTML = `
-        <div class="stats-cards row g-3 mb-4 fade-in-up">
-            <div class="col-md-3 col-sm-6">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <h3 class="stat-number">${total}</h3>
-                    <p class="stat-label">Total de Usuários</p>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-user-shield"></i>
-                    </div>
-                    <h3 class="stat-number">${admin}</h3>
-                    <p class="stat-label">Administradores</p>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-user-clock"></i>
-                    </div>
-                    <h3 class="stat-number">${temp}</h3>
-                    <p class="stat-label">Temporários</p>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-user-times"></i>
-                    </div>
-                    <h3 class="stat-number">${expired}</h3>
-                    <p class="stat-label">Expirados</p>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    header.insertAdjacentHTML('afterend', statsHTML);
-}
 
 function addStatusIndicators() {
     const tbody = document.querySelector('table tbody');
