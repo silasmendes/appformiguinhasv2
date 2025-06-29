@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Gerenciar Usuários{% endblock %}
+{% block content %}
+<h2>Usuários</h2>
+<button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalNovo">Novo Usuário</button>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Login</th>
+            <th>Nome Completo</th>
+            <th>Tipo</th>
+            <th>Expiração</th>
+            <th>Último Login</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for u in usuarios %}
+        <tr>
+            <td>{{ u.login }}</td>
+            <td>{{ u.nome_completo }}</td>
+            <td>{{ u.tipo }}</td>
+            <td>{{ u.expires_at.date() if u.expires_at else '' }}</td>
+            <td>{{ u.last_login_at.date() if u.last_login_at else '' }}</td>
+            <td>
+                <form method="post" action="{{ url_for('usuarios.reset_senha', id=u.id) }}" style="display:inline-block">
+                    <button class="btn btn-sm btn-warning" type="submit">Resetar Senha</button>
+                </form>
+                <form method="post" action="{{ url_for('usuarios.deletar_usuario', id=u.id) }}" style="display:inline-block" onsubmit="return confirm('Confirmar exclusão?');">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <button class="btn btn-sm btn-danger" type="submit">Deletar</button>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<!-- Modal Novo Usuario -->
+<div class="modal fade" id="modalNovo" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Novo Usuário</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" action="{{ url_for('usuarios.criar_usuario') }}">
+      <div class="modal-body">
+            <div class="mb-3">
+                <label class="form-label" for="login">Login*</label>
+                <input class="form-control" name="login" id="login" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="nome_completo">Nome completo*</label>
+                <input class="form-control" name="nome_completo" id="nome_completo" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="tipo">Tipo*</label>
+                <select class="form-select" name="tipo" id="tipo" required>
+                    <option value="admin">admin</option>
+                    <option value="temporario">temporario</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="expires_at">Expiração</label>
+                <input type="date" class="form-control" name="expires_at" id="expires_at">
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="senha">Senha*</label>
+                <input type="password" class="form-control" name="senha" id="senha" required>
+            </div>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-primary">Salvar</button>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

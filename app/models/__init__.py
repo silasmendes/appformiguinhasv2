@@ -1,1 +1,1 @@
-﻿
+from .usuario import Usuario

@@ -11,6 +11,8 @@ from app.routes.demanda_tipo import bp as demanda_tipo_bp
 from app.routes.demanda_familia import bp as demanda_familia_bp
 from app.routes.demanda_etapa import bp as demanda_etapa_bp
 from app.routes.atendimento import bp as atendimento_bp
+from app.auth import bp as auth_bp
+from app.routes.usuarios import bp as usuarios_bp
 
 def register_routes(app):
     app.register_blueprint(familia_bp)
@@ -26,3 +28,5 @@ def register_routes(app):
     app.register_blueprint(demanda_familia_bp)
     app.register_blueprint(demanda_etapa_bp)
     app.register_blueprint(atendimento_bp)
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(usuarios_bp)

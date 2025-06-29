@@ -1,5 +1,6 @@
 from app import create_app, db
 from app.models.demanda_tipo import DemandaTipo
+from seeds.admin_user_seed import seed_admin_user
 
 app = create_app()
 
@@ -23,4 +24,5 @@ if __name__ == "__main__":
     with app.app_context():
         db.create_all()
         seed_demanda_tipo()
+        seed_admin_user()
 
