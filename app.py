@@ -1,4 +1,5 @@
 from flask import render_template, session, request, redirect, url_for, flash
+from flask_login import login_required
 import json
 from datetime import datetime, timedelta
 from app import create_app
@@ -48,11 +49,13 @@ def _bool_to_sim_nao(valor):
     return "Sim" if valor else "Não"
 
 @app.route("/")
+@login_required
 def home():
     """Renderiza a página inicial."""
     return render_template("index.html")
 
 @app.route("/menu_atendimento")
+@login_required
 def menu_atendimento():
     termo = request.args.get("q", "").strip()
     resultados = None
@@ -81,11 +84,13 @@ def menu_atendimento():
     return render_template("atendimento/etapa0_menu.html", resultados=resultados, auto_open=auto_open)
 
 @app.route("/atendimento_nova_familia")
+@login_required
 def atendimento_nova_familia():
     reset_atendimento_sessao()
     return redirect(url_for("atendimento_etapa1"))
 
 @app.route("/retomar_atendimento")
+@login_required
 def retomar_atendimento():
     cadastro = session.get("cadastro")
     inicio_str = session.get("cadastro_inicio")
@@ -103,6 +108,7 @@ def retomar_atendimento():
 
 
 @app.route("/atendimento_familia/<int:familia_id>")
+@login_required
 def atendimento_familia(familia_id):
     """Carrega dados de uma família existente para iniciar o atendimento."""
     reset_atendimento_sessao()
@@ -315,6 +321,7 @@ def get_cadastro():
 
 
 @app.route("/atendimento/etapa1", methods=["GET", "POST"])
+@login_required
 def atendimento_etapa1():
     """Exibe a primeira etapa do atendimento à família."""
     cadastro = get_cadastro()
@@ -335,6 +342,7 @@ def atendimento_etapa1():
 
 
 @app.route("/atendimento/etapa2", methods=["GET", "POST"])
+@login_required
 def atendimento_etapa2():
     """Exibe a segunda etapa do atendimento à família."""
     cadastro = get_cadastro()
@@ -350,6 +358,7 @@ def atendimento_etapa2():
 
 
 @app.route("/atendimento/etapa3", methods=["GET", "POST"])
+@login_required
 def atendimento_etapa3():
     """Exibe a terceira etapa do atendimento à família."""
     cadastro = get_cadastro()
@@ -365,6 +374,7 @@ def atendimento_etapa3():
 
 
 @app.route("/atendimento/etapa4", methods=["GET", "POST"])
+@login_required
 def atendimento_etapa4():
     """Exibe a quarta etapa do atendimento à família."""
     cadastro = get_cadastro()
@@ -380,6 +390,7 @@ def atendimento_etapa4():
 
 
 @app.route("/atendimento/etapa5", methods=["GET", "POST"])
+@login_required
 def atendimento_etapa5():
     """Exibe a quinta etapa do atendimento à família."""
     cadastro = get_cadastro()
@@ -395,6 +406,7 @@ def atendimento_etapa5():
 
 
 @app.route("/atendimento/etapa6", methods=["GET", "POST"])
+@login_required
 def atendimento_etapa6():
     """Exibe a sexta etapa do atendimento à família."""
     cadastro = get_cadastro()
@@ -410,6 +422,7 @@ def atendimento_etapa6():
 
 
 @app.route("/atendimento/etapa7", methods=["GET", "POST"])
+@login_required
 def atendimento_etapa7():
     """Exibe a sétima etapa do atendimento à família."""
     cadastro = get_cadastro()
@@ -425,6 +438,7 @@ def atendimento_etapa7():
 
 
 @app.route("/atendimento/etapa8", methods=["GET", "POST"])
+@login_required
 def atendimento_etapa8():
     """Exibe a oitava etapa do atendimento à família."""
     cadastro = get_cadastro()
@@ -440,6 +454,7 @@ def atendimento_etapa8():
 
 
 @app.route("/atendimento/etapa9", methods=["GET", "POST"])
+@login_required
 def atendimento_etapa9():
     """Exibe a nona etapa do atendimento à família."""
     cadastro = get_cadastro()
@@ -455,6 +470,7 @@ def atendimento_etapa9():
 
 
 @app.route("/atendimento/etapa10", methods=["GET", "POST"])
+@login_required
 def atendimento_etapa10():
     """Exibe a décima etapa do atendimento à família."""
     cadastro = get_cadastro()
@@ -476,6 +492,7 @@ def atendimento_etapa10():
 
 
 @app.route("/atendimento/etapa11", methods=["GET", "POST"])
+@login_required
 def atendimento_etapa11():
     """Exibe a etapa final do atendimento à família."""
     cadastro = get_cadastro()
