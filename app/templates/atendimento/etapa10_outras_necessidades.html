@@ -3,8 +3,27 @@
 {% block content %}
 {% include 'components/progress_bar_etapas.html' %}
 
+<div id="demandasAtivasSection" class="mb-4 d-none">
+    <h4 class="mb-3">Demandas ativas</h4>
+    <div class="table-responsive">
+        <table id="tabelaDemandasAtivas" class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>Descrição</th>
+                    <th>Categoria</th>
+                    <th>Prioridade</th>
+                    <th>Status atual</th>
+                    <th>Observação</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
 <p class="text-muted mb-4">
-    Registre abaixo outras necessidades identificadas durante o atendimento. 
+    Registre abaixo outras necessidades identificadas durante o atendimento.
 </p>
 
 <form id="formEtapa10" autocomplete="off" method="post">
@@ -24,6 +43,43 @@
         </button>
     </div>
 </form>
+
+<div id="modalAtualizarDemanda" class="modal-overlay d-none">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title"><i class="fa-solid fa-pen"></i> Atualizar demanda</h5>
+            <button type="button" class="btn-close" id="fecharModalDemanda">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="formAtualizarDemanda">
+                <input type="hidden" id="modal_demanda_id">
+                <div class="mb-3">
+                    <label class="form-label">Demanda</label>
+                    <p id="modal_demanda_descricao" class="fw-bold mb-1"></p>
+                </div>
+                <div class="mb-3">
+                    <label for="modal_status" class="form-label">Status atual</label>
+                    <select id="modal_status" class="form-select" required>
+                        <option value="Em análise">Em análise</option>
+                        <option value="Em andamento">Em andamento</option>
+                        <option value="Encaminhada">Encaminhada</option>
+                        <option value="Aguardando resposta">Aguardando resposta</option>
+                        <option value="Suspensa">Suspensa</option>
+                        <option value="Cancelada">Cancelada</option>
+                        <option value="Concluída">Concluída</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="modal_observacao" class="form-label">Observação</label>
+                    <textarea id="modal_observacao" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="text-end">
+                    <button type="button" class="btn btn-primary" id="salvarAtualizacaoDemanda">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_css %}

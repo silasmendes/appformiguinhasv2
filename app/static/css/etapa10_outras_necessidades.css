@@ -45,4 +45,27 @@ select.prioridade:has(option[value="Baixa"]:checked) {
     margin-bottom: 1.5rem;
 }
 
+/* Tabela de demandas ativas */
+#tabelaDemandasAtivas th,
+#tabelaDemandasAtivas td {
+    vertical-align: middle;
+}
+
+#tabelaDemandasAtivas td .btn {
+    padding: 0.25rem 0.5rem;
+}
+
+#tabelaDemandasAtivas .prioridade-alta {
+    color: #b30000;
+    font-weight: 600;
+}
+#tabelaDemandasAtivas .prioridade-media {
+    color: #d47300;
+    font-weight: 600;
+}
+#tabelaDemandasAtivas .prioridade-baixa {
+    color: #1f7a1f;
+    font-weight: 600;
+}
+
 
