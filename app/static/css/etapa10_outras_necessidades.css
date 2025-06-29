@@ -45,27 +45,393 @@ select.prioridade:has(option[value="Baixa"]:checked) {
     margin-bottom: 1.5rem;
 }
 
-/* Tabela de demandas ativas */
-#tabelaDemandasAtivas th,
-#tabelaDemandasAtivas td {
-    vertical-align: middle;
+/* Tabela de demandas ativas - Visual moderno */
+#demandasAtivasSection .card {
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
 }
 
-#tabelaDemandasAtivas td .btn {
-    padding: 0.25rem 0.5rem;
+#demandasAtivasSection .card-header {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    border: none;
+    position: relative;
 }
 
-#tabelaDemandasAtivas .prioridade-alta {
-    color: #b30000;
-    font-weight: 600;
+#demandasAtivasSection .card-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="50" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="30" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    opacity: 0.3;
 }
-#tabelaDemandasAtivas .prioridade-media {
-    color: #d47300;
-    font-weight: 600;
+
+#demandasAtivasSection .icon-wrapper {
+    width: 45px;
+    height: 45px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
 }
-#tabelaDemandasAtivas .prioridade-baixa {
-    color: #1f7a1f;
+
+#tabelaDemandasAtivas {
+    font-size: 0.95rem;
+}
+
+#tabelaDemandasAtivas thead th {
+    background: #f8f9fa;
+    color: #6c757d;
     font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e9ecef;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+#tabelaDemandasAtivas tbody tr {
+    transition: all 0.2s ease;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+#tabelaDemandasAtivas tbody tr:hover {
+    background: linear-gradient(90deg, rgba(23, 162, 184, 0.05) 0%, rgba(255, 255, 255, 0.05) 100%);
+    transform: translateX(3px);
+    box-shadow: 0 2px 8px rgba(23, 162, 184, 0.1);
+}
+
+#tabelaDemandasAtivas tbody td {
+    padding: 16px 12px;
+    vertical-align: top; /* Mudança importante para alinhamento com quebra de linha */
+    border-bottom: 1px solid #f1f3f4;
+}
+
+#tabelaDemandasAtivas tbody td:first-child {
+    font-weight: 500;
+    color: #495057;
+}
+
+/* Badges de prioridade modernos */
+.prioridade-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.prioridade-alta {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+}
+
+.prioridade-media {
+    background: linear-gradient(135deg, #fd7e14 0%, #e55a00 100%);
+    color: white;
+}
+
+.prioridade-baixa {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+    color: white;
+}
+
+/* Badge de status */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-weight: 500;
+    font-size: 0.8rem;
+    background: #6c757d;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.status-badge.em-analise {
+    background: linear-gradient(135deg, #6f42c1 0%, #5a2d91 100%);
+}
+
+.status-badge.em-andamento {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+}
+
+.status-badge.concluida {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+}
+
+.status-badge.cancelada {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}
+
+/* Botão de ação moderno */
+.btn-editar-demanda {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    color: #6c757d;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.btn-editar-demanda:hover {
+    background: #17a2b8;
+    border-color: #17a2b8;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
+}
+
+.btn-editar-demanda:active {
+    transform: translateY(0);
+}
+
+/* Observação com quebra de linha */
+.observacao-cell {
+    max-width: 200px;
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+    line-height: 1.4;
+    color: #6c757d;
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+.observacao-cell:empty::before {
+    content: "—";
+    color: #adb5bd;
+}
+
+/* Descrição com estilo similar à observação */
+.descricao-cell {
+    max-width: 180px;
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+    line-height: 1.4;
+    font-weight: normal;
+    font-style: italic;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+/* Ajuste da tabela para melhor responsividade */
+#tabelaDemandasAtivas {
+    table-layout: fixed;
+    width: 100%;
+}
+
+#tabelaDemandasAtivas th:nth-child(1), /* Descrição */
+#tabelaDemandasAtivas td:nth-child(1) {
+    width: 20%;
+}
+
+#tabelaDemandasAtivas th:nth-child(2), /* Categoria */
+#tabelaDemandasAtivas td:nth-child(2) {
+    width: 20%;
+}
+
+#tabelaDemandasAtivas th:nth-child(3), /* Prioridade */
+#tabelaDemandasAtivas td:nth-child(3) {
+    width: 15%;
+}
+
+#tabelaDemandasAtivas th:nth-child(4), /* Status */
+#tabelaDemandasAtivas td:nth-child(4) {
+    width: 17%;
+}
+
+#tabelaDemandasAtivas th:nth-child(5), /* Observação */
+#tabelaDemandasAtivas td:nth-child(5) {
+    width: 23%;
+}
+
+#tabelaDemandasAtivas th:nth-child(6), /* Ações */
+#tabelaDemandasAtivas td:nth-child(6) {
+    width: 5%;
+}
+
+/* Categoria com ícone */
+.categoria-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #495057;
+    font-weight: 500;
+}
+
+.categoria-cell::before {
+    content: "🏷️";
+    font-size: 0.9rem;
+}
+
+/* Animações e transições suaves */
+#demandasAtivasSection {
+    animation: slideInUp 0.6s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Efeito de loading na tabela */
+#tabelaDemandasAtivas tbody tr {
+    animation: fadeInRow 0.4s ease-out;
+}
+
+@keyframes fadeInRow {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Pulso sutil no header */
+#demandasAtivasSection .card-header::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    width: 8px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.8;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.4;
+        transform: scale(1.2);
+    }
+}
+
+/* Animação para contador */
+@keyframes countUpdate {
+    0% {
+        transform: scale(1.2);
+        background: rgba(255, 255, 255, 0.9);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+        background: rgba(248, 249, 250, 1);
+    }
+}
+
+#contadorDemandas {
+    min-width: 30px;
+    transition: all 0.3s ease;
+}
+
+/* Responsividade melhorada */
+@media (max-width: 768px) {
+    #tabelaDemandasAtivas thead th {
+        font-size: 0.75rem;
+        padding: 12px 8px;
+    }
+    
+    #tabelaDemandasAtivas tbody td {
+        padding: 12px 8px;
+        font-size: 0.9rem;
+    }
+    
+    .prioridade-badge,
+    .status-badge {
+        font-size: 0.7rem;
+        padding: 4px 8px;
+    }
+    
+    /* Ajuste das larguras para mobile */
+    #tabelaDemandasAtivas th:nth-child(1),
+    #tabelaDemandasAtivas td:nth-child(1) {
+        width: 25%;
+    }
+    
+    #tabelaDemandasAtivas th:nth-child(2),
+    #tabelaDemandasAtivas td:nth-child(2) {
+        width: 22%;
+    }
+    
+    #tabelaDemandasAtivas th:nth-child(3),
+    #tabelaDemandasAtivas td:nth-child(3) {
+        width: 15%;
+    }
+    
+    #tabelaDemandasAtivas th:nth-child(4),
+    #tabelaDemandasAtivas td:nth-child(4) {
+        width: 15%;
+    }
+    
+    #tabelaDemandasAtivas th:nth-child(5),
+    #tabelaDemandasAtivas td:nth-child(5) {
+        width: 18%;
+    }
+    
+    #tabelaDemandasAtivas th:nth-child(6),
+    #tabelaDemandasAtivas td:nth-child(6) {
+        width: 5%;
+    }
+    
+    .descricao-cell,
+    .observacao-cell {
+        font-size: 0.85rem;
+        line-height: 1.3;
+    }
+}
+
+@media (max-width: 576px) {
+    /* Em telas muito pequenas, reduz ainda mais as colunas menos importantes */
+    #tabelaDemandasAtivas th:nth-child(5),
+    #tabelaDemandasAtivas td:nth-child(5) {
+        width: 10%;
+    }
+    
+    .observacao-cell {
+        font-size: 0.8rem;
+        max-width: 100px;
+    }
+    
+    /* Oculta alguns ícones em telas muito pequenas */
+    #tabelaDemandasAtivas thead th i {
+        display: none;
+    }
 }
 
 

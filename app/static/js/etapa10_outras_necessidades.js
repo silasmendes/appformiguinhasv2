@@ -87,35 +87,88 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function formatarPrioridade(p) {
-        if (!p) return '';
-        if (p === 'Alta') return 'Alta \uD83D\uDD34';
-        if (p === 'Média') return 'Média \uD83D\uDFE0';
-        if (p === 'Baixa') return 'Baixa \uD83D\uDFE2';
-        return p;
+        if (!p) return '<span class="text-muted">—</span>';
+        const classe = prioridadeClasse(p);
+        let emoji = '';
+        if (p === 'Alta') emoji = '🔴';
+        if (p === 'Média') emoji = '🟠';
+        if (p === 'Baixa') emoji = '🟢';
+        return `<span class="prioridade-badge ${classe}">${emoji} ${p}</span>`;
+    }
+
+    function formatarStatus(status) {
+        if (!status) return '<span class="status-badge">—</span>';
+        
+        let classe = '';
+        if (status.toLowerCase().includes('análise')) classe = 'em-analise';
+        else if (status.toLowerCase().includes('andamento')) classe = 'em-andamento';
+        else if (status.toLowerCase().includes('concluí')) classe = 'concluida';
+        else if (status.toLowerCase().includes('cancelad')) classe = 'cancelada';
+        
+        return `<span class="status-badge ${classe}">${status}</span>`;
+    }
+
+    function formatarCategoria(categoria) {
+        if (!categoria) return '<span class="text-muted">—</span>';
+        return `<span class="categoria-cell">${categoria}</span>`;
+    }
+
+    function formatarObservacao(obs) {
+        if (!obs) return '<span class="observacao-cell"></span>';
+        return `<div class="observacao-cell">${obs}</div>`;
+    }
+
+    function formatarDescricao(desc) {
+        if (!desc) return '<div class="descricao-cell text-muted">Sem descrição</div>';
+        return `<div class="descricao-cell">${desc}</div>`;
     }
 
     function renderizarDemandasAtivas() {
         if (!tabelaBody || !secDemandas) return;
         const demandas = Array.isArray(window.sessionCadastro.demandas) ? window.sessionCadastro.demandas : [];
         tabelaBody.innerHTML = '';
+        
+        // Atualiza contador
+        const contador = document.getElementById('contadorDemandas');
+        if (contador) {
+            contador.textContent = demandas.length;
+            contador.style.animation = 'none';
+            // Força reflow para reiniciar animação
+            contador.offsetHeight;
+            contador.style.animation = 'countUpdate 0.3s ease-out';
+        }
+        
         if (!demandas.length) {
             secDemandas.classList.add('d-none');
             return;
         }
-        secDemandas.classList.remove('d-none');
-        demandas.forEach(d => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${d.descricao || ''}</td>
-                <td>${d.categoria || ''}</td>
-                <td class="${prioridadeClasse(d.prioridade)}">${formatarPrioridade(d.prioridade)}</td>
-                <td>${d.status_atual || ''}</td>
-                <td>${d.observacao || ''}</td>
-                <td class="text-end">
-                    <button type="button" class="btn btn-link text-primary btn-editar-demanda" data-id="${d.demanda_id}"><i class="fa fa-pen"></i></button>
-                </td>`;
-            tabelaBody.appendChild(tr);
-        });
+        
+        // Adiciona row de "carregando" temporário para suavizar transição
+        if (demandas.length > 0) {
+            tabelaBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin me-2"></i>Carregando demandas...</td></tr>';
+            
+            setTimeout(() => {
+                tabelaBody.innerHTML = '';
+                secDemandas.classList.remove('d-none');
+                
+                demandas.forEach((d, index) => {
+                    const tr = document.createElement('tr');
+                    tr.style.animationDelay = `${index * 0.1}s`;
+                    tr.innerHTML = `
+                        <td>${formatarDescricao(d.descricao)}</td>
+                        <td>${formatarCategoria(d.categoria)}</td>
+                        <td>${formatarPrioridade(d.prioridade)}</td>
+                        <td>${formatarStatus(d.status_atual || d.status)}</td>
+                        <td>${formatarObservacao(d.observacao)}</td>
+                        <td class="text-center">
+                            <button type="button" class="btn-editar-demanda" data-id="${d.demanda_id}" title="Editar demanda">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </td>`;
+                    tabelaBody.appendChild(tr);
+                });
+            }, 300);
+        }
     }
 
     function adicionarNecessidade(dados = null) {
