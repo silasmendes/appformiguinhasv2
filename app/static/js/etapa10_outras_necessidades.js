@@ -17,6 +17,16 @@ document.addEventListener('DOMContentLoaded', function () {
     const nenhuma = document.getElementById('nenhumaNecessidade');
     const form = document.getElementById('formEtapa10');
 
+    const secDemandas = document.getElementById('demandasAtivasSection');
+    const tabelaBody = document.querySelector('#tabelaDemandasAtivas tbody');
+    const modal = document.getElementById('modalAtualizarDemanda');
+    const fecharModalBtn = document.getElementById('fecharModalDemanda');
+    const salvarModalBtn = document.getElementById('salvarAtualizacaoDemanda');
+    const modalStatus = document.getElementById('modal_status');
+    const modalObs = document.getElementById('modal_observacao');
+    const modalDesc = document.getElementById('modal_demanda_descricao');
+    const modalId = document.getElementById('modal_demanda_id');
+
     function atualizarNumeracao() {
         const itens = lista.querySelectorAll('.necessidade-item');
         itens.forEach((item, index) => {
@@ -68,6 +78,45 @@ document.addEventListener('DOMContentLoaded', function () {
         'Necessidades jurídicas': 6,
         'Outras': 7
     };
+
+    function prioridadeClasse(p) {
+        if (p === 'Alta') return 'prioridade-alta';
+        if (p === 'Média') return 'prioridade-media';
+        if (p === 'Baixa') return 'prioridade-baixa';
+        return '';
+    }
+
+    function formatarPrioridade(p) {
+        if (!p) return '';
+        if (p === 'Alta') return 'Alta \uD83D\uDD34';
+        if (p === 'Média') return 'Média \uD83D\uDFE0';
+        if (p === 'Baixa') return 'Baixa \uD83D\uDFE2';
+        return p;
+    }
+
+    function renderizarDemandasAtivas() {
+        if (!tabelaBody || !secDemandas) return;
+        const demandas = Array.isArray(window.sessionCadastro.demandas) ? window.sessionCadastro.demandas : [];
+        tabelaBody.innerHTML = '';
+        if (!demandas.length) {
+            secDemandas.classList.add('d-none');
+            return;
+        }
+        secDemandas.classList.remove('d-none');
+        demandas.forEach(d => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${d.descricao || ''}</td>
+                <td>${d.categoria || ''}</td>
+                <td class="${prioridadeClasse(d.prioridade)}">${formatarPrioridade(d.prioridade)}</td>
+                <td>${d.status_atual || ''}</td>
+                <td>${d.observacao || ''}</td>
+                <td class="text-end">
+                    <button type="button" class="btn btn-link text-primary btn-editar-demanda" data-id="${d.demanda_id}"><i class="fa fa-pen"></i></button>
+                </td>`;
+            tabelaBody.appendChild(tr);
+        });
+    }
 
     function adicionarNecessidade(dados = null) {
         const item = document.createElement('div');
@@ -150,9 +199,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     btnAdicionar.addEventListener('click', () => adicionarNecessidade());
 
-    if (Array.isArray(window.sessionCadastro.demandas)) {
-        window.sessionCadastro.demandas.forEach(d => adicionarNecessidade(d));
-    }
+    renderizarDemandasAtivas();
 
     btnProxima.addEventListener('click', async function (e) {
         e.preventDefault();
@@ -228,6 +275,60 @@ document.addEventListener('DOMContentLoaded', function () {
                 btnProxima.disabled = false;
             }
         }
+    });
+
+    tabelaBody?.addEventListener('click', function (e) {
+        const btn = e.target.closest('.btn-editar-demanda');
+        if (!btn) return;
+        const id = btn.getAttribute('data-id');
+        const demanda = (window.sessionCadastro.demandas || []).find(d => String(d.demanda_id) === String(id));
+        if (!demanda) return;
+        modalId.value = demanda.demanda_id;
+        modalStatus.value = demanda.status_atual || 'Em análise';
+        modalObs.value = demanda.observacao || '';
+        modalDesc.textContent = demanda.descricao || '';
+        modal.classList.remove('d-none');
+    });
+
+    function fecharModal() {
+        modal.classList.add('d-none');
+    }
+
+    fecharModalBtn?.addEventListener('click', fecharModal);
+
+    salvarModalBtn?.addEventListener('click', async function () {
+        const demId = modalId.value;
+        const status = modalStatus.value;
+        const observacao = modalObs.value.trim();
+        if (!demId || !status) return;
+        salvarModalBtn.disabled = true;
+        try {
+            const etapaResp = await fetch('/demanda_etapas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ demanda_id: parseInt(demId), status_atual: status, observacao })
+            });
+            if (etapaResp.ok) {
+                await fetch(`/demandas/${demId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+                const demandas = window.sessionCadastro.demandas || [];
+                const alvo = demandas.find(d => String(d.demanda_id) === String(demId));
+                if (alvo) {
+                    alvo.status_atual = status;
+                    alvo.observacao = observacao;
+                }
+                renderizarDemandasAtivas();
+                fecharModal();
+            } else {
+                alert('Erro ao salvar atualização da demanda.');
+            }
+        } catch (err) {
+            alert('Erro ao salvar atualização da demanda.');
+        }
+        salvarModalBtn.disabled = false;
     });
 
     document.getElementById("btnVoltar")?.addEventListener("click", function (e) {
