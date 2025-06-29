@@ -1,14 +1,18 @@
 from datetime import datetime
 from marshmallow import validates_schema, ValidationError, validates, fields
 from marshmallow.validate import OneOf, Length
-from app import ma
+from app import ma, db
 from app.models.usuario import Usuario
 
 class UserSchema(ma.SQLAlchemySchema):
     class Meta:
         model = Usuario
         load_instance = True
-        sqla_session = None
+        # Use the default SQLAlchemy session so that calls to ``load`` or
+        # ``validate`` have a session available. Without this, ``validate``
+        # raises ``ValueError: Validation requires a session`` when the schema
+        # is used in the user creation form.
+        sqla_session = db.session
 
     id = ma.auto_field(dump_only=True)
     login = ma.auto_field(required=True)
