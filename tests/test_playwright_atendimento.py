@@ -1,4 +1,5 @@
 import random
+import os
 from playwright.sync_api import sync_playwright
 
 
@@ -15,13 +16,14 @@ def gerar_cpf_valido():
 
 def test_cadastro_nova_familia():
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        # browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=False, slow_mo=300)
         context = browser.new_context()
         page = context.new_page()
 
         page.goto("http://127.0.0.1:5000/")
         page.fill("input#login", "admin")
-        page.fill("input#senha", "minha strong pass")
+        page.fill("input#senha", os.getenv("SENHA_ADMIN"))
         page.click("button[type='submit']")
         page.wait_for_load_state("networkidle")
 
@@ -142,3 +144,9 @@ def test_cadastro_nova_familia():
         browser.close()
 
         assert True
+
+
+if __name__ == "__main__":
+    print("Iniciando teste de cadastro de nova família...")
+    test_cadastro_nova_familia()
+    print("Teste concluído com sucesso!")
