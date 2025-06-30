@@ -52,7 +52,7 @@
                     </td>
                     <td>
                         {% if u.expires_at %}
-                            <span class="text-muted">{{ u.expires_at.strftime('%d/%m/%Y') }}</span>
+                            <span class="text-muted">{{ u.expires_at.strftime('%d/%m/%Y %H:%M') }}</span>
                         {% else %}
                             <span class="text-muted">—</span>
                         {% endif %}
@@ -137,7 +137,7 @@
                                 <i class="fas fa-calendar-times me-1"></i>
                                 Data de Expiração
                             </label>
-                            <input type="date" class="form-control" name="expires_at" id="expires_at">
+                            <input type="datetime-local" class="form-control" name="expires_at" id="expires_at">
                             <div class="form-text">Deixe vazio para nunca expirar</div>
                         </div>
                         <div class="col-md-6">
