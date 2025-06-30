@@ -16,6 +16,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Tooltip para botões
     initializeTooltips();
+
+    // Desabilitar campo de expiração para administradores
+    toggleExpiresField();
 });
 
 function addStatusIndicators() {
@@ -231,6 +234,24 @@ function addAnimations() {
             this.style.transform = 'translateY(0) scale(1)';
         });
     });
+}
+
+function toggleExpiresField() {
+    const tipoSelect = document.getElementById('tipo');
+    const expiresInput = document.getElementById('expires_at');
+    if (!tipoSelect || !expiresInput) return;
+
+    function updateState() {
+        if (tipoSelect.value === 'admin') {
+            expiresInput.value = '';
+            expiresInput.setAttribute('disabled', 'disabled');
+        } else {
+            expiresInput.removeAttribute('disabled');
+        }
+    }
+
+    tipoSelect.addEventListener('change', updateState);
+    updateState();
 }
 
 function initializeTooltips() {
