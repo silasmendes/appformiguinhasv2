@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
 from marshmallow import ValidationError
 from app.models.condicoes_moradia import CondicaoMoradia
 from app.schemas.condicoes_moradia import CondicaoMoradiaSchema
@@ -11,6 +12,7 @@ condicoes_schema = CondicaoMoradiaSchema(many=True)
 
 
 @bp.route("", methods=["POST"])
+@jwt_required()
 def criar_condicao_moradia():
     data = request.get_json()
     try:
@@ -24,12 +26,14 @@ def criar_condicao_moradia():
 
 
 @bp.route("", methods=["GET"])
+@jwt_required()
 def listar_condicoes_moradia():
     condicoes = CondicaoMoradia.query.all()
     return condicoes_schema.jsonify(condicoes), 200
 
 
 @bp.route("/<int:moradia_id>", methods=["GET"])
+@jwt_required()
 def obter_condicao_moradia(moradia_id):
     condicao = db.session.get(CondicaoMoradia, moradia_id)
     if not condicao:
@@ -38,6 +42,7 @@ def obter_condicao_moradia(moradia_id):
 
 
 @bp.route("/<int:moradia_id>", methods=["PUT"])
+@jwt_required()
 def atualizar_condicao_moradia(moradia_id):
     condicao = db.session.get(CondicaoMoradia, moradia_id)
     if not condicao:
@@ -51,6 +56,7 @@ def atualizar_condicao_moradia(moradia_id):
 
 
 @bp.route("/<int:moradia_id>", methods=["DELETE"])
+@jwt_required()
 def deletar_condicao_moradia(moradia_id):
     condicao = db.session.get(CondicaoMoradia, moradia_id)
     if not condicao:
@@ -62,6 +68,7 @@ def deletar_condicao_moradia(moradia_id):
 
 
 @bp.route("/upsert/familia/<int:familia_id>", methods=["PUT"])
+@jwt_required()
 def upsert_condicao_moradia_por_familia(familia_id):
     """Rota de upsert (criação ou atualização baseada em familia_id)."""
     data = request.get_json() or {}

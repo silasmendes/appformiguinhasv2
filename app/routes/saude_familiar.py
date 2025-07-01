@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
 from marshmallow import ValidationError
 from app.models.saude_familiar import SaudeFamiliar
 from app.schemas.saude_familiar import SaudeFamiliarSchema
@@ -10,6 +11,7 @@ saude_schema = SaudeFamiliarSchema()
 saudes_schema = SaudeFamiliarSchema(many=True)
 
 @bp.route("", methods=["POST"])
+@jwt_required()
 def criar_saude():
     data = request.get_json()
     try:
@@ -22,11 +24,13 @@ def criar_saude():
     return saude_schema.jsonify(nova_saude), 201
 
 @bp.route("", methods=["GET"])
+@jwt_required()
 def listar_saudes():
     saudes = SaudeFamiliar.query.all()
     return saudes_schema.jsonify(saudes), 200
 
 @bp.route("/<int:saude_id>", methods=["GET"])
+@jwt_required()
 def obter_saude(saude_id):
     saude = db.session.get(SaudeFamiliar, saude_id)
     if not saude:
@@ -34,6 +38,7 @@ def obter_saude(saude_id):
     return saude_schema.jsonify(saude)
 
 @bp.route("/<int:saude_id>", methods=["PUT"])
+@jwt_required()
 def atualizar_saude(saude_id):
     saude = db.session.get(SaudeFamiliar, saude_id)
     if not saude:
@@ -46,6 +51,7 @@ def atualizar_saude(saude_id):
     return saude_schema.jsonify(saude)
 
 @bp.route("/<int:saude_id>", methods=["DELETE"])
+@jwt_required()
 def deletar_saude(saude_id):
     saude = db.session.get(SaudeFamiliar, saude_id)
     if not saude:
@@ -57,6 +63,7 @@ def deletar_saude(saude_id):
 
 
 @bp.route("/upsert/familia/<int:familia_id>", methods=["PUT"])
+@jwt_required()
 def upsert_saude_familiar_por_familia(familia_id):
     """Rota de upsert (criação ou atualização baseada em familia_id)."""
     data = request.get_json()

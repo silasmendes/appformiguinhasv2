@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
 from marshmallow import ValidationError
 from app.models.atendimento import Atendimento
 from app.schemas.atendimento import AtendimentoSchema
@@ -10,6 +11,7 @@ atendimento_schema = AtendimentoSchema()
 atendimentos_schema = AtendimentoSchema(many=True)
 
 @bp.route("", methods=["POST"])
+@jwt_required()
 def criar_atendimento():
     data = request.get_json()
     try:
@@ -21,6 +23,7 @@ def criar_atendimento():
     return atendimento_schema.jsonify(novo), 201
 
 @bp.route("", methods=["GET"])
+@jwt_required()
 def listar_atendimentos():
     familia_id = request.args.get("familia_id")
     query = Atendimento.query
@@ -30,6 +33,7 @@ def listar_atendimentos():
     return atendimentos_schema.jsonify(atendimentos), 200
 
 @bp.route("/<int:atendimento_id>", methods=["GET"])
+@jwt_required()
 def obter_atendimento(atendimento_id):
     atendimento = db.session.get(Atendimento, atendimento_id)
     if not atendimento:
@@ -37,6 +41,7 @@ def obter_atendimento(atendimento_id):
     return atendimento_schema.jsonify(atendimento)
 
 @bp.route("/<int:atendimento_id>", methods=["PUT"])
+@jwt_required()
 def atualizar_atendimento(atendimento_id):
     atendimento = db.session.get(Atendimento, atendimento_id)
     if not atendimento:

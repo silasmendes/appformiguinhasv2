@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
 from marshmallow import ValidationError
 from app.models.educacao_entrevistado import EducacaoEntrevistado
 from app.schemas.educacao_entrevistado import EducacaoEntrevistadoSchema
@@ -11,6 +12,7 @@ educacoes_schema = EducacaoEntrevistadoSchema(many=True)
 
 
 @bp.route("", methods=["POST"])
+@jwt_required()
 def criar_educacao():
     data = request.get_json()
     try:
@@ -24,12 +26,14 @@ def criar_educacao():
 
 
 @bp.route("", methods=["GET"])
+@jwt_required()
 def listar_educacoes():
     educacoes = EducacaoEntrevistado.query.all()
     return educacoes_schema.jsonify(educacoes), 200
 
 
 @bp.route("/<int:educacao_id>", methods=["GET"])
+@jwt_required()
 def obter_educacao(educacao_id):
     educacao = db.session.get(EducacaoEntrevistado, educacao_id)
     if not educacao:
@@ -38,6 +42,7 @@ def obter_educacao(educacao_id):
 
 
 @bp.route("/<int:educacao_id>", methods=["PUT"])
+@jwt_required()
 def atualizar_educacao(educacao_id):
     educacao = db.session.get(EducacaoEntrevistado, educacao_id)
     if not educacao:
@@ -51,6 +56,7 @@ def atualizar_educacao(educacao_id):
 
 
 @bp.route("/<int:educacao_id>", methods=["DELETE"])
+@jwt_required()
 def deletar_educacao(educacao_id):
     educacao = db.session.get(EducacaoEntrevistado, educacao_id)
     if not educacao:
@@ -62,6 +68,7 @@ def deletar_educacao(educacao_id):
 
 
 @bp.route("/upsert/familia/<int:familia_id>", methods=["PUT"])
+@jwt_required()
 def upsert_educacao_entrevistado_por_familia(familia_id):
     """Rota de upsert (criação ou atualização baseada em familia_id)."""
     data = request.get_json()

@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
 from marshmallow import ValidationError
 from app.models.emprego_provedor import EmpregoProvedor
 from app.schemas.emprego_provedor import EmpregoProvedorSchema
@@ -10,6 +11,7 @@ emprego_schema = EmpregoProvedorSchema()
 empregos_schema = EmpregoProvedorSchema(many=True)
 
 @bp.route("", methods=["POST"])
+@jwt_required()
 def criar_emprego():
     data = request.get_json()
     try:
@@ -22,11 +24,13 @@ def criar_emprego():
     return emprego_schema.jsonify(novo_emprego), 201
 
 @bp.route("", methods=["GET"])
+@jwt_required()
 def listar_empregos():
     empregos = EmpregoProvedor.query.all()
     return empregos_schema.jsonify(empregos), 200
 
 @bp.route("/<int:emprego_id>", methods=["GET"])
+@jwt_required()
 def obter_emprego(emprego_id):
     emprego = db.session.get(EmpregoProvedor, emprego_id)
     if not emprego:
@@ -34,6 +38,7 @@ def obter_emprego(emprego_id):
     return emprego_schema.jsonify(emprego)
 
 @bp.route("/<int:emprego_id>", methods=["PUT"])
+@jwt_required()
 def atualizar_emprego(emprego_id):
     emprego = db.session.get(EmpregoProvedor, emprego_id)
     if not emprego:
@@ -46,6 +51,7 @@ def atualizar_emprego(emprego_id):
     return emprego_schema.jsonify(emprego)
 
 @bp.route("/<int:emprego_id>", methods=["DELETE"])
+@jwt_required()
 def deletar_emprego(emprego_id):
     emprego = db.session.get(EmpregoProvedor, emprego_id)
     if not emprego:
@@ -57,6 +63,7 @@ def deletar_emprego(emprego_id):
 
 
 @bp.route("/upsert/familia/<int:familia_id>", methods=["PUT"])
+@jwt_required()
 def upsert_emprego_provedor_por_familia(familia_id):
     """Rota de upsert (criação ou atualização baseada em familia_id)."""
     data = request.get_json()

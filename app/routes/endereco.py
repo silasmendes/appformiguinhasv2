@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
 from marshmallow import ValidationError
 from app.models.endereco import Endereco
 from app.schemas.endereco import EnderecoSchema
@@ -10,6 +11,7 @@ endereco_schema = EnderecoSchema()
 enderecos_schema = EnderecoSchema(many=True)
 
 @bp.route("", methods=["POST"])
+@jwt_required()
 def criar_endereco():
     data = request.get_json()
     try:
@@ -22,11 +24,13 @@ def criar_endereco():
     return endereco_schema.jsonify(novo_endereco), 201
 
 @bp.route("", methods=["GET"])
+@jwt_required()
 def listar_enderecos():
     enderecos = Endereco.query.all()
     return enderecos_schema.jsonify(enderecos), 200
 
 @bp.route("/<int:endereco_id>", methods=["GET"])
+@jwt_required()
 def obter_endereco(endereco_id):
     endereco = db.session.get(Endereco, endereco_id)
     if not endereco:
@@ -34,6 +38,7 @@ def obter_endereco(endereco_id):
     return endereco_schema.jsonify(endereco)
 
 @bp.route("/<int:endereco_id>", methods=["PUT"])
+@jwt_required()
 def atualizar_endereco(endereco_id):
     endereco = db.session.get(Endereco, endereco_id)
     if not endereco:
@@ -46,6 +51,7 @@ def atualizar_endereco(endereco_id):
     return endereco_schema.jsonify(endereco)
 
 @bp.route("/<int:endereco_id>", methods=["DELETE"])
+@jwt_required()
 def deletar_endereco(endereco_id):
     endereco = db.session.get(Endereco, endereco_id)
     if not endereco:
@@ -57,6 +63,7 @@ def deletar_endereco(endereco_id):
 
 
 @bp.route("/upsert/familia/<int:familia_id>", methods=["PUT"])
+@jwt_required()
 def upsert_endereco_por_familia(familia_id):
     """Rota de upsert (criação ou atualização baseada em familia_id)."""
     data = request.get_json()
