@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
 from marshmallow import ValidationError
 from app.models.demanda_etapa import DemandaEtapa
 from app.schemas.demanda_etapa import DemandaEtapaSchema
@@ -10,6 +11,7 @@ demanda_etapa_schema = DemandaEtapaSchema()
 demanda_etapas_schema = DemandaEtapaSchema(many=True)
 
 @bp.route("", methods=["POST"])
+@jwt_required()
 def criar_demanda_etapa():
     data = request.get_json()
     try:
@@ -22,11 +24,13 @@ def criar_demanda_etapa():
     return demanda_etapa_schema.jsonify(nova_etapa), 201
 
 @bp.route("", methods=["GET"])
+@jwt_required()
 def listar_demanda_etapas():
     etapas = DemandaEtapa.query.all()
     return demanda_etapas_schema.jsonify(etapas), 200
 
 @bp.route("/<int:etapa_id>", methods=["GET"])
+@jwt_required()
 def obter_demanda_etapa(etapa_id):
     etapa = db.session.get(DemandaEtapa, etapa_id)
     if not etapa:
@@ -34,6 +38,7 @@ def obter_demanda_etapa(etapa_id):
     return demanda_etapa_schema.jsonify(etapa)
 
 @bp.route("/<int:etapa_id>", methods=["PUT"])
+@jwt_required()
 def atualizar_demanda_etapa(etapa_id):
     etapa = db.session.get(DemandaEtapa, etapa_id)
     if not etapa:
@@ -46,6 +51,7 @@ def atualizar_demanda_etapa(etapa_id):
     return demanda_etapa_schema.jsonify(etapa)
 
 @bp.route("/<int:etapa_id>", methods=["DELETE"])
+@jwt_required()
 def deletar_demanda_etapa(etapa_id):
     etapa = db.session.get(DemandaEtapa, etapa_id)
     if not etapa:

@@ -303,7 +303,10 @@ document.addEventListener('DOMContentLoaded', function () {
             try {
                 const resp = await fetch(`/demandas/upsert/lote/familia/${familiaId}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + sessionStorage.getItem('access_token')
+                    },
                     body: JSON.stringify(demandas)
                 });
 
@@ -358,13 +361,19 @@ document.addEventListener('DOMContentLoaded', function () {
         try {
             const etapaResp = await fetch('/demanda_etapas', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + sessionStorage.getItem('access_token')
+                },
                 body: JSON.stringify({ demanda_id: parseInt(demId), status_atual: status, observacao })
             });
             if (etapaResp.ok) {
                 await fetch(`/demandas/${demId}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + sessionStorage.getItem('access_token')
+                    },
                     body: JSON.stringify({ status })
                 });
                 const demandas = window.sessionCadastro.demandas || [];

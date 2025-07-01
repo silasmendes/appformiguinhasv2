@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify, session
+from flask_jwt_extended import jwt_required
 from marshmallow import ValidationError
 from app.models.familia import Familia
 from app.models.atendimento import Atendimento
@@ -12,6 +13,7 @@ familia_schema = FamiliaSchema()
 familias_schema = FamiliaSchema(many=True)
 
 @bp.route("", methods=["POST"])
+@jwt_required()
 def criar_familia():
     data = request.get_json()
     try:
@@ -24,12 +26,14 @@ def criar_familia():
     return familia_schema.jsonify(nova_familia), 201
 
 @bp.route("", methods=["GET"])
+@jwt_required()
 def listar_familias():
     familias = Familia.query.all()
     return familias_schema.jsonify(familias), 200
 
 
 @bp.route("/busca", methods=["GET"])
+@jwt_required()
 def buscar_familias():
     termo = request.args.get("q", "")
     query = Familia.query
@@ -55,6 +59,7 @@ def buscar_familias():
     return jsonify(resultados)
 
 @bp.route("/<int:familia_id>", methods=["GET"])
+@jwt_required()
 def obter_familia(familia_id):
     familia = db.session.get(Familia, familia_id)
     if not familia:
@@ -62,6 +67,7 @@ def obter_familia(familia_id):
     return familia_schema.jsonify(familia)
 
 @bp.route("/<int:familia_id>", methods=["PUT"])
+@jwt_required()
 def atualizar_familia(familia_id):
     familia = db.session.get(Familia, familia_id)
     if not familia:
@@ -75,6 +81,7 @@ def atualizar_familia(familia_id):
 
 
 @bp.route("/upsert/familia/<int:familia_id>", methods=["PUT"])
+@jwt_required()
 def upsert_familia_por_familia(familia_id):
     """Rota de upsert (criação ou atualização baseada em familia_id).
 
@@ -110,6 +117,7 @@ def upsert_familia_por_familia(familia_id):
     return familia_schema.jsonify(familia)
 
 @bp.route("/<int:familia_id>", methods=["DELETE"])
+@jwt_required()
 def deletar_familia(familia_id):
     familia = db.session.get(Familia, familia_id)
     if not familia:

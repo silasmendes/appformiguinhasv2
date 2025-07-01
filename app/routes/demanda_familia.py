@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
 from marshmallow import ValidationError
 from app.models.demanda_familia import DemandaFamilia
 from app.models.demanda_etapa import DemandaEtapa
@@ -11,6 +12,7 @@ demanda_schema = DemandaFamiliaSchema()
 demandas_schema = DemandaFamiliaSchema(many=True)
 
 @bp.route("", methods=["POST"])
+@jwt_required()
 def criar_demanda():
     data = request.get_json()
     try:
@@ -29,11 +31,13 @@ def criar_demanda():
     return demanda_schema.jsonify(nova_demanda), 201
 
 @bp.route("", methods=["GET"])
+@jwt_required()
 def listar_demandas():
     demandas = DemandaFamilia.query.all()
     return demandas_schema.jsonify(demandas), 200
 
 @bp.route("/<int:demanda_id>", methods=["GET"])
+@jwt_required()
 def obter_demanda(demanda_id):
     demanda = db.session.get(DemandaFamilia, demanda_id)
     if not demanda:
@@ -41,6 +45,7 @@ def obter_demanda(demanda_id):
     return demanda_schema.jsonify(demanda)
 
 @bp.route("/<int:demanda_id>", methods=["PUT"])
+@jwt_required()
 def atualizar_demanda(demanda_id):
     demanda = db.session.get(DemandaFamilia, demanda_id)
     if not demanda:
@@ -56,6 +61,7 @@ def atualizar_demanda(demanda_id):
     return demanda_schema.jsonify(demanda)
 
 @bp.route("/<int:demanda_id>", methods=["DELETE"])
+@jwt_required()
 def deletar_demanda(demanda_id):
     demanda = db.session.get(DemandaFamilia, demanda_id)
     if not demanda:
@@ -67,6 +73,7 @@ def deletar_demanda(demanda_id):
 
 
 @bp.route("/upsert/lote/familia/<int:familia_id>", methods=["PUT"])
+@jwt_required()
 def upsert_demandas_familia(familia_id):
     dados = request.get_json()
     if not isinstance(dados, list):

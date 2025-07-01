@@ -24,25 +24,43 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Efeito de loading no botão de submit
+    let isSubmitting = false;
     if (form && submitBtn) {
-        form.addEventListener('submit', function(e) {
-            // Verifica se os campos obrigatórios estão preenchidos
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (isSubmitting) return;
             const loginInput = document.getElementById('login');
             const senhaInput = document.getElementById('senha');
-            
             if (!loginInput.value.trim() || !senhaInput.value.trim()) {
-                return; // Deixa a validação nativa do HTML5 funcionar
+                return;
             }
-            
-            // Adiciona classe de loading
+            isSubmitting = true;
             submitBtn.classList.add('loading');
             submitBtn.disabled = true;
-            
-            // Muda o texto do botão
             const span = submitBtn.querySelector('span');
-            if (span) {
-                span.textContent = 'Entrando...';
+            if (span) span.textContent = 'Entrando...';
+
+            try {
+                const resp = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ login: loginInput.value, senha: senhaInput.value })
+                });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    sessionStorage.setItem('access_token', data.access_token);
+                    window.location.href = '/';
+                } else {
+                    const erro = await resp.json().catch(() => ({ mensagem: 'Erro' }));
+                    alert(erro.mensagem || 'Falha no login');
+                }
+            } catch (err) {
+                alert('Erro ao conectar ao servidor.');
             }
+            submitBtn.classList.remove('loading');
+            submitBtn.disabled = false;
+            if (span) span.textContent = 'Entrar';
+            isSubmitting = false;
         });
     }
     
@@ -107,17 +125,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Previne submit duplo
-    let isSubmitting = false;
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            if (isSubmitting) {
-                e.preventDefault();
-                return false;
-            }
-            isSubmitting = true;
-        });
-    }
     
     // Adiciona efeito de ripple nos botões
     function createRipple(event) {

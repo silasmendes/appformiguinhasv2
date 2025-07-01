@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
 from marshmallow import ValidationError
 from app.models.renda_familiar import RendaFamiliar
 from app.schemas.renda_familiar import RendaFamiliarSchema
@@ -10,6 +11,7 @@ renda_schema = RendaFamiliarSchema()
 rendas_schema = RendaFamiliarSchema(many=True)
 
 @bp.route("", methods=["POST"])
+@jwt_required()
 def criar_renda():
     data = request.get_json()
     try:
@@ -22,11 +24,13 @@ def criar_renda():
     return renda_schema.jsonify(nova_renda), 201
 
 @bp.route("", methods=["GET"])
+@jwt_required()
 def listar_rendas():
     rendas = RendaFamiliar.query.all()
     return rendas_schema.jsonify(rendas), 200
 
 @bp.route("/<int:renda_id>", methods=["GET"])
+@jwt_required()
 def obter_renda(renda_id):
     renda = db.session.get(RendaFamiliar, renda_id)
     if not renda:
@@ -34,6 +38,7 @@ def obter_renda(renda_id):
     return renda_schema.jsonify(renda)
 
 @bp.route("/<int:renda_id>", methods=["PUT"])
+@jwt_required()
 def atualizar_renda(renda_id):
     renda = db.session.get(RendaFamiliar, renda_id)
     if not renda:
@@ -46,6 +51,7 @@ def atualizar_renda(renda_id):
     return renda_schema.jsonify(renda)
 
 @bp.route("/<int:renda_id>", methods=["DELETE"])
+@jwt_required()
 def deletar_renda(renda_id):
     renda = db.session.get(RendaFamiliar, renda_id)
     if not renda:
@@ -57,6 +63,7 @@ def deletar_renda(renda_id):
 
 
 @bp.route("/upsert/familia/<int:familia_id>", methods=["PUT"])
+@jwt_required()
 def upsert_renda_familiar_por_familia(familia_id):
     """Rota de upsert (criação ou atualização baseada em familia_id)."""
     data = request.get_json()

@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
 from marshmallow import ValidationError
 from app.models.composicao_familiar import ComposicaoFamiliar
 from app.schemas.composicao_familiar import ComposicaoFamiliarSchema
@@ -11,6 +12,7 @@ composicoes_schema = ComposicaoFamiliarSchema(many=True)
 
 
 @bp.route("", methods=["POST"])
+@jwt_required()
 def criar_composicao():
     data = request.get_json()
     try:
@@ -24,12 +26,14 @@ def criar_composicao():
 
 
 @bp.route("", methods=["GET"])
+@jwt_required()
 def listar_composicoes():
     composicoes = ComposicaoFamiliar.query.all()
     return composicoes_schema.jsonify(composicoes), 200
 
 
 @bp.route("/<int:composicao_id>", methods=["GET"])
+@jwt_required()
 def obter_composicao(composicao_id):
     composicao = db.session.get(ComposicaoFamiliar, composicao_id)
     if not composicao:
@@ -38,6 +42,7 @@ def obter_composicao(composicao_id):
 
 
 @bp.route("/<int:composicao_id>", methods=["PUT"])
+@jwt_required()
 def atualizar_composicao(composicao_id):
     composicao = db.session.get(ComposicaoFamiliar, composicao_id)
     if not composicao:
@@ -51,6 +56,7 @@ def atualizar_composicao(composicao_id):
 
 
 @bp.route("/<int:composicao_id>", methods=["DELETE"])
+@jwt_required()
 def deletar_composicao(composicao_id):
     composicao = db.session.get(ComposicaoFamiliar, composicao_id)
     if not composicao:
@@ -62,6 +68,7 @@ def deletar_composicao(composicao_id):
 
 
 @bp.route("/upsert/familia/<int:familia_id>", methods=["PUT"])
+@jwt_required()
 def upsert_composicao_familiar_por_familia(familia_id):
     """Rota de upsert (criação ou atualização baseada em familia_id)."""
     data = request.get_json() or {}

@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
 from marshmallow import ValidationError
 from app.models.contato import Contato
 from app.schemas.contato import ContatoSchema
@@ -11,6 +12,7 @@ contatos_schema = ContatoSchema(many=True)
 
 
 @bp.route("", methods=["POST"])
+@jwt_required()
 def criar_contato():
     data = request.get_json()
     try:
@@ -24,12 +26,14 @@ def criar_contato():
 
 
 @bp.route("", methods=["GET"])
+@jwt_required()
 def listar_contatos():
     contatos = Contato.query.all()
     return contatos_schema.jsonify(contatos), 200
 
 
 @bp.route("/<int:contato_id>", methods=["GET"])
+@jwt_required()
 def obter_contato(contato_id):
     contato = db.session.get(Contato, contato_id)
     if not contato:
@@ -38,6 +42,7 @@ def obter_contato(contato_id):
 
 
 @bp.route("/<int:contato_id>", methods=["PUT"])
+@jwt_required()
 def atualizar_contato(contato_id):
     contato = db.session.get(Contato, contato_id)
     if not contato:
@@ -51,6 +56,7 @@ def atualizar_contato(contato_id):
 
 
 @bp.route("/upsert/familia/<int:familia_id>", methods=["PUT"])
+@jwt_required()
 def upsert_contato_por_familia(familia_id):
     """Rota de upsert (criação ou atualização baseada em familia_id)."""
     data = request.get_json()
@@ -66,6 +72,7 @@ def upsert_contato_por_familia(familia_id):
 
 
 @bp.route("/<int:contato_id>", methods=["DELETE"])
+@jwt_required()
 def deletar_contato(contato_id):
     contato = db.session.get(Contato, contato_id)
     if not contato:

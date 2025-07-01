@@ -25,7 +25,7 @@
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('usuarios.listar_usuarios') }}">Gerenciar Usuários</a></li>
                 {% endif %}
                 {% if current_user.is_authenticated %}
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.logout') }}" id="logout-link">Logout</a></li>
                 {% else %}
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Login</a></li>
                 {% endif %}
@@ -54,6 +54,9 @@
     window.sessionCadastro = {{ session.get('cadastro', {}) | tojson | safe }};
     window.sessionFamiliaId = {{ session.get('familia_id') | tojson }};
     console.log('Estado atual da sessão:', window.sessionCadastro);
+    document.getElementById('logout-link')?.addEventListener('click', () => {
+        sessionStorage.removeItem('access_token');
+    });
 </script>
 {% block extra_js %}{% endblock %}
 </body>

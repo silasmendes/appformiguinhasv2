@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, abort
-from flask_login import login_required, current_user
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.security import generate_password_hash
 from datetime import datetime
 from app.models.usuario import Usuario
@@ -16,20 +16,22 @@ def admin_required(func):
     from functools import wraps
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if not current_user.is_authenticated or current_user.tipo != 'admin':
+        user_id = get_jwt_identity()
+        usuario = Usuario.query.get(user_id) if user_id else None
+        if not usuario or usuario.tipo != 'admin':
             abort(403)
         return func(*args, **kwargs)
     return wrapper
 
 @bp.route('', methods=['GET'])
-@login_required
+@jwt_required()
 @admin_required
 def listar_usuarios():
     usuarios = Usuario.query.all()
     return render_template('admin/usuarios.html', usuarios=usuarios)
 
 @bp.route('', methods=['POST'])
-@login_required
+@jwt_required()
 @admin_required
 def criar_usuario():
     data = request.form.to_dict()
@@ -47,7 +49,7 @@ def criar_usuario():
     return redirect(url_for('usuarios.listar_usuarios'))
 
 @bp.route('/<int:id>', methods=['PUT', 'PATCH'])
-@login_required
+@jwt_required()
 @admin_required
 def atualizar_usuario(id):
     usuario = db.session.get(Usuario, id)
@@ -61,7 +63,7 @@ def atualizar_usuario(id):
     return redirect(url_for('usuarios.listar_usuarios'))
 
 @bp.route('/<int:id>/reset-senha', methods=['POST'])
-@login_required
+@jwt_required()
 @admin_required
 def reset_senha(id):
     usuario = db.session.get(Usuario, id)
@@ -76,7 +78,7 @@ def reset_senha(id):
     return redirect(url_for('usuarios.listar_usuarios'))
 
 @bp.route('/<int:id>', methods=['DELETE'])
-@login_required
+@jwt_required()
 @admin_required
 def deletar_usuario(id):
     usuario = db.session.get(Usuario, id)

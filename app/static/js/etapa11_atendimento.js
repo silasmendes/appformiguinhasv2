@@ -64,7 +64,10 @@ document.addEventListener('DOMContentLoaded', function () {
             try {
                 const resp = await fetch('/atendimentos', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + sessionStorage.getItem('access_token')
+                    },
                     body: JSON.stringify(dadosFormulario)
                 });
                 if (resp.ok) {

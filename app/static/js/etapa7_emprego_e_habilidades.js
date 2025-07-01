@@ -67,7 +67,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const resposta = await fetch(`/emprego_provedor/upsert/familia/${familiaId}`, {
                     method: 'PUT',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + sessionStorage.getItem('access_token')
                     },
                     body: JSON.stringify(dadosFormulario)
                 });

@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from dotenv import load_dotenv
 from urllib.parse import quote_plus
 
@@ -25,4 +26,9 @@ class Config:
         "pool_recycle": 280,
         "pool_pre_ping": True
     }
+
+    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "dev")
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(
+        seconds=int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES", "3600"))
+    )
 
