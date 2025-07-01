@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const loginInput = document.getElementById('login');
             const senhaInput = document.getElementById('senha');
             if (!loginInput.value.trim() || !senhaInput.value.trim()) {
+                console.log('Login ou senha em branco, ignorando submit.');
                 return;
             }
             isSubmitting = true;
@@ -41,20 +42,25 @@ document.addEventListener('DOMContentLoaded', function() {
             if (span) span.textContent = 'Entrando...';
 
             try {
+                console.log('Enviando requisição de login...');
                 const resp = await fetch('/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ login: loginInput.value, senha: senhaInput.value })
                 });
+                console.log('Resposta recebida:', resp.status, resp.statusText);
                 if (resp.ok) {
                     const data = await resp.json();
+                    console.log('Token obtido:', data);
                     sessionStorage.setItem('access_token', data.access_token);
                     window.location.href = '/';
                 } else {
                     const erro = await resp.json().catch(() => ({ mensagem: 'Erro' }));
+                    console.error('Falha no login:', erro);
                     alert(erro.mensagem || 'Falha no login');
                 }
             } catch (err) {
+                console.error('Erro ao tentar login:', err);
                 alert('Erro ao conectar ao servidor.');
             }
             submitBtn.classList.remove('loading');
