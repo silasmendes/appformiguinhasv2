@@ -137,8 +137,9 @@
                                 <i class="fas fa-calendar-times me-1"></i>
                                 Data de Expiração
                             </label>
-                            <input type="datetime-local" class="form-control" name="expires_at" id="expires_at">
-                            <div class="form-text">Deixe vazio para nunca expirar</div>
+                            <input type="text" class="form-control" name="expires_at" id="expires_at" 
+                                   placeholder="dd/mm/aaaa hh:mm">
+                            <div class="form-text">Disponível apenas para usuários temporários</div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" for="senha">
@@ -175,4 +176,94 @@
 
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/admin_usuarios.js') }}"></script>
+<script>
+// Script inline para garantir funcionamento do toggle do campo expires_at
+document.addEventListener('DOMContentLoaded', function() {
+    const tipoSelect = document.getElementById('tipo');
+    const expiresInput = document.getElementById('expires_at');
+    
+    if (tipoSelect && expiresInput) {
+        function toggleExpires() {
+            const selectedValue = tipoSelect.value;
+            console.log('Tipo selecionado:', selectedValue);
+            
+            if (selectedValue === 'admin' || selectedValue === '') {
+                expiresInput.disabled = true;
+                expiresInput.value = '';
+                expiresInput.style.backgroundColor = '#e9ecef';
+            } else if (selectedValue === 'temporario') {
+                expiresInput.disabled = false;
+                expiresInput.style.backgroundColor = '';
+            }
+        }
+        
+        // Event listener para mudança no select
+        tipoSelect.addEventListener('change', toggleExpires);
+        
+        // Estado inicial
+        toggleExpires();
+        
+        // Também executar quando o modal for mostrado
+        const modal = document.getElementById('modalNovo');
+        if (modal) {
+            modal.addEventListener('shown.bs.modal', function() {
+                setTimeout(toggleExpires, 100); // Pequeno delay para garantir que elementos estão prontos
+            });
+        }
+    }
+    
+    // Máscara para campo de data/hora no formato brasileiro
+    if (expiresInput) {
+        expiresInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, ''); // Remove tudo que não é dígito
+            
+            if (value.length >= 2) {
+                value = value.replace(/^(\d{2})/, '$1/');
+            }
+            if (value.length >= 5) {
+                value = value.replace(/^(\d{2}\/\d{2})/, '$1/');
+            }
+            if (value.length >= 10) {
+                value = value.replace(/^(\d{2}\/\d{2}\/\d{4})/, '$1 ');
+            }
+            if (value.length >= 13) {
+                value = value.replace(/^(\d{2}\/\d{2}\/\d{4} \d{2})/, '$1:');
+            }
+            
+            // Limitar o tamanho máximo
+            if (value.length > 16) {
+                value = value.substring(0, 16);
+            }
+            
+            e.target.value = value;
+        });
+        
+        // Validação básica do formato
+        expiresInput.addEventListener('blur', function(e) {
+            const value = e.target.value;
+            if (value && !expiresInput.disabled) {
+                const regex = /^(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2})$/;
+                if (!regex.test(value)) {
+                    expiresInput.setCustomValidity('Formato inválido. Use: dd/mm/aaaa hh:mm');
+                } else {
+                    const [, day, month, year, hour, minute] = regex.exec(value);
+                    const date = new Date(year, month - 1, day, hour, minute);
+                    
+                    if (date.getDate() != day || date.getMonth() != month - 1 || 
+                        date.getFullYear() != year || date.getHours() != hour || 
+                        date.getMinutes() != minute) {
+                        expiresInput.setCustomValidity('Data/hora inválida');
+                    } else if (date <= new Date()) {
+                        expiresInput.setCustomValidity('A data de expiração deve ser futura');
+                    } else {
+                        expiresInput.setCustomValidity('');
+                    }
+                }
+            } else {
+                expiresInput.setCustomValidity('');
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

@@ -19,6 +19,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Desabilitar campo de expiração para administradores
     toggleExpiresField();
+    
+    // Event listener para quando o modal for aberto
+    const modalNovo = document.getElementById('modalNovo');
+    if (modalNovo) {
+        modalNovo.addEventListener('shown.bs.modal', function() {
+            toggleExpiresField();
+        });
+        
+        // Resetar formulário quando modal for fechado
+        modalNovo.addEventListener('hidden.bs.modal', function() {
+            const form = modalNovo.querySelector('form');
+            if (form) {
+                form.reset();
+                toggleExpiresField(); // Reaplica o estado inicial
+            }
+        });
+    }
 });
 
 function addStatusIndicators() {
@@ -237,21 +254,8 @@ function addAnimations() {
 }
 
 function toggleExpiresField() {
-    const tipoSelect = document.getElementById('tipo');
-    const expiresInput = document.getElementById('expires_at');
-    if (!tipoSelect || !expiresInput) return;
-
-    function updateState() {
-        if (tipoSelect.value === 'admin') {
-            expiresInput.value = '';
-            expiresInput.setAttribute('disabled', 'disabled');
-        } else {
-            expiresInput.removeAttribute('disabled');
-        }
-    }
-
-    tipoSelect.addEventListener('change', updateState);
-    updateState();
+    // Função simplificada - a lógica principal está no script inline do HTML
+    console.log('toggleExpiresField chamada do arquivo JS');
 }
 
 function initializeTooltips() {
