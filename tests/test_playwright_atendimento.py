@@ -4,6 +4,10 @@ from datetime import datetime, timedelta
 from playwright.sync_api import sync_playwright
 
 
+def texto_aleatorio(prefix="Descricao"):
+    return f"{prefix} {random.randint(1000, 9999)}"
+
+
 def gerar_cpf_valido():
     cpf = [random.randint(0, 9) for _ in range(9)]
     soma = sum((cpf[i] * (10 - i)) for i in range(9))
@@ -32,11 +36,20 @@ def gerar_dados_pessoa():
         "Costa", "Ribeiro", "Martins", "Carvalho", "Almeida", "Lopes", "Soares", "Fernandes", "Vieira", "Barbosa"
     ]
     
-    genero = random.choice(["Masculino", "Feminino"])
+    genero = random.choice(["Masculino", "Feminino", "Outro"])
     if genero == "Masculino":
         nome = random.choice(nomes_masculinos)
-    else:
+        genero_autodeclarado = ""
+    elif genero == "Feminino":
         nome = random.choice(nomes_femininos)
+        genero_autodeclarado = ""
+    else:
+        nome = random.choice(nomes_femininos + nomes_masculinos)
+        genero_autodeclarado = random.choice([
+            "Não binárie",
+            "Transgênero",
+            "Prefere não declarar"
+        ])
     
     sobrenome1 = random.choice(sobrenomes)
     sobrenome2 = random.choice(sobrenomes)
@@ -54,6 +67,7 @@ def gerar_dados_pessoa():
         "nome": nome_completo,
         "data_nascimento": data_nascimento_str,
         "genero": genero,
+        "genero_autodeclarado": genero_autodeclarado,
         "estado_civil": estado_civil
     }
 
@@ -140,7 +154,14 @@ def gerar_contato():
 
 def gerar_condicoes_moradia():
     """Gera dados de condições de moradia aleatórios"""
-    tipo_moradia = random.choice(["Própria", "Alugada", "Cedida", "Financiada"])
+    tipo_moradia = random.choice([
+        "Própria",
+        "Alugada",
+        "Cedida",
+        "Financiada",
+        "Ocupação",
+        "Situação de rua",
+    ])
     valor_aluguel = str(random.randint(300, 1200)) if tipo_moradia == "Alugada" else "0"
     
     return {
@@ -212,6 +233,8 @@ def test_cadastro_nova_familia():
         page.fill("#nome_responsavel", dados_pessoa["nome"])
         page.fill("#data_nascimento", dados_pessoa["data_nascimento"])
         page.select_option("#genero", label=dados_pessoa["genero"])
+        if dados_pessoa["genero"] == "Outro":
+            page.fill("#genero_autodeclarado", dados_pessoa["genero_autodeclarado"])
         page.select_option("#estado_civil", label=dados_pessoa["estado_civil"])
         page.fill("#rg", f"{random.randint(100000000, 999999999)}")
         page.fill("#cpf", gerar_cpf_valido())
@@ -245,6 +268,7 @@ def test_cadastro_nova_familia():
             page.check("#menores_na_escola_sim")
         else:
             page.check("#menores_na_escola_nao")
+            page.fill("#motivo_ausencia_escola", texto_aleatorio("Motivo"))
             
         page.click("#btnProxima")
         page.wait_for_load_state("networkidle")
@@ -261,7 +285,8 @@ def test_cadastro_nova_familia():
 
         # Etapa 5 - condições de moradia
         page.select_option("#tipo_moradia", label=moradia["tipo_moradia"])
-        page.fill("#valor_aluguel", moradia["valor_aluguel"])
+        if moradia["tipo_moradia"] == "Alugada":
+            page.fill("#valor_aluguel", moradia["valor_aluguel"])
         
         # Marcar checkboxes baseado nos dados gerados
         if moradia["agua_encanada"] == "sim":
@@ -302,16 +327,23 @@ def test_cadastro_nova_familia():
         
         if doenca_cronica == "sim":
             page.check("#tem_doenca_cronica_sim")
+            page.fill("#descricao_doenca_cronica", texto_aleatorio("Doenca"))
         else:
             page.check("#tem_doenca_cronica_nao")
             
         if medicacao == "sim":
             page.check("#usa_medicacao_continua_sim")
+            page.fill("#descricao_medicacao", texto_aleatorio("Medicacao"))
         else:
             page.check("#usa_medicacao_continua_nao")
             
         if deficiencia == "sim":
             page.check("#tem_deficiencia_sim")
+            page.fill("#descricao_deficiencia", texto_aleatorio("Deficiencia"))
+            if random.choice(["sim", "nao"]) == "sim":
+                page.check("#recebe_bpc_sim")
+            else:
+                page.check("#recebe_bpc_nao")
         else:
             page.check("#tem_deficiencia_nao")
             
@@ -319,10 +351,21 @@ def test_cadastro_nova_familia():
         page.wait_for_load_state("networkidle")
 
         # Etapa 7 - emprego
-        relacao_provedor = random.choice(["Eu mesma(o)", "Cônjuge/Companheira(o)", "Filho(a)", "Outro familiar"])
+        relacao_provedor = random.choice([
+            "Eu mesma(o)",
+            "Cônjuge/Companheira(o)",
+            "Filho(a)",
+            "Outro familiar",
+            "Provedor não familiar",
+        ])
         situacao_emprego = random.choice([
-            "Empregado formal", "Empregado informal", "Autônomo", 
-            "Desempregado", "Aposentado", "Do lar"
+            "Empregado formal",
+            "Empregado informal",
+            "Autônomo",
+            "Desempregado",
+            "Aposentado",
+            "Do lar",
+            "Outro",
         ])
         
         profissoes = [
@@ -331,7 +374,12 @@ def test_cadastro_nova_familia():
         ]
         
         page.select_option("#relacao_provedor_familia", label=relacao_provedor)
+        if relacao_provedor in ["Outro familiar", "Provedor não familiar"]:
+            page.fill("#descricao_provedor_externo", texto_aleatorio("Provedor"))
+
         page.select_option("#situacao_emprego", label=situacao_emprego)
+        if situacao_emprego == "Outro":
+            page.fill("#descricao_situacao_emprego_outro", texto_aleatorio("Emprego"))
         page.fill("#profissao_provedor", random.choice(profissoes))
         page.fill("#experiencia_profissional", random.choice([
             "Mais de 5 anos", "2 a 5 anos", "1 a 2 anos", "Menos de 1 ano", "Nenhuma"
@@ -372,6 +420,8 @@ def test_cadastro_nova_familia():
             
         if beneficio_governo == "sim":
             page.check("#beneficio_sim")
+            page.fill("#descricao_beneficios", texto_aleatorio("Beneficio"))
+            page.fill("#valor_total_beneficios", str(random.randint(50, 400)))
         else:
             page.check("#beneficio_nao")
             
@@ -390,6 +440,7 @@ def test_cadastro_nova_familia():
         
         if estuda_atualmente == "sim":
             page.check("#estuda_sim")
+            page.fill("#curso_ou_serie_atual", texto_aleatorio("Curso"))
         else:
             page.check("#estuda_nao")
             
@@ -404,6 +455,7 @@ def test_cadastro_nova_familia():
         percepcao = random.choice(["Baixa", "Média", "Alta"])
         page.select_option("#percepcao_necessidade", label=percepcao)
         page.check("#duracao_temporaria")
+        page.fill("#motivo_duracao", texto_aleatorio("Motivo duracao"))
         page.check("#cesta_entregue")
         page.click("#btnFinalizar")
         page.wait_for_load_state("networkidle")
