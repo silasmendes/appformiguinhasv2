@@ -87,8 +87,17 @@
                     <p id="modal_demanda_descricao" class="fw-bold mb-1"></p>
                 </div>
                 <div class="mb-3">
-                    <label for="modal_status" class="form-label">Status atual</label>
-                    <select id="modal_status" class="form-select" required>
+                    <label class="form-label">Status atual</label>
+                    <p id="modal_status_atual" class="form-control-plaintext mb-0"></p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Observação anterior</label>
+                    <p id="modal_observacao_anterior" class="form-control-plaintext mb-0"></p>
+                </div>
+                <div class="mb-3">
+                    <label for="modal_novo_status" class="form-label">Novo status</label>
+                    <select id="modal_novo_status" class="form-select" required>
+                        <option value="" selected disabled>Selecione</option>
                         <option value="Em análise">Em análise</option>
                         <option value="Em andamento">Em andamento</option>
                         <option value="Encaminhada">Encaminhada</option>
@@ -99,10 +108,11 @@
                     </select>
                 </div>
                 <div class="mb-3">
-                    <label for="modal_observacao" class="form-label">Observação</label>
-                    <textarea id="modal_observacao" class="form-control" rows="3"></textarea>
+                    <label for="modal_nova_observacao" class="form-label">Observação</label>
+                    <textarea id="modal_nova_observacao" class="form-control" rows="3"></textarea>
                 </div>
-                <div class="text-end">
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn btn-secondary" id="cancelarAtualizacaoDemanda">Cancelar</button>
                     <button type="button" class="btn btn-primary" id="salvarAtualizacaoDemanda">Salvar</button>
                 </div>
             </form>
