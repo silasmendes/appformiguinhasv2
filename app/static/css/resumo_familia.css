@@ -1,0 +1,139 @@
+/* Estilos para o resumo da família */
+.family-summary {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+/* Evita animação no carregamento inicial */
+.family-summary.no-transition,
+.family-summary.no-transition .family-summary-content,
+.family-summary.no-transition .family-summary-arrow,
+.family-summary.no-transition .family-summary-toggle {
+    transition: none !important;
+}
+
+.family-summary.collapsed {
+    height: 45px;
+    overflow: hidden;
+}
+
+.family-summary-header {
+    background-color: #e9ecef;
+    border-bottom: 1px solid #dee2e6;
+    padding: 6px 12px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    font-size: 14px;
+    color: #495057;
+    transition: background-color 0.2s ease;
+    min-height: 45px;
+}
+
+.family-summary-header:hover {
+    background-color: #dee2e6;
+}
+
+.family-summary-arrow {
+    font-size: 12px;
+    color: #6c757d;
+    transition: transform 0.3s ease;
+}
+
+.family-summary.collapsed .family-summary-arrow {
+    transform: rotate(-90deg);
+}
+
+.family-summary-toggle {
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: #6c757d;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    padding: 4px;
+}
+
+.family-summary-toggle.collapsed {
+    transform: rotate(-90deg);
+}
+
+.family-summary-content {
+    padding: 10px 12px;
+    transition: all 0.3s ease;
+    font-size: 13px;
+}
+
+.family-summary-content.collapsed {
+    opacity: 0;
+    height: 0;
+    padding: 0 12px;
+}
+
+.family-info-item {
+    margin-bottom: 6px;
+    line-height: 1.3;
+}
+
+.family-info-label {
+    font-weight: 600;
+    color: #495057;
+    font-size: 12px;
+    display: inline-block;
+    min-width: 80px;
+}
+
+.family-info-value {
+    color: #6c757d;
+    font-size: 12px;
+    word-break: break-word;
+}
+
+.family-urgent {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+.family-summary-badge {
+    background-color: #007bff;
+    color: white;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 500;
+}
+
+/* Ajustes para texto explicativo */
+.family-summary-header small {
+    font-size: 10px;
+    font-weight: 400;
+}
+
+/* Melhorias no layout responsivo */
+@media (max-width: 768px) {
+    .family-summary-content {
+        padding: 8px 10px;
+    }
+    
+    .family-info-item {
+        margin-bottom: 5px;
+    }
+    
+    .family-info-label {
+        min-width: 70px;
+        font-size: 11px;
+    }
+    
+    .family-info-value {
+        font-size: 11px;
+    }
+    
+    .family-summary-header {
+        padding: 5px 10px;
+        font-size: 13px;
+    }
+}

@@ -87,6 +87,10 @@ def menu_atendimento():
 @login_required
 def atendimento_nova_familia():
     reset_atendimento_sessao()
+    # Marca como novo cadastro
+    cadastro = get_cadastro()
+    cadastro["novo_cadastro"] = 1
+    session["cadastro"] = cadastro
     return redirect(url_for("atendimento_etapa1"))
 
 @app.route("/retomar_atendimento")
@@ -98,6 +102,10 @@ def retomar_atendimento():
         try:
             inicio = datetime.fromisoformat(inicio_str)
             if datetime.utcnow() - inicio < timedelta(hours=1):
+                # Se novo_cadastro não estiver definido, assume que é novo cadastro
+                if "novo_cadastro" not in cadastro:
+                    cadastro["novo_cadastro"] = 1
+                    session["cadastro"] = cadastro
                 return redirect(url_for("atendimento_etapa1"))
         except ValueError:
             pass
@@ -119,6 +127,8 @@ def atendimento_familia(familia_id):
 
     cadastro = get_cadastro()
     session["familia_id"] = familia_id
+    # Marca como atendimento de família existente
+    cadastro["novo_cadastro"] = 0
 
     cadastro.update({
         "nome_responsavel": familia.nome_responsavel,

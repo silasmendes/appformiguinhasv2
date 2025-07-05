@@ -6,6 +6,7 @@
     <title>{% block title %}Formiguinhas{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/resumo_familia.css') }}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     {% block extra_css %}{% endblock %}
 </head>
@@ -33,6 +34,126 @@
         </div>
     </div>
 </nav>
+
+<!-- Resumo da Família (Colapsável) -->
+{% if session.get('familia_id') and request.path.startswith('/atendimento/') and session.get('cadastro', {}).get('novo_cadastro') == 0 %}
+<div id="familySummary" class="family-summary">
+    <div class="family-summary-header">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-chevron-down family-summary-arrow me-2"></i>
+            <span class="me-2">📋</span>
+            <span>Resumo da família em atendimento</span>
+            <span class="family-summary-badge ms-2">ID: {{ session.get('familia_id') }}</span>
+            <small class="text-muted ms-2">(clique para expandir/recolher)</small>
+        </div>
+        <button id="familySummaryToggle" class="family-summary-toggle">
+            <i class="fas fa-chevron-down"></i>
+        </button>
+    </div>
+    <div id="familySummaryContent" class="family-summary-content">
+        <div class="row g-2">
+            <div class="col-md-6">
+                <div class="family-info-item">
+                    <span class="family-info-label">Responsável:</span>
+                    <span class="family-info-value">{{ session.get('cadastro', {}).get('nome_responsavel', 'Não informado') }}</span>
+                </div>
+                <div class="family-info-item">
+                    <span class="family-info-label">CPF:</span>
+                    <span class="family-info-value">{{ session.get('cadastro', {}).get('cpf', 'Não informado') }}</span>
+                </div>
+                <div class="family-info-item">
+                    <span class="family-info-label">Composição:</span>
+                    <span class="family-info-value">
+                        {% set cadastro = session.get('cadastro', {}) %}
+                        {% if cadastro.get('total_residentes') %}
+                            {{ cadastro.get('total_residentes') }} pessoas
+                            (A:{{ cadastro.get('quantidade_adultos', 0) }}, 
+                            I:{{ cadastro.get('quantidade_idosos', 0) }}, 
+                            Ad:{{ cadastro.get('quantidade_adolescentes', 0) }}, 
+                            C:{{ cadastro.get('quantidade_criancas', 0) }}, 
+                            B:{{ cadastro.get('quantidade_bebes', 0) }})
+                        {% else %}
+                            Não informado
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="family-info-item">
+                    <span class="family-info-label">Endereço:</span>
+                    <span class="family-info-value">
+                        {% set cadastro = session.get('cadastro', {}) %}
+                        {% if cadastro.get('logradouro') %}
+                            {{ cadastro.get('logradouro', '') }}
+                            {% if cadastro.get('numero') %}, {{ cadastro.get('numero') }}{% endif %}
+                            {% if cadastro.get('bairro') %} - {{ cadastro.get('bairro') }}{% endif %}
+                            {% if cadastro.get('cidade') %}/{{ cadastro.get('cidade') }}{% endif %}
+                        {% else %}
+                            Não informado
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="family-info-item">
+                    <span class="family-info-label">Renda:</span>
+                    <span class="family-info-value">
+                        {% set cadastro = session.get('cadastro', {}) %}
+                        {% if cadastro.get('renda_familiar_total') %}
+                            R$ {{ cadastro.get('renda_familiar_total') }}
+                        {% else %}
+                            N/I
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="family-info-item">
+                    <span class="family-info-label">Gastos:</span>
+                    <span class="family-info-value">
+                        {% set cadastro = session.get('cadastro', {}) %}
+                        {% if cadastro.get('total_gastos') %}
+                            R$ {{ cadastro.get('total_gastos') }}
+                        {% else %}
+                            N/I
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="family-info-item">
+                    <span class="family-info-label">Saldo:</span>
+                    <span class="family-info-value">
+                        {% set cadastro = session.get('cadastro', {}) %}
+                        {% if cadastro.get('saldo') %}
+                            R$ {{ cadastro.get('saldo') }}
+                        {% else %}
+                            N/I
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="family-info-item">
+                    <span class="family-info-label">Saúde:</span>
+                    <span class="family-info-value">
+                        {% set cadastro = session.get('cadastro', {}) %}
+                        {% if cadastro.get('descricao_medicacao') %}
+                            {{ cadastro.get('descricao_medicacao') }}
+                        {% else %}
+                            Sem medicação
+                        {% endif %}
+                    </span>
+                </div>
+                {% if session.get('cadastro', {}).get('demandas') %}
+                <div class="family-info-item">
+                    <span class="family-info-label family-urgent">Demandas:</span>
+                    <span class="family-info-value family-urgent">
+                        {% for demanda in session.get('cadastro', {}).get('demandas', []) %}
+                            {{ demanda.categoria }}{% if demanda.prioridade == 'Alta' %} (!){% endif %}
+                            {% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <div class="container mt-4">
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -50,6 +171,7 @@
     <p class="mb-0">Formiguinhas Solidárias</p>
 </footer>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/resumo_familia.js') }}"></script>
 <script>
     window.sessionCadastro = {{ session.get('cadastro', {}) | tojson | safe }};
     window.sessionFamiliaId = {{ session.get('familia_id') | tojson }};
