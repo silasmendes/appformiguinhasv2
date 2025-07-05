@@ -22,8 +22,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const modal = document.getElementById('modalAtualizarDemanda');
     const fecharModalBtn = document.getElementById('fecharModalDemanda');
     const salvarModalBtn = document.getElementById('salvarAtualizacaoDemanda');
-    const modalStatus = document.getElementById('modal_status');
-    const modalObs = document.getElementById('modal_observacao');
+    const cancelarModalBtn = document.getElementById('cancelarAtualizacaoDemanda');
+    const novoStatusSelect = document.getElementById('modal_novo_status');
+    const novaObs = document.getElementById('modal_nova_observacao');
+    const statusAtualText = document.getElementById('modal_status_atual');
+    const obsAnteriorText = document.getElementById('modal_observacao_anterior');
     const modalDesc = document.getElementById('modal_demanda_descricao');
     const modalId = document.getElementById('modal_demanda_id');
 
@@ -337,8 +340,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const demanda = (window.sessionCadastro.demandas || []).find(d => String(d.demanda_id) === String(id));
         if (!demanda) return;
         modalId.value = demanda.demanda_id;
-        modalStatus.value = demanda.status_atual || 'Em análise';
-        modalObs.value = demanda.observacao || '';
+        statusAtualText.textContent = demanda.status_atual || demanda.status || '—';
+        obsAnteriorText.textContent = demanda.observacao || '—';
+        novoStatusSelect.value = '';
+        novaObs.value = '';
         modalDesc.textContent = demanda.descricao || '';
         modal.classList.remove('d-none');
     });
@@ -348,11 +353,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     fecharModalBtn?.addEventListener('click', fecharModal);
+    cancelarModalBtn?.addEventListener('click', fecharModal);
 
     salvarModalBtn?.addEventListener('click', async function () {
         const demId = modalId.value;
-        const status = modalStatus.value;
-        const observacao = modalObs.value.trim();
+        const status = novoStatusSelect.value;
+        const observacao = novaObs.value.trim();
         if (!demId || !status) return;
         salvarModalBtn.disabled = true;
         try {
