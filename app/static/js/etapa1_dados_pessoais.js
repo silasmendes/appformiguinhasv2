@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const dataInput = document.getElementById('data_nascimento');
     if (dataInput) {
         dataInput.setAttribute('autocomplete', 'off');
-        Inputmask({ alias: 'datetime', inputFormat: 'dd/mm/aaaa' }).mask(dataInput);
+        Inputmask({ alias: 'datetime', inputFormat: 'dd/mm/yyyy' }).mask(dataInput);
     }
 
     const generoSelect = document.getElementById('genero');

@@ -179,24 +179,23 @@ def gerar_condicoes_moradia():
 
 
 def gerar_renda_gastos():
-    """Gera dados de renda e gastos aleatórios"""
-    renda_arrimo = random.randint(600, 3000)
-    renda_outros = random.randint(0, 1500)
-    auxilio = random.randint(0, 500)
+    """Gera dados de renda e gastos aleatórios realistas para famílias carentes no Brasil"""
+    # Renda baseada no salário mínimo brasileiro (R$ 1.412 em 2024)
+    renda_arrimo = random.randint(800, 2500)  # De pouco mais que meio salário mínimo até quase 2 salários
+    renda_outros = random.randint(0, 800)     # Renda complementar de outros familiares
+    auxilio = random.randint(0, 600)          # Auxílios diversos (Bolsa Família, etc.)
     
-    # Gastos proporcionais à renda
-    renda_total = renda_arrimo + renda_outros + auxilio
-    
+    # Gastos realistas para famílias carentes brasileiras
     return {
-        "gastos_supermercado": str(random.randint(200, min(800, int(renda_total * 0.4)))),
-        "gastos_energia_eletrica": str(random.randint(50, 200)),
-        "gastos_agua": str(random.randint(30, 100)),
-        "valor_botija_gas": str(random.randint(80, 150)),
-        "duracao_botija_gas": str(random.randint(1, 3)),
-        "gastos_transporte": str(random.randint(50, 300)),
-        "gastos_medicamentos": str(random.randint(0, 200)),
-        "gastos_conta_celular": str(random.randint(25, 80)),
-        "gastos_outros": str(random.randint(0, 200)),
+        "gastos_supermercado": str(random.randint(400, 800)),        # R$ 400-800 por mês para alimentação
+        "gastos_energia_eletrica": str(random.randint(80, 250)),     # R$ 80-250 conta de luz
+        "gastos_agua": str(random.randint(40, 120)),                 # R$ 40-120 conta de água
+        "valor_botija_gas": str(random.randint(90, 130)),            # R$ 90-130 botijão de gás
+        "duracao_botija_gas": str(random.randint(20, 45)),           # 20-45 dias duração do gás
+        "gastos_transporte": str(random.randint(100, 350)),          # R$ 100-350 transporte público
+        "gastos_medicamentos": str(random.randint(50, 300)),         # R$ 50-300 medicamentos
+        "gastos_conta_celular": str(random.randint(30, 80)),         # R$ 30-80 conta de celular
+        "gastos_outros": str(random.randint(80, 250)),               # R$ 80-250 outros gastos
         "renda_arrimo": str(renda_arrimo),
         "renda_outros_familiares": str(renda_outros),
         "auxilio_parentes_amigos": str(auxilio)
@@ -231,7 +230,18 @@ def test_cadastro_nova_familia():
 
         # Etapa 1 - dados pessoais
         page.fill("#nome_responsavel", dados_pessoa["nome"])
-        page.fill("#data_nascimento", dados_pessoa["data_nascimento"])
+        
+        # Preencher data de nascimento contornando a máscara dd/mm/aaaa
+        page.click("#data_nascimento")
+        page.keyboard.press("Control+a")  # Selecionar tudo
+        page.keyboard.press("Delete")     # Deletar conteúdo
+        
+        # Digitar apenas os números da data (sem as barras)
+        data_apenas_numeros = dados_pessoa["data_nascimento"].replace("/", "")
+        for char in data_apenas_numeros:
+            page.keyboard.press(char)
+            page.wait_for_timeout(50)  # Pequena pausa entre cada dígito
+        
         page.select_option("#genero", label=dados_pessoa["genero"])
         if dados_pessoa["genero"] == "Outro":
             page.fill("#genero_autodeclarado", dados_pessoa["genero_autodeclarado"])
