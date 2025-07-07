@@ -59,112 +59,22 @@
         {% if resumo_ai %}
         <div class="family-summary-ai">
             <div class="family-info-item">
-                <span class="family-info-label">📊 Resumo da Situação:</span>
+                {% set last_atendimento_date = get_last_atendimento_date() %}
+                <span class="family-info-label">
+                    📊 Resumo da Situação
+                    {% if last_atendimento_date %}
+                        com base no último atendimento em {{ last_atendimento_date | format_date }}
+                    {% endif %}:
+                </span>
                 <span class="family-info-value">{{ resumo_ai | simple_markdown | safe }}</span>
             </div>
+            <div class="ai-note">
+                <small class="text-muted">
+                    <i class="fas fa-robot me-1"></i>Resumo gerado por IA
+                </small>
+            </div>
         </div>
-        <hr class="my-2">
         {% endif %}
-        
-        <div class="row g-2">
-            <div class="col-md-6">
-                <div class="family-info-item">
-                    <span class="family-info-label">Responsável:</span>
-                    <span class="family-info-value">{{ session.get('cadastro', {}).get('nome_responsavel', 'Não informado') }}</span>
-                </div>
-                <div class="family-info-item">
-                    <span class="family-info-label">CPF:</span>
-                    <span class="family-info-value">{{ session.get('cadastro', {}).get('cpf', 'Não informado') }}</span>
-                </div>
-                <div class="family-info-item">
-                    <span class="family-info-label">Composição:</span>
-                    <span class="family-info-value">
-                        {% set cadastro = session.get('cadastro', {}) %}
-                        {% if cadastro.get('total_residentes') %}
-                            {{ cadastro.get('total_residentes') }} pessoas
-                            (A:{{ cadastro.get('quantidade_adultos', 0) }}, 
-                            I:{{ cadastro.get('quantidade_idosos', 0) }}, 
-                            Ad:{{ cadastro.get('quantidade_adolescentes', 0) }}, 
-                            C:{{ cadastro.get('quantidade_criancas', 0) }}, 
-                            B:{{ cadastro.get('quantidade_bebes', 0) }})
-                        {% else %}
-                            Não informado
-                        {% endif %}
-                    </span>
-                </div>
-                <div class="family-info-item">
-                    <span class="family-info-label">Endereço:</span>
-                    <span class="family-info-value">
-                        {% set cadastro = session.get('cadastro', {}) %}
-                        {% if cadastro.get('logradouro') %}
-                            {{ cadastro.get('logradouro', '') }}
-                            {% if cadastro.get('numero') %}, {{ cadastro.get('numero') }}{% endif %}
-                            {% if cadastro.get('bairro') %} - {{ cadastro.get('bairro') }}{% endif %}
-                            {% if cadastro.get('cidade') %}/{{ cadastro.get('cidade') }}{% endif %}
-                        {% else %}
-                            Não informado
-                        {% endif %}
-                    </span>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="family-info-item">
-                    <span class="family-info-label">Renda:</span>
-                    <span class="family-info-value">
-                        {% set cadastro = session.get('cadastro', {}) %}
-                        {% if cadastro.get('renda_familiar_total') %}
-                            R$ {{ cadastro.get('renda_familiar_total') }}
-                        {% else %}
-                            N/I
-                        {% endif %}
-                    </span>
-                </div>
-                <div class="family-info-item">
-                    <span class="family-info-label">Gastos:</span>
-                    <span class="family-info-value">
-                        {% set cadastro = session.get('cadastro', {}) %}
-                        {% if cadastro.get('total_gastos') %}
-                            R$ {{ cadastro.get('total_gastos') }}
-                        {% else %}
-                            N/I
-                        {% endif %}
-                    </span>
-                </div>
-                <div class="family-info-item">
-                    <span class="family-info-label">Saldo:</span>
-                    <span class="family-info-value">
-                        {% set cadastro = session.get('cadastro', {}) %}
-                        {% if cadastro.get('saldo') %}
-                            R$ {{ cadastro.get('saldo') }}
-                        {% else %}
-                            N/I
-                        {% endif %}
-                    </span>
-                </div>
-                <div class="family-info-item">
-                    <span class="family-info-label">Saúde:</span>
-                    <span class="family-info-value">
-                        {% set cadastro = session.get('cadastro', {}) %}
-                        {% if cadastro.get('descricao_medicacao') %}
-                            {{ cadastro.get('descricao_medicacao') }}
-                        {% else %}
-                            Sem medicação
-                        {% endif %}
-                    </span>
-                </div>
-                {% if session.get('cadastro', {}).get('demandas') %}
-                <div class="family-info-item">
-                    <span class="family-info-label family-urgent">Demandas:</span>
-                    <span class="family-info-value family-urgent">
-                        {% for demanda in session.get('cadastro', {}).get('demandas', []) %}
-                            {{ demanda.categoria }}{% if demanda.prioridade == 'Alta' %} (!){% endif %}
-                            {% if not loop.last %}, {% endif %}
-                        {% endfor %}
-                    </span>
-                </div>
-                {% endif %}
-            </div>
-        </div>
     </div>
 </div>
 {% endif %}
