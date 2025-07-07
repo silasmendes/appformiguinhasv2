@@ -145,8 +145,8 @@
                                 Data de Expiração
                             </label>
                             <input type="text" class="form-control" name="expires_at" id="expires_at" 
-                                   placeholder="dd/mm/aaaa hh:mm">
-                            <div class="form-text">Disponível apenas para usuários temporários</div>
+                                   placeholder="Ex: 31/12/2025 23:59">
+                            <div class="form-text">Disponível apenas para usuários temporários. Formato: dd/mm/aaaa hh:mm</div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" for="senha">
@@ -277,6 +277,7 @@ document.addEventListener('DOMContentLoaded', function() {
         expiresInput.addEventListener('input', function(e) {
             let value = e.target.value.replace(/\D/g, ''); // Remove tudo que não é dígito
             
+            // Aplicar máscara: dd/mm/aaaa hh:mm
             if (value.length >= 2) {
                 value = value.replace(/^(\d{2})/, '$1/');
             }
@@ -290,12 +291,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 value = value.replace(/^(\d{2}\/\d{2}\/\d{4} \d{2})/, '$1:');
             }
             
-            // Limitar o tamanho máximo
+            // Limitar o tamanho máximo: dd/mm/aaaa hh:mm (16 caracteres)
             if (value.length > 16) {
                 value = value.substring(0, 16);
             }
             
             e.target.value = value;
+        });
+        
+        // Permitir navegação e deleção com teclado
+        expiresInput.addEventListener('keydown', function(e) {
+            // Permitir: backspace, delete, tab, escape, enter, home, end, left, right
+            if ([8, 9, 27, 13, 36, 35, 37, 39, 46].indexOf(e.keyCode) !== -1 ||
+                // Permitir: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                (e.keyCode === 65 && e.ctrlKey === true) ||
+                (e.keyCode === 67 && e.ctrlKey === true) ||
+                (e.keyCode === 86 && e.ctrlKey === true) ||
+                (e.keyCode === 88 && e.ctrlKey === true)) {
+                return;
+            }
+            // Certificar que é um número
+            if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+                e.preventDefault();
+            }
         });
         
         // Validação básica do formato
@@ -309,9 +327,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     const [, day, month, year, hour, minute] = regex.exec(value);
                     const date = new Date(year, month - 1, day, hour, minute);
                     
-                    if (date.getDate() != day || date.getMonth() != month - 1 || 
-                        date.getFullYear() != year || date.getHours() != hour || 
-                        date.getMinutes() != minute) {
+                    // Validação mais robusta de data
+                    if (date.getDate() != parseInt(day, 10) || 
+                        date.getMonth() != parseInt(month, 10) - 1 || 
+                        date.getFullYear() != parseInt(year, 10) || 
+                        date.getHours() != parseInt(hour, 10) || 
+                        date.getMinutes() != parseInt(minute, 10) ||
+                        parseInt(day, 10) < 1 || parseInt(day, 10) > 31 ||
+                        parseInt(month, 10) < 1 || parseInt(month, 10) > 12 ||
+                        parseInt(hour, 10) < 0 || parseInt(hour, 10) > 23 ||
+                        parseInt(minute, 10) < 0 || parseInt(minute, 10) > 59) {
                         expiresInput.setCustomValidity('Data/hora inválida');
                     } else if (date <= new Date()) {
                         expiresInput.setCustomValidity('A data de expiração deve ser futura');

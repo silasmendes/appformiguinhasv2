@@ -75,14 +75,21 @@ def reset_senha(id):
     flash('Senha redefinida', 'success')
     return redirect(url_for('usuarios.listar_usuarios'))
 
-@bp.route('/<int:id>', methods=['DELETE'])
+@bp.route('/<int:id>', methods=['DELETE', 'POST'])
 @login_required
 @admin_required
 def deletar_usuario(id):
+    # Verificar se é uma requisição de delete válida
+    # Aceita DELETE direto ou POST com _method=DELETE (method override)
+    if request.method == 'POST' and request.form.get('_method') != 'DELETE':
+        abort(405)  # Method not allowed se for POST sem _method=DELETE
+    
     usuario = db.session.get(Usuario, id)
     if not usuario:
         abort(404)
+    
+    nome_usuario = usuario.nome_completo  # Guardar nome para mensagem
     db.session.delete(usuario)
     db.session.commit()
-    flash('Usuário removido', 'success')
+    flash(f'Usuário "{nome_usuario}" removido com sucesso', 'success')
     return redirect(url_for('usuarios.listar_usuarios'))
