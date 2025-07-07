@@ -85,16 +85,16 @@ class OpenAIUsageTracker:
         thirty_days_ago = datetime.utcnow() - timedelta(days=30)
         
         return db.session.query(
-            db.func.date(OpenAIUsage.timestamp).label('date'),
+            db.func.cast(OpenAIUsage.timestamp, db.Date).label('date'),
             db.func.sum(OpenAIUsage.total_tokens).label('total_tokens'),
             db.func.sum(OpenAIUsage.cost_estimate).label('total_cost'),
             db.func.count(OpenAIUsage.id).label('total_requests')
         ).filter(
             OpenAIUsage.timestamp >= thirty_days_ago
         ).group_by(
-            db.func.date(OpenAIUsage.timestamp)
+            db.func.cast(OpenAIUsage.timestamp, db.Date)
         ).order_by(
-            db.func.date(OpenAIUsage.timestamp).desc()
+            db.func.cast(OpenAIUsage.timestamp, db.Date).desc()
         ).all()
     
     @staticmethod
