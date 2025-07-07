@@ -6,3 +6,31 @@
         padding-top: 0;
     }
 }
+
+/* Estilos para as tags de contato */
+.contato-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.contato-tag {
+    background-color: #e9ecef;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.contato-tag:hover {
+    background-color: #dee2e6;
+    border-color: #ced4da;
+}
+
+.contato-tag:active {
+    background-color: #ced4da;
+    border-color: #adb5bd;
+}

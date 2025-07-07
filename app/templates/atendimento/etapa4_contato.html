@@ -12,12 +12,23 @@
         <div class="col-auto mt-md-4 whatsapp-check">
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="telefone_principal_whatsapp" name="telefone_principal_whatsapp" autocomplete="off" {% if session['cadastro'].get('telefone_principal_whatsapp') %}checked{% endif %}>
-                <label class="form-check-label" for="telefone_principal_whatsapp">Este número tem WhatsApp?</label>
+                <label class="form-check-label" for="telefone_principal_whatsapp">Tem WhatsApp</label>
             </div>
         </div>
     </div>
     <div class="mb-3">
         <label for="telefone_principal_nome_contato" class="form-label">De quem é este telefone?</label>
+        <div class="contato-tags mb-2">
+            <span class="contato-tag" data-contato="Próprio" title="O telefone é da própria pessoa responsável pela família">Próprio</span>
+            <span class="contato-tag" data-contato="Cônjuge" title="Telefone do marido, esposa ou companheiro(a)">Cônjuge</span>
+            <span class="contato-tag" data-contato="Filho(a)" title="Telefone de filho(a) da responsável">Filho(a)</span>
+            <span class="contato-tag" data-contato="Parente" title="Outro parente (mãe, pai, irmão, irmã, etc.)">Parente</span>
+            <span class="contato-tag" data-contato="Vizinho" title="Telefone de um vizinho de confiança">Vizinho</span>
+            <span class="contato-tag" data-contato="Empregador" title="Telefone de patrão(a) ou local de trabalho">Empregador</span>
+            <span class="contato-tag" data-contato="Voluntário/ONG" title="Número de alguém da rede de apoio">Voluntário/ONG</span>
+            <span class="contato-tag" data-contato="Emprestado" title="Telefone usado temporariamente no momento do cadastro">Emprestado</span>
+            <span class="contato-tag" data-contato="Orelhão" title="Telefone público informado como referência">Orelhão</span>
+        </div>
         <input type="text" class="form-control" id="telefone_principal_nome_contato" name="telefone_principal_nome_contato" autocomplete="off" value="{{ session['cadastro'].get('telefone_principal_nome_contato', '') }}">
     </div>
     <div class="row align-items-end mb-3">
@@ -28,12 +39,23 @@
         <div class="col-auto mt-md-4 whatsapp-check">
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="telefone_alternativo_whatsapp" name="telefone_alternativo_whatsapp" autocomplete="off" {% if session['cadastro'].get('telefone_alternativo_whatsapp') %}checked{% endif %}>
-                <label class="form-check-label" for="telefone_alternativo_whatsapp">Este número tem WhatsApp?</label>
+                <label class="form-check-label" for="telefone_alternativo_whatsapp">Tem WhatsApp</label>
             </div>
         </div>
     </div>
     <div class="mb-3">
         <label for="telefone_alternativo_nome_contato" class="form-label">De quem é este telefone alternativo?</label>
+        <div class="contato-tags mb-2">
+            <span class="contato-tag" data-contato="Próprio" title="O telefone é da própria pessoa responsável pela família">Próprio</span>
+            <span class="contato-tag" data-contato="Cônjuge" title="Telefone do marido, esposa ou companheiro(a)">Cônjuge</span>
+            <span class="contato-tag" data-contato="Filho(a)" title="Telefone de filho(a) da responsável">Filho(a)</span>
+            <span class="contato-tag" data-contato="Parente" title="Outro parente (mãe, pai, irmão, irmã, etc.)">Parente</span>
+            <span class="contato-tag" data-contato="Vizinho" title="Telefone de um vizinho de confiança">Vizinho</span>
+            <span class="contato-tag" data-contato="Empregador" title="Telefone de patrão(a) ou local de trabalho">Empregador</span>
+            <span class="contato-tag" data-contato="Voluntário/ONG" title="Número de alguém da rede de apoio">Voluntário/ONG</span>
+            <span class="contato-tag" data-contato="Emprestado" title="Telefone usado temporariamente no momento do cadastro">Emprestado</span>
+            <span class="contato-tag" data-contato="Orelhão" title="Telefone público informado como referência">Orelhão</span>
+        </div>
         <input type="text" class="form-control" id="telefone_alternativo_nome_contato" name="telefone_alternativo_nome_contato" autocomplete="off" value="{{ session['cadastro'].get('telefone_alternativo_nome_contato', '') }}">
     </div>
     <div class="mb-3">

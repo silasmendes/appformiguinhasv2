@@ -21,6 +21,11 @@ class Config:
     SESSION_TYPE = "filesystem"
     SESSION_FILE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "flask_session")
 
+    # Configurações de localização
+    LANGUAGES = ['pt-BR', 'pt']
+    BABEL_DEFAULT_LOCALE = 'pt_BR'
+    BABEL_DEFAULT_TIMEZONE = 'America/Sao_Paulo'
+
     SQLALCHEMY_ENGINE_OPTIONS = {
         "pool_recycle": 280,
         "pool_pre_ping": True

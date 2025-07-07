@@ -17,7 +17,7 @@
     </div>
     <div class="mb-3 d-none" id="valor_aluguel_container">
         <label for="valor_aluguel" class="form-label">Valor do aluguel mensal</label>
-        <input type="number" class="form-control" id="valor_aluguel" name="valor_aluguel" autocomplete="off" value="{{ session['cadastro'].get('valor_aluguel', '') }}">
+        <input type="text" class="form-control renda-decimal" id="valor_aluguel" name="valor_aluguel" autocomplete="off" value="{{ session['cadastro'].get('valor_aluguel', '') }}">
     </div>
     <div class="mb-3">
         <label class="form-label">Possui água encanada?</label>

@@ -299,7 +299,6 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Timeline de etapas */
 .timeline-container {
-    overflow-x: auto;
     padding-bottom: 1rem;
 }
 
@@ -308,7 +307,43 @@ h1, h2, h3, h4, h5, h6 {
     position: relative;
     margin: 0;
     padding: 0;
-    width: max-content;
+    justify-content: center;
+    flex-wrap: nowrap;
+}
+
+.timeline-full {
+    overflow-x: auto;
+    width: 100%;
+    min-width: max-content;
+    padding: 0 1rem;
+    justify-content: space-between;
+}
+
+.timeline-compact {
+    width: 100%;
+    justify-content: space-around;
+    max-width: 100%;
+}
+
+/* Para telas XL, permitir que as etapas se expandam */
+@media (min-width: 1200px) {
+    .timeline-full {
+        justify-content: center;
+        overflow-x: visible;
+    }
+}
+
+/* Para telas menores que XL, otimizar o espaçamento */
+@media (max-width: 1199px) {
+    .timeline-full .timeline-item {
+        min-width: 70px;
+        padding: 0 0.5rem;
+    }
+    
+    .timeline-full .timeline-label {
+        font-size: 0.75rem;
+        max-width: 70px;
+    }
 }
 
 .timeline-item {
@@ -317,20 +352,39 @@ h1, h2, h3, h4, h5, h6 {
     flex-direction: column;
     align-items: center;
     flex: 0 0 auto;
-    padding: 0 1rem;
-    min-width: 80px;
+    padding: 0 0.5rem;
+    min-width: 60px;
     text-align: center;
+}
+
+.timeline-full .timeline-item {
+    min-width: 80px;
+    padding: 0 1rem;
+}
+
+.timeline-compact .timeline-item {
+    min-width: 50px;
+    padding: 0 0.25rem;
 }
 
 .timeline-item:not(:last-child)::after {
     content: "";
     position: absolute;
     top: 18px;
-    left: calc(50% + 18px);
-    width: calc(100% - 36px);
+    left: 50%;
+    width: calc(100% + 0.5rem);
     height: 2px;
     background: #dee2e6;
     z-index: 1;
+    transform: translateX(-50%);
+}
+
+.timeline-full .timeline-item:not(:last-child)::after {
+    width: calc(100% + 1rem);
+}
+
+.timeline-compact .timeline-item:not(:last-child)::after {
+    width: calc(100% + 0.25rem);
 }
 
 .timeline-item.complete:not(:last-child)::after {
@@ -339,6 +393,24 @@ h1, h2, h3, h4, h5, h6 {
 
 .timeline-item.active:not(:last-child)::after {
     background: var(--primary-color);
+}
+
+.timeline-item.ellipsis::after {
+    display: none;
+}
+
+.timeline-item.ellipsis::before {
+    display: none;
+}
+
+.timeline-item.ellipsis .circle {
+    background: transparent;
+    color: #6c757d;
+    font-weight: bold;
+    border: none;
+    font-size: 1.4rem;
+    width: 32px;
+    height: 32px;
 }
 
 .circle {
@@ -352,6 +424,14 @@ h1, h2, h3, h4, h5, h6 {
     justify-content: center;
     font-weight: 500;
     z-index: 2;
+    position: relative;
+    font-size: 0.9rem;
+}
+
+.timeline-compact .circle {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
 }
 
 .timeline-item.complete .circle {
@@ -367,6 +447,38 @@ h1, h2, h3, h4, h5, h6 {
 .timeline-label {
     margin-top: 0.5rem;
     font-size: 0.8rem;
+    line-height: 1.2;
+    max-width: 80px;
+    word-wrap: break-word;
+    hyphens: auto;
+}
+
+.timeline-compact .timeline-label {
+    font-size: 0.7rem;
+    max-width: 60px;
+}
+
+/* Responsividade adicional para telas muito pequenas */
+@media (max-width: 576px) {
+    .timeline-compact .timeline-item {
+        min-width: 45px;
+        padding: 0 0.1rem;
+    }
+    
+    .timeline-compact .circle {
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
+    }
+    
+    .timeline-compact .timeline-label {
+        font-size: 0.65rem;
+        max-width: 50px;
+    }
+    
+    .timeline-compact .timeline-item:not(:last-child)::after {
+        top: 14px;
+    }
 }
 
 /* Menu de Atendimento - Botões */

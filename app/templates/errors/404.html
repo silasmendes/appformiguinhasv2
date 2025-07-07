@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Página não encontrada - Formiguinhas{% endblock %}
+
+{% block content %}
+<div class="container text-center">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="error-page">
+                <div class="error-number">
+                    <h1 class="display-1 fw-bold text-primary">404</h1>
+                </div>
+                
+                <div class="error-message">
+                    <h2 class="mb-3">Página não encontrada</h2>
+                    <p class="lead text-muted mb-4">
+                        Ops! A página que você está procurando não existe ou foi movida.
+                    </p>
+                </div>
+                
+                <div class="error-actions">
+                    <a href="{{ url_for('home') }}" class="btn btn-primary btn-lg me-3">
+                        <i class="fas fa-home me-2"></i>
+                        Voltar ao Início
+                    </a>
+                    <a href="javascript:history.back()" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        Página Anterior
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-page {
+    padding: 3rem 0;
+}
+
+.error-number h1 {
+    font-size: 8rem;
+    color: #007bff !important;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+.error-message h2 {
+    color: #333;
+    font-weight: 600;
+}
+
+.error-actions {
+    margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+    .error-number h1 {
+        font-size: 5rem;
+    }
+    
+    .error-actions .btn {
+        display: block;
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+    
+    .error-actions .btn:last-child {
+        margin-bottom: 0;
+    }
+}
+</style>
+{% endblock %}

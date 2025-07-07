@@ -25,9 +25,9 @@ function aplicarMascaraCPF(valor) {
 }
 
 function converterDataParaISO(dataBR) {
-    if (!dataBR || dataBR.length !== 10) return null;
+    if (!dataBR || dataBR.trim() === '' || dataBR.length !== 10) return null;
     const [dia, mes, ano] = dataBR.split('/');
-    if (!dia || !mes || !ano) return null;
+    if (!dia || !mes || !ano || dia.length !== 2 || mes.length !== 2 || ano.length !== 4) return null;
     return `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
 }
 
@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const dataInput = document.getElementById('data_nascimento');
     if (dataInput) {
         dataInput.setAttribute('autocomplete', 'off');
-        Inputmask({ alias: 'datetime', inputFormat: 'dd/mm/yyyy' }).mask(dataInput);
+        Inputmask({ alias: 'datetime', inputFormat: 'dd/mm/aaaa' }).mask(dataInput);
     }
 
     const generoSelect = document.getElementById('genero');
@@ -116,11 +116,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Converter data de nascimento do formato brasileiro para ISO
-        if (dadosFormulario.data_nascimento) {
+        if (dadosFormulario.data_nascimento && dadosFormulario.data_nascimento.trim() !== '') {
             const dataISO = converterDataParaISO(dadosFormulario.data_nascimento);
             if (dataISO) {
                 dadosFormulario.data_nascimento = dataISO;
+            } else {
+                // Se não conseguir converter, remove o campo para não causar erro
+                delete dadosFormulario.data_nascimento;
             }
+        } else {
+            // Remove o campo se estiver vazio
+            delete dadosFormulario.data_nascimento;
         }
         
         // Converter valor para booleano esperado pela API

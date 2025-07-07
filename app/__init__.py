@@ -21,6 +21,7 @@ def create_app():
 
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
+    login_manager.login_message = 'Por favor, faça login para acessar esta página.'
     login_manager.login_message_category = 'danger'
 
     from app.models.usuario import Usuario
@@ -35,6 +36,22 @@ def create_app():
     # Registra template helpers
     from app.utils.template_helpers import register_template_helpers
     register_template_helpers(app)
+
+    # Registrar handlers de erro personalizados
+    @app.errorhandler(404)
+    def page_not_found(error):
+        from flask import render_template
+        return render_template('errors/404.html'), 404
+
+    @app.errorhandler(500)
+    def internal_server_error(error):
+        from flask import render_template
+        return render_template('errors/500.html'), 500
+
+    @app.errorhandler(403)
+    def access_forbidden(error):
+        from flask import render_template
+        return render_template('errors/403.html'), 403
 
     Session(app)
 

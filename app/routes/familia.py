@@ -90,24 +90,31 @@ def upsert_familia_por_familia(familia_id):
     if familia_id == 0 and session_familia_id:
         familia_id = session_familia_id
 
-    if familia_id == 0:
-        familia = familia_schema.load(data)
-        db.session.add(familia)
+    try:
+        if familia_id == 0:
+            familia = familia_schema.load(data)
+            db.session.add(familia)
+            db.session.commit()
+            session["familia_id"] = familia.familia_id
+            return familia_schema.jsonify(familia), 201
+
+        existente = db.session.get(Familia, familia_id)
+        if existente:
+            familia = familia_schema.load(data, instance=existente, partial=True)
+        else:
+            data["familia_id"] = familia_id
+            familia = familia_schema.load(data)
+            db.session.add(familia)
+
         db.session.commit()
         session["familia_id"] = familia.familia_id
-        return familia_schema.jsonify(familia), 201
-
-    existente = db.session.get(Familia, familia_id)
-    if existente:
-        familia = familia_schema.load(data, instance=existente, partial=True)
-    else:
-        data["familia_id"] = familia_id
-        familia = familia_schema.load(data)
-        db.session.add(familia)
-
-    db.session.commit()
-    session["familia_id"] = familia.familia_id
-    return familia_schema.jsonify(familia)
+        return familia_schema.jsonify(familia)
+    except ValidationError as err:
+        db.session.rollback()
+        return jsonify(err.messages), 400
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"mensagem": f"Erro interno: {str(e)}"}), 500
 
 @bp.route("/<int:familia_id>", methods=["DELETE"])
 def deletar_familia(familia_id):

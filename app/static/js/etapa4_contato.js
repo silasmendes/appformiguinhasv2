@@ -11,6 +11,48 @@ document.addEventListener('DOMContentLoaded', function() {
         if (hiddenIdInput) hiddenIdInput.value = window.sessionFamiliaId;
     }
 
+    // Funcionalidade das tags de contato
+    const telefonePrincipalNomeInput = document.getElementById('telefone_principal_nome_contato');
+    const telefoneAlternativoNomeInput = document.getElementById('telefone_alternativo_nome_contato');
+    
+    // Tags para telefone principal
+    const contatoTagsPrincipal = document.querySelectorAll('.contato-tags')[0];
+    if (contatoTagsPrincipal && telefonePrincipalNomeInput) {
+        contatoTagsPrincipal.querySelectorAll('.contato-tag').forEach(tag => {
+            tag.addEventListener('click', function() {
+                const contato = this.getAttribute('data-contato');
+                let current = telefonePrincipalNomeInput.value.trim();
+                if (current) {
+                    const list = current.split(',').map(c => c.trim());
+                    if (!list.includes(contato)) {
+                        telefonePrincipalNomeInput.value = current + ', ' + contato;
+                    }
+                } else {
+                    telefonePrincipalNomeInput.value = contato;
+                }
+            });
+        });
+    }
+    
+    // Tags para telefone alternativo
+    const contatoTagsAlternativo = document.querySelectorAll('.contato-tags')[1];
+    if (contatoTagsAlternativo && telefoneAlternativoNomeInput) {
+        contatoTagsAlternativo.querySelectorAll('.contato-tag').forEach(tag => {
+            tag.addEventListener('click', function() {
+                const contato = this.getAttribute('data-contato');
+                let current = telefoneAlternativoNomeInput.value.trim();
+                if (current) {
+                    const list = current.split(',').map(c => c.trim());
+                    if (!list.includes(contato)) {
+                        telefoneAlternativoNomeInput.value = current + ', ' + contato;
+                    }
+                } else {
+                    telefoneAlternativoNomeInput.value = contato;
+                }
+            });
+        });
+    }
+
     const telefonePrincipal = document.getElementById('telefone_principal');
     const telefoneAlternativo = document.getElementById('telefone_alternativo');
     const emailInput = document.getElementById('email_responsavel');
