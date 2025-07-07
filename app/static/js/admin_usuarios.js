@@ -1,12 +1,13 @@
 // JavaScript para página de gestão de usuários
 
 document.addEventListener('DOMContentLoaded', function() {
-    
+
     // Adicionar indicadores de status
     addStatusIndicators();
-    
-    // Melhorar confirmação de exclusão
-    enhanceDeleteConfirmation();
+
+    // Configurar modais de ação
+    setupResetSenhaModal();
+    setupDeleteUsuarioModal();
     
     // Validação do formulário
     setupFormValidation();
@@ -74,79 +75,6 @@ function addStatusIndicators() {
     });
 }
 
-function enhanceDeleteConfirmation() {
-    const deleteForms = document.querySelectorAll('form[onsubmit*="confirm"]');
-    
-    deleteForms.forEach(form => {
-        form.removeAttribute('onsubmit');
-        
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const row = form.closest('tr');
-            const userName = row.querySelector('td:nth-child(2)').textContent.trim();
-            
-            // Criar modal de confirmação personalizado
-            showDeleteConfirmation(userName, () => {
-                form.submit();
-            });
-        });
-    });
-}
-
-function showDeleteConfirmation(userName, callback) {
-    const modalHTML = `
-        <div class="modal fade" id="confirmDeleteModal" tabindex="-1">
-            <div class="modal-dialog modal-sm">
-                <div class="modal-content">
-                    <div class="modal-header bg-danger text-white">
-                        <h5 class="modal-title">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            Confirmar Exclusão
-                        </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body text-center">
-                        <div class="mb-3">
-                            <i class="fas fa-user-times text-danger" style="font-size: 3rem;"></i>
-                        </div>
-                        <p class="mb-1">Tem certeza que deseja excluir o usuário:</p>
-                        <strong>${userName}</strong>
-                        <p class="text-muted mt-2 mb-0">Esta ação não pode ser desfeita.</p>
-                    </div>
-                    <div class="modal-footer justify-content-center">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
-                            <i class="fas fa-trash me-1"></i>
-                            Excluir
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    // Remover modal anterior se existir
-    const existingModal = document.getElementById('confirmDeleteModal');
-    if (existingModal) {
-        existingModal.remove();
-    }
-    
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    
-    const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
-    modal.show();
-    
-    document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
-        modal.hide();
-        callback();
-    });
-    
-    // Remover modal após fechar
-    document.getElementById('confirmDeleteModal').addEventListener('hidden.bs.modal', function() {
-        this.remove();
-    });
-}
 
 function setupFormValidation() {
     const form = document.querySelector('#modalNovo form');
@@ -258,6 +186,60 @@ function toggleExpiresField() {
     console.log('toggleExpiresField chamada do arquivo JS');
 }
 
+function setupResetSenhaModal() {
+    const buttons = document.querySelectorAll('.btn-reset-senha');
+    const modalEl = document.getElementById('modalResetSenha');
+    if (!modalEl) return;
+
+    const modal = new bootstrap.Modal(modalEl);
+    const form = document.getElementById('formResetSenha');
+    const senha = document.getElementById('novaSenha');
+    const confirma = document.getElementById('confirmaSenha');
+    const erro = document.getElementById('resetSenhaErro');
+    const titulo = document.getElementById('modalResetTitulo');
+
+    buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            form.action = btn.dataset.action;
+            if (titulo) {
+                titulo.textContent = `Resetar senha de ${btn.dataset.userName}`;
+            }
+            senha.value = '';
+            confirma.value = '';
+            erro.classList.add('d-none');
+            modal.show();
+        });
+    });
+
+    form.addEventListener('submit', function(e) {
+        if (senha.value !== confirma.value) {
+            e.preventDefault();
+            erro.textContent = 'As senhas não coincidem';
+            erro.classList.remove('d-none');
+        }
+    });
+}
+
+function setupDeleteUsuarioModal() {
+    const buttons = document.querySelectorAll('.btn-delete-usuario');
+    const modalEl = document.getElementById('modalDeleteUsuario');
+    if (!modalEl) return;
+
+    const modal = new bootstrap.Modal(modalEl);
+    const form = document.getElementById('formDeleteUsuario');
+    const info = document.getElementById('deleteUsuarioInfo');
+
+    buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            form.action = btn.dataset.action;
+            if (info) {
+                info.textContent = `${btn.dataset.userName} (${btn.dataset.userLogin})`;
+            }
+            modal.show();
+        });
+    });
+}
+
 function initializeTooltips() {
     // Inicializar tooltips do Bootstrap se disponível
     if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
@@ -268,9 +250,11 @@ function initializeTooltips() {
     }
     
     // Adicionar títulos informativos
-    const resetBtns = document.querySelectorAll('button[type="submit"]:contains("Resetar")');
-    resetBtns.forEach(btn => {
+    document.querySelectorAll('.btn-reset-senha').forEach(btn => {
         btn.setAttribute('title', 'Gerar nova senha para este usuário');
+    });
+    document.querySelectorAll('.btn-delete-usuario').forEach(btn => {
+        btn.setAttribute('title', 'Excluir este usuário');
     });
 }
 
