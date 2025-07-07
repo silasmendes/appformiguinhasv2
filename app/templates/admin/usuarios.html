@@ -66,17 +66,24 @@
                     </td>
                     <td class="text-center">
                         <div class="btn-group btn-group-sm" role="group">
-                            <form method="post" action="{{ url_for('usuarios.reset_senha', id=u.id) }}" style="display:inline-block">
-                                <button class="btn btn-outline-warning" type="submit" title="Resetar senha do usuário">
-                                    <i class="fas fa-key"></i>
-                                </button>
-                            </form>
-                            <form method="post" action="{{ url_for('usuarios.deletar_usuario', id=u.id) }}" style="display:inline-block">
-                                <input type="hidden" name="_method" value="DELETE">
-                                <button class="btn btn-outline-danger" type="submit" title="Excluir usuário">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
+                            <button type="button"
+                                    class="btn btn-outline-warning btn-reset-senha"
+                                    data-user-id="{{ u.id }}"
+                                    data-user-name="{{ u.nome_completo }}"
+                                    data-user-login="{{ u.login }}"
+                                    data-action="{{ url_for('usuarios.reset_senha', id=u.id) }}"
+                                    title="Resetar senha do usuário">
+                                <i class="fas fa-key"></i>
+                            </button>
+                            <button type="button"
+                                    class="btn btn-outline-danger btn-delete-usuario"
+                                    data-user-id="{{ u.id }}"
+                                    data-user-name="{{ u.nome_completo }}"
+                                    data-user-login="{{ u.login }}"
+                                    data-action="{{ url_for('usuarios.deletar_usuario', id=u.id) }}"
+                                    title="Excluir usuário">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
                     </td>
                 </tr>
@@ -169,6 +176,59 @@
                 </div>
             </form>
         </div>
+    </div>
+</div>
+
+<!-- Modal Resetar Senha -->
+<div class="modal fade" id="modalResetSenha" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form class="modal-content" id="formResetSenha" method="post">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalResetTitulo">
+                    <i class="fas fa-key me-2"></i>
+                    Resetar Senha
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label" for="novaSenha">Nova Senha</label>
+                    <input type="password" class="form-control" id="novaSenha" name="nova_senha" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="confirmaSenha">Confirmar Senha</label>
+                    <input type="password" class="form-control" id="confirmaSenha" required>
+                </div>
+                <div class="alert alert-danger d-none" id="resetSenhaErro"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Salvar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Deletar Usuário -->
+<div class="modal fade" id="modalDeleteUsuario" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form class="modal-content" id="formDeleteUsuario" method="post">
+            <input type="hidden" name="_method" value="DELETE">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-trash me-2"></i>
+                    Excluir Usuário
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir o usuário <strong id="deleteUsuarioInfo"></strong>?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-danger">Sim</button>
+            </div>
+        </form>
     </div>
 </div>
 
