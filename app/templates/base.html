@@ -25,6 +25,7 @@
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('gerenciar_demandas_busca') }}">Gerenciar demandas</a></li>
                 {% if current_user.is_authenticated and current_user.tipo == 'admin' %}
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('usuarios.listar_usuarios') }}">Gerenciar Usuários</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('openai_dashboard.openai_usage_dashboard') }}">Dashboard OpenAI</a></li>
                 {% endif %}
                 {% if current_user.is_authenticated %}
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a></li>
@@ -52,6 +53,19 @@
         </button>
     </div>
     <div id="familySummaryContent" class="family-summary-content">
+        {% set cadastro = session.get('cadastro', {}) %}
+        {% set resumo_ai = gerar_resumo_familia(cadastro) %}
+        
+        {% if resumo_ai %}
+        <div class="family-summary-ai">
+            <div class="family-info-item">
+                <span class="family-info-label">📊 Resumo da Situação:</span>
+                <span class="family-info-value">{{ resumo_ai }}</span>
+            </div>
+        </div>
+        <hr class="my-2">
+        {% endif %}
+        
         <div class="row g-2">
             <div class="col-md-6">
                 <div class="family-info-item">

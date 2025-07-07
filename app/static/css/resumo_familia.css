@@ -48,6 +48,33 @@
     transform: rotate(-90deg);
 }
 
+/* Estilos para o resumo da IA */
+.family-summary-ai {
+    background-color: #e8f5e8;
+    border: 1px solid #4caf50;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 4px rgba(76, 175, 80, 0.1);
+}
+
+.family-summary-ai .family-info-label {
+    font-weight: 600;
+    color: #2e7d32;
+    display: inline-block;
+    margin-bottom: 6px;
+    font-size: 14px;
+}
+
+.family-summary-ai .family-info-value {
+    color: #1b5e20;
+    font-style: normal;
+    line-height: 1.5;
+    font-size: 14px;
+    text-align: justify;
+    hyphens: auto;
+}
+
 .family-summary-toggle {
     background: none;
     border: none;

@@ -32,6 +32,10 @@ def create_app():
     from app.routes import register_routes
     register_routes(app)
 
+    # Registra template helpers
+    from app.utils.template_helpers import register_template_helpers
+    register_template_helpers(app)
+
     Session(app)
 
     return app

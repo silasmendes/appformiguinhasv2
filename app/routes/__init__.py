@@ -14,6 +14,7 @@ from app.routes.atendimento import bp as atendimento_bp
 from app.routes.fluxo_atendimento import bp as fluxo_atendimento_bp
 from app.auth import bp as auth_bp
 from app.routes.usuarios import bp as usuarios_bp
+from app.routes.openai_dashboard import openai_dashboard_bp
 
 def register_routes(app):
     app.register_blueprint(familia_bp)
@@ -32,3 +33,4 @@ def register_routes(app):
     app.register_blueprint(fluxo_atendimento_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(usuarios_bp)
+    app.register_blueprint(openai_dashboard_bp)

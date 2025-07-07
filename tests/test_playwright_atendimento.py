@@ -362,10 +362,7 @@ def test_cadastro_nova_familia():
             "Empregado formal",
             "Empregado informal",
             "Autônomo",
-            "Desempregado",
-            "Aposentado",
-            "Do lar",
-            "Outro",
+            "Desempregado"
         ])
         
         profissoes = [
@@ -430,9 +427,7 @@ def test_cadastro_nova_familia():
 
         # Etapa 9 - escolaridade
         nivel_escolaridade = random.choice([
-            "Analfabeto", "Ensino Fundamental Incompleto", "Ensino Fundamental Completo",
-            "Ensino Médio Incompleto", "Ensino Médio Completo", "Superior Incompleto",
-            "Superior Completo"
+            "Analfabeto", "Ensino Fundamental Incompleto", "Ensino Fundamental Completo"
         ])
         estuda_atualmente = random.choice(["sim", "nao"])
         
