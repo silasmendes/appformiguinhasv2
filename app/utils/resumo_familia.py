@@ -106,21 +106,26 @@ class ResumoFamiliaService:
         json_data = json.dumps(clean_data, indent=2, ensure_ascii=False)
         
         prompt = f"""
-Analise os dados abaixo em formato JSON de uma família em situação de vulnerabilidade social e gere um resumo detalhado da situação. Destaque os principais desafios sociais, estruturais e econômicos enfrentados pela família.
+Analise os dados abaixo de uma família em vulnerabilidade social e gere um resumo CONCISO em formato Markdown.
 
 Dados da família:
 {json_data}
 
-Instruções detalhadas:
-- Crie um resumo de 2-3 frases bem estruturadas
-- Identifique e destaque os principais problemas: moradia precária, falta de saneamento básico, baixa renda, problemas de saúde, falta de acesso à educação infantil, desemprego/trabalho informal
-- Use linguagem técnica apropriada para assistentes sociais
-- Foque nas condições que mais impactam a qualidade de vida da família
-- Mencione demandas urgentes quando existirem
-- Não inclua dados pessoais identificáveis (nomes, documentos, endereços específicos)
-- Seja específico sobre as condições encontradas (ex: "ausência de água encanada e rede de esgoto", "moradia sem geladeira", "doença crônica que afeta visão")
+INSTRUÇÕES OBRIGATÓRIAS:
+- Máximo 3 frases curtas e diretas
+- Use **negrito** para destacar os problemas mais críticos
+- Use *itálico* para condições secundárias
+- Foque apenas nos 2-3 desafios mais graves
+- Linguagem técnica e objetiva
+- NÃO inclua dados pessoais
 
-Gere um resumo profissional e detalhado:
+FORMATO OBRIGATÓRIO:
+Família de X pessoas enfrentando **[problema crítico 1]** e **[problema crítico 2]**. *[Condição secundária]* agrava a situação. Demandas urgentes: **[demanda prioritária]**.
+
+EXEMPLO:
+Família de 4 pessoas com **baixa renda** e **ausência de saneamento básico**. *Problemas de saúde crônicos* comprometem a qualidade de vida. Demandas urgentes: **moradia adequada**.
+
+Seja CONCISO - máximo 400 caracteres:
 """
         return prompt
     
@@ -157,14 +162,14 @@ Gere um resumo profissional e detalhado:
             response = client.chat.completions.create(
                 model=current_app.config.get('AZURE_OPENAI_DEPLOYMENT_NAME'),
                 messages=[
-                    {"role": "system", "content": "Você é um assistente social experiente especializado em análise de situações familiares em vulnerabilidade. Seu objetivo é fornecer resumos detalhados e precisos sobre a situação socioeconômica das famílias, destacando os principais desafios e necessidades. Use linguagem técnica apropriada e seja específico sobre as condições encontradas."},
+                    {"role": "system", "content": "Você é um especialista em análise social que gera resumos CONCISOS em Markdown. Seja direto, objetivo e use formatação Markdown para destacar problemas críticos. Máximo 400 caracteres por resposta."},
                     {"role": "user", "content": prompt}
                 ],
-                max_tokens=800,
-                temperature=0.2,
-                top_p=0.95,
-                frequency_penalty=0,
-                presence_penalty=0
+                max_tokens=150,  # Reduzido significativamente para forçar concisão
+                temperature=0.1,  # Menor para mais consistência
+                top_p=0.8,
+                frequency_penalty=0.2,  # Evita repetições
+                presence_penalty=0.3   # Força novidade nas palavras
             )
             
             resumo = response.choices[0].message.content.strip()
@@ -206,54 +211,56 @@ Gere um resumo profissional e detalhado:
             return resumo
     
     def _get_fallback_summary(self, cadastro_data: Dict[str, Any]) -> str:
-        """Gera resumo básico quando Azure OpenAI não está disponível"""
+        """Gera resumo básico em Markdown quando Azure OpenAI não está disponível"""
         if not cadastro_data:
             return "Informações da família não disponíveis."
         
         summary_parts = []
-        challenges = []
+        critical_issues = []
+        secondary_issues = []
         
         # Composição familiar
         total_residentes = cadastro_data.get('total_residentes', 0)
         if total_residentes > 0:
-            summary_parts.append(f"composta por {total_residentes} pessoas")
+            summary_parts.append(f"Família de {total_residentes} pessoas")
         
-        # Situação financeira
+        # Situação financeira (crítico)
         renda = cadastro_data.get('renda_familiar_total')
         if renda and float(renda) < 1000:
-            challenges.append("baixa renda")
+            critical_issues.append("**baixa renda**")
         
-        # Condições de moradia
+        # Condições de moradia (crítico)
         agua_encanada = cadastro_data.get('agua_encanada')
-        if agua_encanada == 'Não':
-            challenges.append("ausência de água encanada")
-        
         esgoto = cadastro_data.get('rede_esgoto')
-        if esgoto == 'Não':
-            challenges.append("sem rede de esgoto")
+        if agua_encanada == 'Não' or esgoto == 'Não':
+            critical_issues.append("**ausência de saneamento básico**")
         
-        # Demandas
+        # Demandas urgentes (crítico)
         demandas = cadastro_data.get('demandas', [])
-        if demandas:
-            demandas_urgentes = [d for d in demandas if d.get('prioridade') == 'Alta']
-            if demandas_urgentes:
-                challenges.append("demandas urgentes")
+        demandas_urgentes = [d for d in demandas if d.get('prioridade') == 'Alta']
+        if demandas_urgentes:
+            critical_issues.append("**demandas urgentes**")
         
-        # Saúde
+        # Saúde (secundário)
         medicacao = cadastro_data.get('descricao_medicacao')
-        if medicacao and medicacao.strip():
-            challenges.append("necessidades médicas")
+        if medicacao and medicacao.strip() and medicacao != 'Sem medicação':
+            secondary_issues.append("*necessidades médicas*")
         
-        # Educação
+        # Educação (secundário)
         creche = cadastro_data.get('filho_creche')
         if creche == 'Não':
-            challenges.append("falta de acesso à creche")
+            secondary_issues.append("*falta de acesso à creche*")
         
-        # Constrói o resumo
-        if summary_parts and challenges:
-            return f"Família {' '.join(summary_parts)} enfrentando {', '.join(challenges)}."
+        # Constrói o resumo em Markdown
+        if summary_parts and critical_issues:
+            base = f"{' '.join(summary_parts)} enfrentando {' e '.join(critical_issues[:2])}"
+            
+            if secondary_issues:
+                base += f". {secondary_issues[0]} agrava a situação"
+            
+            return base + "."
         elif summary_parts:
-            return f"Família {' '.join(summary_parts)} em acompanhamento social."
+            return f"{' '.join(summary_parts)} em acompanhamento social."
         else:
             return "Família em acompanhamento social."
 

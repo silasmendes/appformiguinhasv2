@@ -60,7 +60,7 @@
         <div class="family-summary-ai">
             <div class="family-info-item">
                 <span class="family-info-label">📊 Resumo da Situação:</span>
-                <span class="family-info-value">{{ resumo_ai }}</span>
+                <span class="family-info-value">{{ resumo_ai | simple_markdown | safe }}</span>
             </div>
         </div>
         <hr class="my-2">

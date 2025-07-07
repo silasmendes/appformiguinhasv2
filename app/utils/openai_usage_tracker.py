@@ -44,9 +44,14 @@ class OpenAIUsageTracker:
             total_tokens = prompt_tokens + completion_tokens
             cost_estimate = OpenAIUsageTracker.calculate_cost(model, prompt_tokens, completion_tokens)
             
-            # Obter informações do usuário atual
-            user_id = current_user.id if current_user.is_authenticated else None
-            familia_id = session.get('familia_id') if session else None
+            # Obter informações do usuário atual (com verificação segura)
+            user_id = None
+            if current_user and hasattr(current_user, 'is_authenticated') and current_user.is_authenticated:
+                user_id = current_user.id
+            
+            familia_id = None
+            if session and hasattr(session, 'get'):
+                familia_id = session.get('familia_id')
             
             usage = OpenAIUsage(
                 endpoint=endpoint,
@@ -69,7 +74,10 @@ class OpenAIUsageTracker:
             
         except Exception as e:
             logger.error(f"Erro ao registrar uso do OpenAI: {e}")
-            db.session.rollback()
+            try:
+                db.session.rollback()
+            except:
+                pass
     
     @staticmethod
     def get_daily_usage():

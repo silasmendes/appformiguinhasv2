@@ -50,7 +50,7 @@
 
 /* Estilos para o resumo da IA */
 .family-summary-ai {
-    background-color: #e8f5e8;
+    background: linear-gradient(135deg, #e8f5e8 0%, #f1f8e9 100%);
     border: 1px solid #4caf50;
     border-radius: 8px;
     padding: 12px;
@@ -73,6 +73,31 @@
     font-size: 14px;
     text-align: justify;
     hyphens: auto;
+}
+
+/* Estilos para conteúdo Markdown no resumo */
+.family-summary-ai .family-info-value strong {
+    color: #d32f2f;
+    font-weight: 700;
+    background-color: rgba(244, 67, 54, 0.08);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 13px;
+}
+
+.family-summary-ai .family-info-value em {
+    color: #f57c00;
+    font-style: italic;
+    font-weight: 500;
+    background-color: rgba(255, 152, 0, 0.08);
+    padding: 1px 2px;
+    border-radius: 2px;
+}
+
+.family-summary-ai .family-info-value p {
+    margin: 0;
+    padding: 0;
+    display: inline;
 }
 
 .family-summary-toggle {
