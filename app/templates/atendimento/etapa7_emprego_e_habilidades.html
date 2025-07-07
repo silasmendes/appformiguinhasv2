@@ -52,8 +52,8 @@
         <textarea class="form-control" id="habilidades_relevantes" name="habilidades_relevantes" rows="3" autocomplete="off">{{ session['cadastro'].get('habilidades_relevantes', '') }}</textarea>
     </div>
     <div class="d-flex justify-content-between">
-        <a href="{{ url_for('atendimento_etapa6') }}" class="btn btn-secondary" id="btnVoltar">Voltar</a>
-        <button type="submit" class="btn btn-primary" id="btnProxima" data-next-url="{{ url_for('atendimento_etapa7') }}">Próxima etapa</button>
+        <a href="{{ url_for('fluxo_atendimento.atendimento_etapa6') }}" class="btn btn-secondary" id="btnVoltar">Voltar</a>
+        <button type="submit" class="btn btn-primary" id="btnProxima" data-next-url="{{ url_for('fluxo_atendimento.atendimento_etapa7') }}">Próxima etapa</button>
     </div>
 </form>
 {% endblock %}

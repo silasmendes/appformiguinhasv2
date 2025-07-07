@@ -46,8 +46,8 @@
         <textarea class="form-control" id="motivo_ausencia_escola" name="motivo_ausencia_escola" rows="3" autocomplete="off">{{ session['cadastro'].get('motivo_ausencia_escola', '') }}</textarea>
     </div>
     <div class="d-flex justify-content-between w-100">
-        <button type="button" class="btn btn-secondary" id="btnVoltar" data-prev-url="{{ url_for('atendimento_etapa2') }}">Voltar</button>
-        <button type="button" class="btn btn-primary" id="btnProxima" data-next-url="{{ url_for('atendimento_etapa3') }}">Próxima etapa</button>
+        <button type="button" class="btn btn-secondary" id="btnVoltar" data-prev-url="{{ url_for('fluxo_atendimento.atendimento_etapa2') }}">Voltar</button>
+        <button type="button" class="btn btn-primary" id="btnProxima" data-next-url="{{ url_for('fluxo_atendimento.atendimento_etapa3') }}">Próxima etapa</button>
     </div>
 </form>
 {% endblock %}

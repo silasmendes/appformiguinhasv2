@@ -8,12 +8,12 @@
         <span>Atender família</span>
         <small>Buscar cadastro existente</small>
     </a>
-    <a href="{{ url_for('atendimento_nova_familia') }}" id="btnNovaFamilia" class="menu-btn btn btn-success">
+    <a href="{{ url_for('fluxo_atendimento.atendimento_nova_familia') }}" id="btnNovaFamilia" class="menu-btn btn btn-success">
         <i class="fa-solid fa-user-plus"></i>
         <span>Atender nova família</span>
         <small>Iniciar um novo cadastro</small>
     </a>
-    <a href="{{ url_for('retomar_atendimento') }}" class="menu-btn btn btn-warning">
+    <a href="{{ url_for('fluxo_atendimento.retomar_atendimento') }}" class="menu-btn btn btn-warning">
         <i class="fa-solid fa-play"></i>
         <span>Retomar atendimento</span>
         <small>Continuar atendimento em andamento</small>
@@ -44,7 +44,7 @@
                     {% if resultados %}
                         {% for f in resultados %}
                         <li class="list-group-item familia-resultado">
-                            <a href="{{ url_for('atendimento_familia', familia_id=f.familia_id) }}" class="text-decoration-none familia-link">
+                            <a href="{{ url_for('fluxo_atendimento.atendimento_familia', familia_id=f.familia_id) }}" class="text-decoration-none familia-link">
                                 <div class="familia-nome">Nome: {{ f.nome_responsavel }}</div>
                                 <div class="familia-cpf">CPF: {{ f.cpf or 'Não informado' }}</div>
                                 {% if f.ultimo_atendimento %}
