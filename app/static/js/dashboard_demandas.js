@@ -47,14 +47,14 @@ document.addEventListener('DOMContentLoaded', function () {
         paginaDados.forEach(item => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td><a href="/gerenciar_demandas/${item.familia_id}">${item.nome_responsavel}</a></td>
+                <td><a href="/gerenciar_demandas/${item.familia_id}" style="color: #007bff; text-decoration: none; font-weight: 500;">${item.nome_responsavel}</a></td>
                 <td>${item.cpf || ''}</td>
                 <td>${item.bairro || ''}</td>
                 <td>${item.descricao || ''}</td>
                 <td>${formatarData(item.data_identificacao)}</td>
                 <td>${item.demanda_tipo_nome || ''}</td>
-                <td>${item.status_atual || ''}</td>
-                <td>${item.prioridade || ''}</td>
+                <td>${formatarStatus(item.status_atual)}</td>
+                <td>${formatarPrioridade(item.prioridade)}</td>
                 <td>${formatarData(item.data_atualizacao)}</td>
                 <td>${item.observacao || ''}</td>`;
             tbody.appendChild(tr);
@@ -87,6 +87,38 @@ document.addEventListener('DOMContentLoaded', function () {
         const d = new Date(data);
         if (isNaN(d)) return data;
         return d.toLocaleDateString('pt-BR');
+    }
+
+    function formatarStatus(status) {
+        if (!status) return '';
+        const statusLower = status.toLowerCase();
+        let classe = 'status-badge';
+        
+        if (statusLower.includes('ativo') || statusLower.includes('em andamento')) {
+            classe += ' ativo';
+        } else if (statusLower.includes('pendente') || statusLower.includes('aguardando')) {
+            classe += ' pendente';
+        } else if (statusLower.includes('concluído') || statusLower.includes('finalizado')) {
+            classe += ' concluido';
+        }
+        
+        return `<span class="${classe}">${status}</span>`;
+    }
+
+    function formatarPrioridade(prioridade) {
+        if (!prioridade) return '';
+        const prioridadeLower = prioridade.toLowerCase();
+        let classe = 'prioridade-badge';
+        
+        if (prioridadeLower.includes('alta') || prioridadeLower.includes('urgente')) {
+            classe += ' alta';
+        } else if (prioridadeLower.includes('média') || prioridadeLower.includes('media') || prioridadeLower.includes('normal')) {
+            classe += ' media';
+        } else if (prioridadeLower.includes('baixa') || prioridadeLower.includes('baixo')) {
+            classe += ' baixa';
+        }
+        
+        return `<span class="${classe}">${prioridade}</span>`;
     }
 
     renderTable();

@@ -106,13 +106,37 @@ def gerenciar_demandas_familia(familia_id):
 @login_required
 def dashboard():
     """Renderiza a página do dashboard."""
-    # Dados mock para demonstração
+    
+    # Calcular número de famílias com demandas ativas dinamicamente
+    sql_demandas_ativas = text(
+        """
+        SELECT COUNT(DISTINCT f.familia_id) as total_demandas_ativas
+        FROM familias f
+        JOIN enderecos e ON f.familia_id = e.familia_id
+        JOIN demanda_familia df ON f.familia_id = df.familia_id
+        JOIN demanda_tipo dt ON df.demanda_tipo_id = dt.demanda_tipo_id
+        JOIN (
+            SELECT de1.*
+            FROM demanda_etapa de1
+            INNER JOIN (
+                SELECT demanda_id, MAX(etapa_id) AS max_etapa_id
+                FROM demanda_etapa
+                GROUP BY demanda_id
+            ) m ON de1.demanda_id = m.demanda_id AND de1.etapa_id = m.max_etapa_id
+        ) de ON df.demanda_id = de.demanda_id
+        """
+    )
+    
+    resultado_demandas = db.session.execute(sql_demandas_ativas).mappings().first()
+    total_demandas_ativas = resultado_demandas['total_demandas_ativas'] if resultado_demandas else 0
+    
+    # Dados mock para demonstração (outros valores podem ser calculados dinamicamente no futuro)
     dados_dashboard = {
         'total_familias': 48,
         'familias_atendidas_30_dias': 26,
         'entregas_cestas_30_dias': 24,
         'bairro_mais_atendimentos': 'Campo Belo',
-        'familias_demandas_ativas': 5,
+        'familias_demandas_ativas': total_demandas_ativas,
         'familias_maior_vulnerabilidade': 7
     }
     return render_template("dashboards/dashboard.html", dados=dados_dashboard)
