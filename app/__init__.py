@@ -33,6 +33,9 @@ def create_app():
     from app.routes import register_routes
     register_routes(app)
 
+    from app.routes.main import main_bp
+    app.register_blueprint(main_bp)
+
     # Registra template helpers
     from app.utils.template_helpers import register_template_helpers
     register_template_helpers(app)

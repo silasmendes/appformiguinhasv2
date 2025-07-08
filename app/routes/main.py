@@ -1,9 +1,8 @@
-from flask import render_template, session, request, redirect, url_for, flash
+from flask import Blueprint, render_template, session, request, redirect, url_for, flash
 from flask_login import login_required
 from app.routes.usuarios import admin_required
 import json
 from datetime import datetime
-from app import create_app
 from app import db
 from app.models.familia import Familia
 from app.models.atendimento import Atendimento
@@ -14,23 +13,24 @@ from app.utils.fluxo_atendimento import (
     carregar_cadastro_familia,
 )
 
-app = create_app()
+main_bp = Blueprint('main', __name__)
 
-@app.route("/")
+
+@main_bp.route('/')
 @login_required
 def home():
     """Renderiza a página inicial."""
-    return render_template("index.html")
+    return render_template('index.html')
 
-@app.route("/menu_atendimento")
+
+@main_bp.route('/menu_atendimento')
 @login_required
 def menu_atendimento():
-    termo = request.args.get("q", "").strip()
+    termo = request.args.get('q', '').strip()
     resultados = None
     auto_open = False
     if termo:
         query = Familia.query
-        # Busca tanto por CPF quanto por nome (similar à query T-SQL fornecida)
         query = query.filter(
             or_(
                 Familia.cpf.ilike(f"%{termo}%"),
@@ -40,24 +40,26 @@ def menu_atendimento():
         familias = query.all()
         resultados = []
         for familia in familias:
-            ultimo = db.session.query(func.max(Atendimento.data_hora_atendimento)).filter_by(familia_id=familia.familia_id).scalar()
+            ultimo = db.session.query(func.max(Atendimento.data_hora_atendimento)).filter_by(
+                familia_id=familia.familia_id
+            ).scalar()
             resultados.append({
-                "familia_id": familia.familia_id,
-                "nome_responsavel": familia.nome_responsavel,
-                "data_nascimento": familia.data_nascimento,
-                "cpf": familia.cpf,
-                "ultimo_atendimento": ultimo.date() if ultimo else None,
+                'familia_id': familia.familia_id,
+                'nome_responsavel': familia.nome_responsavel,
+                'data_nascimento': familia.data_nascimento,
+                'cpf': familia.cpf,
+                'ultimo_atendimento': ultimo.date() if ultimo else None,
             })
         auto_open = True
-    return render_template("atendimento/etapa0_menu.html", resultados=resultados, auto_open=auto_open)
+    return render_template('atendimento/etapa0_menu.html', resultados=resultados, auto_open=auto_open)
 
 
-@app.route("/gerenciar_demandas", methods=["GET"])
+@main_bp.route('/gerenciar_demandas', methods=['GET'])
 @login_required
 def gerenciar_demandas_busca():
     """Exibe página de busca de família para gerenciar demandas."""
     reset_atendimento_sessao()
-    termo = request.args.get("q", "").strip()
+    termo = request.args.get('q', '').strip()
     resultados = None
     if termo:
         query = Familia.query.filter(
@@ -69,48 +71,49 @@ def gerenciar_demandas_busca():
         familias = query.all()
         resultados = []
         for familia in familias:
-            ultimo = db.session.query(func.max(Atendimento.data_hora_atendimento)).filter_by(familia_id=familia.familia_id).scalar()
+            ultimo = db.session.query(func.max(Atendimento.data_hora_atendimento)).filter_by(
+                familia_id=familia.familia_id
+            ).scalar()
             resultados.append({
-                "familia_id": familia.familia_id,
-                "nome_responsavel": familia.nome_responsavel,
-                "cpf": familia.cpf,
-                "ultimo_atendimento": ultimo.date() if ultimo else None,
+                'familia_id': familia.familia_id,
+                'nome_responsavel': familia.nome_responsavel,
+                'cpf': familia.cpf,
+                'ultimo_atendimento': ultimo.date() if ultimo else None,
             })
-    return render_template("demandas/busca_familia.html", resultados=resultados)
+    return render_template('demandas/busca_familia.html', resultados=resultados)
 
 
-@app.route("/gerenciar_demandas/<int:familia_id>", methods=["GET", "POST"])
+@main_bp.route('/gerenciar_demandas/<int:familia_id>', methods=['GET', 'POST'])
 @login_required
 def gerenciar_demandas_familia(familia_id):
     """Permite atualização direta das demandas da família."""
-    if request.method == "POST":
+    if request.method == 'POST':
         cadastro = get_cadastro()
         cadastro.update(request.form.to_dict(flat=True))
-        demandas_json = request.form.get("demandas_json")
+        demandas_json = request.form.get('demandas_json')
         if demandas_json:
             try:
-                cadastro["demandas"] = json.loads(demandas_json)
+                cadastro['demandas'] = json.loads(demandas_json)
             except Exception:
-                cadastro["demandas"] = []
-        session["cadastro"] = cadastro
-        flash("Demandas atualizadas", "success")
-        return redirect(url_for("gerenciar_demandas_familia", familia_id=familia_id))
+                cadastro['demandas'] = []
+        session['cadastro'] = cadastro
+        flash('Demandas atualizadas', 'success')
+        return redirect(url_for('gerenciar_demandas_familia', familia_id=familia_id))
 
     reset_atendimento_sessao()
     cadastro = carregar_cadastro_familia(familia_id)
     if cadastro is None:
-        flash("Família não encontrada", "danger")
-        return redirect(url_for("gerenciar_demandas_busca"))
-    return render_template("demandas/gerenciar.html")
+        flash('Família não encontrada', 'danger')
+        return redirect(url_for('gerenciar_demandas_busca'))
+    return render_template('demandas/gerenciar.html')
 
 
-@app.route("/dashboard")
+@main_bp.route('/dashboard')
 @login_required
 @admin_required
 def dashboard():
     """Renderiza a página do dashboard."""
-    
-    # Calcular número de famílias com demandas ativas dinamicamente
+
     sql_demandas_ativas = text(
         """
         SELECT COUNT(DISTINCT f.familia_id) as total_demandas_ativas
@@ -129,11 +132,10 @@ def dashboard():
         ) de ON df.demanda_id = de.demanda_id
         """
     )
-    
+
     resultado_demandas = db.session.execute(sql_demandas_ativas).mappings().first()
     total_demandas_ativas = resultado_demandas['total_demandas_ativas'] if resultado_demandas else 0
-    
-    # Dados mock para demonstração (outros valores podem ser calculados dinamicamente no futuro)
+
     dados_dashboard = {
         'total_familias': 48,
         'familias_atendidas_30_dias': 26,
@@ -142,10 +144,10 @@ def dashboard():
         'familias_demandas_ativas': total_demandas_ativas,
         'familias_maior_vulnerabilidade': 7
     }
-    return render_template("dashboards/dashboard.html", dados=dados_dashboard)
+    return render_template('dashboards/dashboard.html', dados=dados_dashboard)
 
 
-@app.route("/dashboard/demandas-ativas")
+@main_bp.route('/dashboard/demandas-ativas')
 @login_required
 @admin_required
 def dashboard_demandas_ativas():
@@ -175,26 +177,26 @@ def dashboard_demandas_ativas():
 
     resultados = db.session.execute(sql).mappings().all()
     demandas = [dict(r) for r in resultados]
-    return render_template("dashboards/demandas_ativas.html", demandas=demandas)
+    return render_template('dashboards/demandas_ativas.html', demandas=demandas)
 
 
-@app.route("/dashboard/familias-cadastradas")
+@main_bp.route('/dashboard/familias-cadastradas')
 @login_required
 @admin_required
 def dashboard_familias_cadastradas():
     """Página para download de dados das famílias cadastradas."""
-    return render_template("dashboards/familias_cadastradas.html")
+    return render_template('dashboards/familias_cadastradas.html')
 
 
-@app.route("/dashboard/em-desenvolvimento")
+@main_bp.route('/dashboard/em-desenvolvimento')
 @login_required
 @admin_required
 def dashboard_em_desenvolvimento():
     """Página temporária para funcionalidades em desenvolvimento."""
-    return render_template("dashboards/em_desenvolvimento.html")
+    return render_template('dashboards/em_desenvolvimento.html')
 
 
-@app.route("/dashboard/familias-cadastradas/download")
+@main_bp.route('/dashboard/familias-cadastradas/download')
 @login_required
 @admin_required
 def download_familias_cadastradas():
@@ -203,11 +205,11 @@ def download_familias_cadastradas():
     import pandas as pd
     from io import BytesIO
     from flask import send_file
-    
+
     try:
-        # Query simplificada para evitar problemas com JSON no SQL Server
-        sql_query = text("""
-            SELECT 
+        sql_query = text(
+            """
+            SELECT
                 f.familia_id,
                 f.nome_responsavel,
                 f.cpf,
@@ -254,22 +256,18 @@ def download_familias_cadastradas():
             LEFT JOIN renda_familiar rf ON f.familia_id = rf.familia_id
             LEFT JOIN saude_familiar sf ON f.familia_id = sf.familia_id
             ORDER BY f.familia_id
-        """)
-        
-        # Executar query e converter para DataFrame
+            """
+        )
+
         resultados = db.session.execute(sql_query).mappings().all()
-        
+
         if not resultados:
-            flash("Nenhum dado encontrado para exportação.", "warning")
-            return redirect(url_for("dashboard_familias_cadastradas"))
-        
-        # Converter para lista de dicionários
+            flash('Nenhum dado encontrado para exportação.', 'warning')
+            return redirect(url_for('dashboard_familias_cadastradas'))
+
         dados = [dict(r) for r in resultados]
-        
-        # Criar DataFrame
         df = pd.DataFrame(dados)
-        
-        # Renomear colunas para português
+
         colunas_pt = {
             'familia_id': 'ID Família',
             'nome_responsavel': 'Nome do Responsável',
@@ -308,23 +306,15 @@ def download_familias_cadastradas():
             'medicacao_continua': 'Medicação Contínua',
             'deficiencia_familia': 'Deficiência na Família'
         }
-        
-        # Aplicar nomes das colunas em português
+
         df = df.rename(columns=colunas_pt)
-        
-        # Criar buffer em memória para o arquivo Excel
+
         output = BytesIO()
-        
-        # Criar arquivo Excel
+
         with pd.ExcelWriter(output, engine='openpyxl', options={'remove_timezone': True}) as writer:
-            # Aba principal com todos os dados
             df.to_excel(writer, sheet_name='Dados_Familias', index=False)
-            
-            # Obter o workbook e worksheet para formatação
             workbook = writer.book
             worksheet = writer.sheets['Dados_Familias']
-            
-            # Ajustar largura das colunas
             for column in worksheet.columns:
                 max_length = 0
                 column_letter = column[0].column_letter
@@ -336,25 +326,20 @@ def download_familias_cadastradas():
                         pass
                 adjusted_width = min(max_length + 2, 50)
                 worksheet.column_dimensions[column_letter].width = adjusted_width
-        
+
         output.seek(0)
-        
-        # Gerar nome do arquivo com data atual
-        data_atual = datetime.now().strftime("%Y_%m_%d")
-        nome_arquivo = f"migracao_familias_{data_atual}.xlsx"
-        
+        data_atual = datetime.now().strftime('%Y_%m_%d')
+        nome_arquivo = f'migracao_familias_{data_atual}.xlsx'
+
         return send_file(
             output,
             as_attachment=True,
             download_name=nome_arquivo,
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
-        
+
     except Exception as e:
-        print(f"Erro detalhado: {str(e)}")  # Para debug
-        flash(f"Erro ao gerar arquivo: {str(e)}", "danger")
-        return redirect(url_for("dashboard_familias_cadastradas"))
+        print(f'Erro detalhado: {str(e)}')
+        flash(f'Erro ao gerar arquivo: {str(e)}', 'danger')
+        return redirect(url_for('dashboard_familias_cadastradas'))
 
-
-if __name__ == "__main__":
-    app.run(debug=True)
