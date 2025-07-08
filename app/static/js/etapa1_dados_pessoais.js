@@ -49,14 +49,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const generoSelect = document.getElementById('genero');
     const generoOutroContainer = document.getElementById('genero_autodeclarado_container');
-    generoSelect.addEventListener('change', function() {
-        if (this.value === 'Outro') {
+    
+    // Verificar se o gênero já está definido como "Outro" no carregamento da página
+    function verificarGeneroOutro() {
+        if (generoSelect.value === 'Outro') {
             generoOutroContainer.classList.remove('d-none');
         } else {
             generoOutroContainer.classList.add('d-none');
             document.getElementById('genero_autodeclarado').value = '';
         }
-    });
+    }
+    
+    // Executar verificação inicial
+    verificarGeneroOutro();
+    
+    generoSelect.addEventListener('change', verificarGeneroOutro);
 
     const cpfInput = document.getElementById('cpf');
     const btnProxima = document.getElementById('btnProxima');

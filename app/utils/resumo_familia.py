@@ -3,9 +3,12 @@ import logging
 import hashlib
 from decimal import Decimal
 from openai import AzureOpenAI
-from flask import current_app
+from flask import current_app, session
 from typing import Dict, Any, Optional
 from app.utils.openai_usage_tracker import OpenAIUsageTracker
+from app import db
+from app.models.resumo_familia_ia import ResumoFamiliaIA
+from datetime import datetime, timezone, timedelta
 
 logger = logging.getLogger(__name__)
 
@@ -274,14 +277,78 @@ def get_resumo_service():
         _resumo_service = ResumoFamiliaService()
     return _resumo_service
 
+def buscar_resumo_recente(familia_id: int, horas: int = 12) -> Optional[str]:
+    """Busca resumo existente para a família nas últimas X horas"""
+    try:
+        limite_tempo = datetime.now(timezone.utc) - timedelta(hours=horas)
+        
+        resumo_recente = ResumoFamiliaIA.query.filter(
+            ResumoFamiliaIA.familia_id == familia_id,
+            ResumoFamiliaIA.data_hora_geracao >= limite_tempo
+        ).order_by(ResumoFamiliaIA.data_hora_geracao.desc()).first()
+        
+        if resumo_recente:
+            tempo_decorrido = datetime.now(timezone.utc) - resumo_recente.data_hora_geracao
+            horas_decorridas = tempo_decorrido.total_seconds() / 3600
+            logger.info(f"Resumo encontrado para família {familia_id} gerado em {resumo_recente.data_hora_geracao}")
+            logger.debug(f"🔄 RESUMO REAPROVEITADO - Família {familia_id}: Evitada nova chamada OpenAI. "
+                        f"Resumo gerado há {horas_decorridas:.1f}h. Economia de tokens e tempo!")
+            return resumo_recente.resumo_texto
+        
+        return None
+    except Exception as e:
+        logger.error(f"Erro ao buscar resumo recente: {e}")
+        return None
+
+def salvar_resumo_no_banco(familia_id: int, resumo_texto: str) -> Optional[ResumoFamiliaIA]:
+    """Salva o resumo gerado pela IA no banco de dados"""
+    try:
+        novo_resumo = ResumoFamiliaIA(
+            familia_id=familia_id,
+            resumo_texto=resumo_texto
+        )
+        db.session.add(novo_resumo)
+        db.session.commit()
+        logger.info(f"Resumo salvo no banco para família ID {familia_id}")
+        return novo_resumo
+    except Exception as e:
+        logger.error(f"Erro ao salvar resumo no banco: {e}")
+        db.session.rollback()
+        return None
+
 def gerar_resumo_familia(cadastro_data: Dict[str, Any]) -> str:
     """Função helper para gerar resumo da família"""
     if not cadastro_data:
         return "Informações da família não disponíveis."
     
     try:
+        # Verificar se temos familia_id na sessão
+        familia_id = session.get('familia_id')
+        
+        # Se temos familia_id, verificar se já existe resumo recente (últimas 12 horas)
+        if familia_id:
+            resumo_existente = buscar_resumo_recente(familia_id, horas=12)
+            if resumo_existente:
+                logger.info(f"Reutilizando resumo existente para família {familia_id}")
+                logger.debug(f"✅ ECONOMIA DE RECURSOS - Resumo reaproveitado para família {familia_id}. "
+                           f"Nova chamada OpenAI evitada! Cache de 12h funcionando.")
+                return resumo_existente
+        
+        # Se não há resumo recente ou não temos familia_id, gerar novo resumo
+        logger.debug(f"🔥 NOVO RESUMO SENDO GERADO - Família {familia_id or 'SEM_ID'}: "
+                    f"Nenhum resumo encontrado nas últimas 12h. Chamada OpenAI necessária.")
         service = get_resumo_service()
-        return service.gerar_resumo(cadastro_data)
+        resumo = service.gerar_resumo(cadastro_data)
+        
+        # Salvar resumo no banco de dados se temos familia_id e resumo válido
+        if familia_id and resumo and resumo not in [
+            "Informações da família não disponíveis.", 
+            "Erro ao gerar resumo da família.",
+            "Dados da família não disponíveis para análise."
+        ]:
+            salvar_resumo_no_banco(familia_id, resumo)
+        
+        return resumo
     except Exception as e:
         logger.error(f"Erro ao gerar resumo da família: {e}")
         return "Erro ao gerar resumo da família."
