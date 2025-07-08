@@ -8,11 +8,11 @@
         <label for="percepcao_necessidade" class="form-label">Percepção de necessidade</label>
         <select class="form-select" name="percepcao_necessidade" id="percepcao_necessidade" required>
             <option value="" disabled {% if not session['cadastro'].get('percepcao_necessidade') %}selected{% endif %}>Selecione</option>
-            <option value="Alta" {% if session['cadastro'].get('percepcao_necessidade')=='Alta' %}selected{% endif %}>Alta</option>
-            <option value="Media" {% if session['cadastro'].get('percepcao_necessidade')=='Media' %}selected{% endif %}>Média</option>
-            <option value="Baixa" {% if session['cadastro'].get('percepcao_necessidade')=='Baixa' %}selected{% endif %}>Baixa</option>
-            <option value="Inativo" {% if session['cadastro'].get('percepcao_necessidade')=='Inativo' %}selected{% endif %}>Inativo</option>
-            <option value="Excluído" {% if session['cadastro'].get('percepcao_necessidade')=='Excluído' %}selected{% endif %}>Excluído</option>
+            <option value="Alta" style="color: #dc3545; font-weight: 600;" {% if session['cadastro'].get('percepcao_necessidade')=='Alta' %}selected{% endif %}>Alta</option>
+            <option value="Media" style="color: #ffc107; font-weight: 600;" {% if session['cadastro'].get('percepcao_necessidade')=='Media' %}selected{% endif %}>Média</option>
+            <option value="Baixa" style="color: #198754; font-weight: 600;" {% if session['cadastro'].get('percepcao_necessidade')=='Baixa' %}selected{% endif %}>Baixa</option>
+            <option value="Inativo" style="color: #6c757d; font-weight: 600;" {% if session['cadastro'].get('percepcao_necessidade')=='Inativo' %}selected{% endif %}>Inativo</option>
+            <option value="Excluído" style="color: #6f42c1; font-weight: 600;" {% if session['cadastro'].get('percepcao_necessidade')=='Excluído' %}selected{% endif %}>Excluído</option>
         </select>
     </div>
     <div class="mb-3">
@@ -37,7 +37,7 @@
             <input type="checkbox" class="form-check-input" id="cesta_entregue" name="cesta_entregue" {% if session['cadastro'].get('cesta_entregue') %}checked{% endif %}>
             <label class="form-check-label" for="cesta_entregue">Cesta básica será entregue à família neste atendimento</label>
         </div>
-        <small id="avisoCesta" class="text-warning fst-italic {% if session['cadastro'].get('cesta_entregue') %}d-none{% endif %}">Nenhuma cesta básica será entregue neste atendimento.</small>
+        <div id="avisoCesta" class="text-danger fw-semibold fs-6 fst-italic {% if session['cadastro'].get('cesta_entregue') %}d-none{% endif %}">⚠️ Atenção: Você está registrando que nenhuma cesta básica será entregue neste atendimento (do contrário, marque o checkbox acima).</div>
     </div>
     <div class="d-flex justify-content-between w-100">
         <button type="submit" class="btn btn-success" id="btnFinalizar" data-next-url="{{ url_for('fluxo_atendimento.atendimento_etapa11') }}">Finalizar atendimento</button>

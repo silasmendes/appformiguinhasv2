@@ -370,9 +370,7 @@ def test_cadastro_nova_familia():
         ])
         situacao_emprego = random.choice([
             "Empregado formal",
-            "Empregado informal",
-            "Autônomo",
-            "Desempregado"
+            "Empregado informal"
         ])
         
         profissoes = [
@@ -381,7 +379,7 @@ def test_cadastro_nova_familia():
         ]
         
         page.select_option("#relacao_provedor_familia", label=relacao_provedor)
-        if relacao_provedor in ["Outro familiar", "Provedor não familiar"]:
+        if relacao_provedor == "Provedor não familiar":
             page.fill("#descricao_provedor_externo", texto_aleatorio("Provedor"))
 
         page.select_option("#situacao_emprego", label=situacao_emprego)
@@ -477,7 +475,7 @@ def test_cadastro_nova_familia():
 
 def test_multiplos_cadastros():
     """Executa múltiplos testes com dados diferentes"""
-    num_testes = 3  # Pode ajustar o número de testes
+    num_testes = 57  # Pode ajustar o número de testes
     
     for i in range(num_testes):
         print(f"\n--- Executando teste {i+1}/{num_testes} ---")
@@ -494,10 +492,10 @@ if __name__ == "__main__":
     print("=" * 60)
     
     # Para executar apenas um teste
-    test_cadastro_nova_familia()
+    # test_cadastro_nova_familia()
     
     # Para executar múltiplos testes (descomente a linha abaixo)
-    # test_multiplos_cadastros()
+    test_multiplos_cadastros()
     
     print("\n" + "=" * 60)
     print("Todos os testes concluídos com sucesso!")
