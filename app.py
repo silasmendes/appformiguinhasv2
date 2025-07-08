@@ -146,6 +146,7 @@ def dashboard():
 
 @app.route("/dashboard/demandas-ativas")
 @login_required
+@admin_required
 def dashboard_demandas_ativas():
     """Lista de famílias com demandas ativas."""
     sql = text(
@@ -178,6 +179,7 @@ def dashboard_demandas_ativas():
 
 @app.route("/dashboard/familias-cadastradas")
 @login_required
+@admin_required
 def dashboard_familias_cadastradas():
     """Página para download de dados das famílias cadastradas."""
     return render_template("dashboards/familias_cadastradas.html")
@@ -185,6 +187,7 @@ def dashboard_familias_cadastradas():
 
 @app.route("/dashboard/em-desenvolvimento")
 @login_required
+@admin_required
 def dashboard_em_desenvolvimento():
     """Página temporária para funcionalidades em desenvolvimento."""
     return render_template("dashboards/em_desenvolvimento.html")
@@ -192,6 +195,7 @@ def dashboard_em_desenvolvimento():
 
 @app.route("/dashboard/familias-cadastradas/download")
 @login_required
+@admin_required
 def download_familias_cadastradas():
     """Download de arquivo Excel com dados completos das famílias."""
     from datetime import datetime
