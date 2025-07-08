@@ -6,7 +6,7 @@ from app import create_app
 from app import db
 from app.models.familia import Familia
 from app.models.atendimento import Atendimento
-from sqlalchemy import func, or_
+from sqlalchemy import func, or_, text
 from app.utils.fluxo_atendimento import (
     get_cadastro,
     reset_atendimento_sessao,
@@ -116,6 +116,38 @@ def dashboard():
         'familias_maior_vulnerabilidade': 7
     }
     return render_template("dashboards/dashboard.html", dados=dados_dashboard)
+
+
+@app.route("/dashboard/demandas-ativas")
+@login_required
+def dashboard_demandas_ativas():
+    """Lista de famílias com demandas ativas."""
+    sql = text(
+        """
+        SELECT f.familia_id, f.nome_responsavel, f.cpf, e.bairro,
+               df.descricao, df.data_identificacao, dt.demanda_tipo_nome,
+               de.status_atual, df.prioridade, de.data_atualizacao,
+               COALESCE(de.observacao, 'Análise da demanda ainda não iniciada') AS observacao
+        FROM familias f
+        JOIN enderecos e ON f.familia_id = e.familia_id
+        JOIN demanda_familia df ON f.familia_id = df.familia_id
+        JOIN demanda_tipo dt ON df.demanda_tipo_id = dt.demanda_tipo_id
+        JOIN (
+            SELECT de1.*
+            FROM demanda_etapa de1
+            INNER JOIN (
+                SELECT demanda_id, MAX(etapa_id) AS max_etapa_id
+                FROM demanda_etapa
+                GROUP BY demanda_id
+            ) m ON de1.demanda_id = m.demanda_id AND de1.etapa_id = m.max_etapa_id
+        ) de ON df.demanda_id = de.demanda_id
+        ORDER BY df.prioridade ASC
+        """
+    )
+
+    resultados = db.session.execute(sql).mappings().all()
+    demandas = [dict(r) for r in resultados]
+    return render_template("dashboards/demandas_ativas.html", demandas=demandas)
 
 
 if __name__ == "__main__":

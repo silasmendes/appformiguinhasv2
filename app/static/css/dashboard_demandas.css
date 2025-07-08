@@ -1,0 +1,10 @@
+#tabelaDemandasAtivas .filtros input {
+    width: 100%;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+#paginacaoDemandas {
+    margin-top: 1rem;
+    justify-content: center;
+}
