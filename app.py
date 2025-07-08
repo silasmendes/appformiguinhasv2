@@ -1,5 +1,6 @@
 from flask import render_template, session, request, redirect, url_for, flash
 from flask_login import login_required
+from app.routes.usuarios import admin_required
 import json
 from datetime import datetime
 from app import create_app
@@ -104,6 +105,7 @@ def gerenciar_demandas_familia(familia_id):
 
 @app.route("/dashboard")
 @login_required
+@admin_required
 def dashboard():
     """Renderiza a página do dashboard."""
     
