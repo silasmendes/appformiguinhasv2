@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Famílias Cadastradas - Download{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/familias_cadastradas.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="familias-download-container">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-content">
+            <div class="header-text">
+                <h1>
+                    <i class="fas fa-download"></i>
+                    Download de Dados das Famílias
+                </h1>
+                <p>Exportação completa dos dados das famílias cadastradas no sistema</p>
+            </div>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Voltar ao Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Download Card -->
+    <div class="download-card">
+        <div class="download-icon">
+            <i class="fas fa-file-excel"></i>
+        </div>
+        
+        <div class="download-content">
+            <h2>Relatório Completo de Famílias</h2>
+            <p class="download-description">
+                Exportação de dados completos das famílias cadastradas no sistema.
+            </p>
+            
+            <div class="compact-info">
+                <div class="info-section">
+                    <h4><i class="fas fa-info-circle"></i> Detalhes do Arquivo</h4>
+                    <div class="file-details">
+                        <div class="detail-item">
+                            <i class="fas fa-calendar"></i>
+                            <span id="current-date"></span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-file-excel"></i>
+                            <span>Excel (.xlsx)</span>
+                        </div>
+                        <div class="detail-item warning">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Dados sensíveis</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button id="downloadBtn" class="btn btn-primary btn-download">
+                <i class="fas fa-download"></i>
+                Gerar e Baixar Relatório
+            </button>
+        </div>
+    </div>
+
+    <!-- Warning Card -->
+    <div class="warning-card">
+        <div class="warning-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="warning-content">
+            <h3>Aviso Importante sobre Dados Sensíveis</h3>
+            <p>
+                Este relatório contém <strong>informações pessoais identificáveis (PII)</strong> 
+                e dados sensíveis das famílias atendidas. É fundamental que você:
+            </p>
+            <ul>
+                <li>Mantenha o arquivo em local seguro e criptografado</li>
+                <li>Não compartilhe os dados sem autorização específica</li>
+                <li>Utilize as informações apenas para finalidades institucionais</li>
+                <li>Exclua o arquivo após o uso, se não for necessário mantê-lo</li>
+                <li>Siga as diretrizes da LGPD para proteção de dados pessoais</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmação -->
+<div id="confirmModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>
+                <i class="fas fa-shield-alt"></i>
+                Confirmação de Download
+            </h3>
+        </div>
+        
+        <div class="modal-body">
+            <div class="confirmation-text">
+                <p><strong>Atenção:</strong> Você está prestes a baixar um arquivo contendo dados pessoais e sensíveis das famílias cadastradas.</p>
+                
+                <div class="terms-section">
+                    <h4>Termos de Responsabilidade:</h4>
+                    <div class="terms-list">
+                        <div class="term-item">
+                            <i class="fas fa-lock"></i>
+                            <span>Comprometo-me a manter a confidencialidade dos dados</span>
+                        </div>
+                        <div class="term-item">
+                            <i class="fas fa-user-shield"></i>
+                            <span>Utilizarei as informações apenas para fins institucionais</span>
+                        </div>
+                        <div class="term-item">
+                            <i class="fas fa-trash-alt"></i>
+                            <span>Excluirei o arquivo após o uso, se não for necessário mantê-lo</span>
+                        </div>
+                        <div class="term-item">
+                            <i class="fas fa-gavel"></i>
+                            <span>Seguirei as diretrizes da LGPD e políticas de privacidade</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="acknowledgment">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="confirmCheckbox">
+                        <span class="checkmark"></span>
+                        <span class="checkbox-text">
+                            <strong>Eu li, compreendi e concordo</strong> com os termos de responsabilidade 
+                            sobre o uso dos dados pessoais contidos neste relatório.
+                        </span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal-footer">
+            <button id="cancelBtn" class="btn btn-secondary">
+                <i class="fas fa-times"></i>
+                Cancelar
+            </button>
+            <button id="confirmDownloadBtn" class="btn btn-danger" disabled>
+                <i class="fas fa-download"></i>
+                Confirmar Download
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-content">
+        <div class="spinner"></div>
+        <h3>Gerando Relatório...</h3>
+        <p>Por favor, aguarde enquanto compilamos os dados das famílias.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard_familias_cadastradas.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}Funcionalidade em Desenvolvimento - Formiguinhas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<style>
+    .desenvolvimento-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        color: white;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .header-text h1 {
+        font-size: 2rem;
+        margin: 0 0 0.5rem 0;
+        font-weight: 600;
+    }
+
+    .header-text p {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 1.1rem;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-secondary {
+        background-color: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .btn-secondary:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .desenvolvimento-card {
+        background: white;
+        border-radius: 15px;
+        padding: 3rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        border: 1px solid #e0e6ed;
+    }
+
+    .desenvolvimento-icon {
+        font-size: 4rem;
+        color: #667eea;
+        margin-bottom: 1.5rem;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.1);
+            opacity: 0.7;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .desenvolvimento-card h2 {
+        color: #2d3748;
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+
+    .desenvolvimento-card p {
+        color: #718096;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+    }
+
+    .feature-list {
+        list-style: none;
+        padding: 0;
+        margin: 2rem 0;
+        text-align: left;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .feature-list li {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: #4a5568;
+    }
+
+    .feature-list li:last-child {
+        border-bottom: none;
+    }
+
+    .feature-list i {
+        color: #667eea;
+        width: 20px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-size: 1.1rem;
+        padding: 1rem 2rem;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .timeline-info {
+        background: #f7fafc;
+        border-left: 4px solid #667eea;
+        padding: 1.5rem;
+        margin: 2rem 0;
+        border-radius: 0 8px 8px 0;
+    }
+
+    .timeline-info h3 {
+        color: #2d3748;
+        margin: 0 0 0.5rem 0;
+        font-size: 1.2rem;
+    }
+
+    .timeline-info p {
+        margin: 0;
+        color: #4a5568;
+    }
+
+    @media (max-width: 768px) {
+        .header-content {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .desenvolvimento-container {
+            padding: 1rem;
+        }
+
+        .desenvolvimento-card {
+            padding: 2rem 1.5rem;
+        }
+
+        .header-text h1 {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="desenvolvimento-container">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-content">
+            <div class="header-text">
+                <h1>
+                    <i class="fas fa-tools"></i>
+                    Funcionalidade em Desenvolvimento
+                </h1>
+                <p>Esta funcionalidade está sendo desenvolvida e estará disponível em breve</p>
+            </div>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Voltar ao Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Desenvolvimento Card -->
+    <div class="desenvolvimento-card">
+        <div class="desenvolvimento-icon">
+            <i class="fas fa-cogs"></i>
+        </div>
+        
+        <h2>Funcionalidade em Construção</h2>
+        <p>
+            Nossa equipe está trabalhando para implementar esta funcionalidade e torná-la disponível 
+            para melhorar ainda mais o acompanhamento das atividades do projeto Formiguinhas Solidárias.
+        </p>
+
+        <div class="timeline-info">
+            <h3><i class="fas fa-calendar-alt"></i> Cronograma de Desenvolvimento</h3>
+            <p>Esta funcionalidade está planejada para ser implementada nas próximas atualizações do sistema.</p>
+        </div>
+
+        <ul class="feature-list">
+            <li>
+                <i class="fas fa-check-circle"></i>
+                Interface moderna e intuitiva
+            </li>
+            <li>
+                <i class="fas fa-check-circle"></i>
+                Relatórios detalhados e exportáveis
+            </li>
+            <li>
+                <i class="fas fa-check-circle"></i>
+                Filtros avançados de pesquisa
+            </li>
+            <li>
+                <i class="fas fa-check-circle"></i>
+                Visualizações gráficas interativas
+            </li>
+            <li>
+                <i class="fas fa-check-circle"></i>
+                Integração com outros módulos
+            </li>
+        </ul>
+
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+            <i class="fas fa-chart-line"></i>
+            Retornar ao Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Animação de entrada
+    document.addEventListener('DOMContentLoaded', function() {
+        const card = document.querySelector('.desenvolvimento-card');
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 100);
+    });
+</script>
+{% endblock %}

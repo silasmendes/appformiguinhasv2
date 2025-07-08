@@ -9,11 +9,19 @@
 
 {% block content %}
 <div class="dashboard-header">
-    <h1>
-        <i class="fas fa-exclamation-triangle"></i>
-        Demandas Ativas
-    </h1>
-    <p>Famílias com demandas em andamento</p>
+    <div class="header-content">
+        <div class="header-text">
+            <h1>
+                <i class="fas fa-exclamation-triangle"></i>
+                Demandas Ativas
+            </h1>
+            <p>Famílias com demandas em andamento</p>
+        </div>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i>
+            Voltar ao Dashboard
+        </a>
+    </div>
 </div>
 <div class="table-responsive">
     <table id="tabelaDemandasAtivas" class="table table-hover align-middle">
