@@ -56,6 +56,7 @@ def menu_atendimento():
 @login_required
 def gerenciar_demandas_busca():
     """Exibe página de busca de família para gerenciar demandas."""
+    reset_atendimento_sessao()
     termo = request.args.get("q", "").strip()
     resultados = None
     if termo:
