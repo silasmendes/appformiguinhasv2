@@ -28,7 +28,7 @@ def login():
                 usuario.last_login_at = datetime.utcnow()
                 db.session.commit()
                 login_user(usuario)
-                return redirect(url_for('home'))
+                return redirect(url_for('menu_atendimento'))
         else:
             flash('Credenciais inválidas', 'danger')
     return render_template('login.html')
