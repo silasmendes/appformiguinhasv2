@@ -95,9 +95,11 @@
             setTimeout(() => {
                 this.style.transform = 'translateY(-3px)';
             }, 100);
-            
-            // Aqui futuramente será adicionado o redirecionamento para relatórios específicos
-            console.log('Card clicado:', this.querySelector('.card-title').textContent);
+
+            const title = this.querySelector('.card-title').textContent.trim();
+            if (title === 'Famílias com demandas ativas') {
+                window.location.href = "{{ url_for('dashboard_demandas_ativas') }}";
+            }
         });
     });
 
