@@ -102,6 +102,21 @@ def gerenciar_demandas_familia(familia_id):
     return render_template("demandas/gerenciar.html")
 
 
+@app.route("/dashboard")
+@login_required
+def dashboard():
+    """Renderiza a página do dashboard."""
+    # Dados mock para demonstração
+    dados_dashboard = {
+        'total_familias': 48,
+        'familias_atendidas_30_dias': 26,
+        'entregas_cestas_30_dias': 24,
+        'bairro_mais_atendimentos': 'Campo Belo',
+        'familias_demandas_ativas': 5,
+        'familias_maior_vulnerabilidade': 7
+    }
+    return render_template("dashboards/dashboard.html", dados=dados_dashboard)
+
 
 if __name__ == "__main__":
     app.run(debug=True)

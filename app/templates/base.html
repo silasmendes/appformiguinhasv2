@@ -23,6 +23,7 @@
             <ul class="navbar-nav align-items-center">
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('menu_atendimento') }}">Atendimento à Família</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('gerenciar_demandas_busca') }}">Gerenciar demandas</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a></li>
                 {% if current_user.is_authenticated and current_user.tipo == 'admin' %}
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('usuarios.listar_usuarios') }}">Gerenciar logins</a></li>                
                 {% endif %}

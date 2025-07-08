@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Formiguinhas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>
+        <i class="fas fa-chart-line"></i>
+        Dashboard de Monitoramento
+    </h1>
+    <p>Visão geral das atividades e indicadores do projeto Formiguinhas Solidárias</p>
+</div>
+
+<div class="dashboard-grid">
+    <!-- Total de Famílias Cadastradas -->
+    <div class="dashboard-card">
+        <div class="card-icon primary">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="card-title">Quantidade total de famílias cadastradas</div>
+        <div class="card-value">{{ dados.total_familias }}</div>
+        <div class="card-subtitle">Total acumulado</div>
+    </div>
+
+    <!-- Famílias Atendidas nos Últimos 30 Dias -->
+    <div class="dashboard-card">
+        <div class="card-icon success">
+            <i class="fas fa-calendar-check"></i>
+        </div>
+        <div class="card-title">Quantidade famílias atendidas nos últimos 30 dias</div>
+        <div class="card-value">{{ dados.familias_atendidas_30_dias }}</div>
+        <div class="card-subtitle">Últimos 30 dias</div>
+    </div>
+
+    <!-- Entregas de Cestas -->
+    <div class="dashboard-card">
+        <div class="card-icon warning">
+            <i class="fas fa-box"></i>
+        </div>
+        <div class="card-title">Entregas de cestas realizadas nos últimos 30 dias</div>
+        <div class="card-value">{{ dados.entregas_cestas_30_dias }}</div>
+        <div class="card-subtitle">Últimos 30 dias</div>
+    </div>
+
+    <!-- Bairros com Maior Número de Atendimentos -->
+    <div class="dashboard-card">
+        <div class="card-icon info">
+            <i class="fas fa-map-marker-alt"></i>
+        </div>
+        <div class="card-title">Bairros com maior número de atendimentos</div>
+        <div class="card-value" style="font-size: 1.8rem;">{{ dados.bairro_mais_atendimentos }}</div>
+        <div class="card-subtitle">Região prioritária</div>
+    </div>
+
+    <!-- Famílias com Demandas Ativas -->
+    <div class="dashboard-card">
+        <div class="card-icon danger">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="card-title">Famílias com demandas ativas</div>
+        <div class="card-value">{{ dados.familias_demandas_ativas }}</div>
+        <div class="card-subtitle">Requer atenção</div>
+    </div>
+
+    <!-- Famílias em Situação de Maior Vulnerabilidade -->
+    <div class="dashboard-card">
+        <div class="card-icon critical">
+            <i class="fas fa-heartbeat"></i>
+        </div>
+        <div class="card-title">Famílias em situação de maior vulnerabilidade</div>
+        <div class="card-value">{{ dados.familias_maior_vulnerabilidade }}</div>
+        <div class="card-subtitle">Prioridade máxima</div>
+    </div>
+</div>
+
+<!-- Seção de Relatórios Futuros -->
+<div class="coming-soon">
+    <i class="fas fa-chart-pie"></i>
+    <h3>Relatórios Detalhados</h3>
+    <p>Em breve: gráficos interativos, relatórios exportáveis e análises avançadas dos dados</p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Adicionar interatividade aos cards (preparação para links futuros)
+    document.querySelectorAll('.dashboard-card').forEach(card => {
+        card.addEventListener('click', function() {
+            // Efeito visual de clique
+            this.style.transform = 'translateY(-1px)';
+            setTimeout(() => {
+                this.style.transform = 'translateY(-3px)';
+            }, 100);
+            
+            // Aqui futuramente será adicionado o redirecionamento para relatórios específicos
+            console.log('Card clicado:', this.querySelector('.card-title').textContent);
+        });
+    });
+
+    // Animação de entrada dos cards
+    const cards = document.querySelectorAll('.dashboard-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+</script>
+{% endblock %}
