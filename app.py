@@ -205,56 +205,17 @@ def download_familias_cadastradas():
     from flask import send_file
     
     try:
-        # Query simplificada para evitar problemas com JSON no SQL Server
-        sql_query = text("""
-            SELECT 
-                f.familia_id,
-                f.nome_responsavel,
-                f.cpf,
-                f.data_nascimento,
-                f.telefone_principal,
-                f.email,
-                f.data_cadastro,
-                e.logradouro,
-                e.numero,
-                e.complemento,
-                e.bairro,
-                e.cidade,
-                e.estado,
-                e.cep,
-                c.telefone_alternativo,
-                c.telefone_emergencia,
-                c.contato_emergencia_nome,
-                cf.total_pessoas,
-                cf.criancas_0_5,
-                cf.criancas_6_12,
-                cf.adolescentes_13_17,
-                cf.adultos_18_59,
-                cf.idosos_60_mais,
-                cm.tipo_moradia,
-                cm.situacao_moradia,
-                cm.num_comodos,
-                ed.escolaridade,
-                ed.sabe_ler_escrever,
-                ep.situacao_trabalho,
-                ep.profissao,
-                ep.renda_mensal,
-                rf.renda_total_familiar,
-                rf.beneficios_sociais,
-                sf.problema_saude_familia,
-                sf.medicacao_continua,
-                sf.deficiencia_familia
-            FROM familias f
-            LEFT JOIN enderecos e ON f.familia_id = e.familia_id
-            LEFT JOIN contatos c ON f.familia_id = c.familia_id
-            LEFT JOIN composicao_familiar cf ON f.familia_id = cf.familia_id
-            LEFT JOIN condicoes_moradia cm ON f.familia_id = cm.familia_id
-            LEFT JOIN educacao_entrevistado ed ON f.familia_id = ed.familia_id
-            LEFT JOIN emprego_provedor ep ON f.familia_id = ep.familia_id
-            LEFT JOIN renda_familiar rf ON f.familia_id = rf.familia_id
-            LEFT JOIN saude_familiar sf ON f.familia_id = sf.familia_id
-            ORDER BY f.familia_id
-        """)
+        import os
+
+        sql_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "reference_inputs",
+            "sql",
+            "migracao_familias_e_relacionamentos.sql",
+        )
+
+        with open(sql_path, "r", encoding="utf-8") as f:
+            sql_query = text(f.read())
         
         # Executar query e converter para DataFrame
         resultados = db.session.execute(sql_query).mappings().all()
@@ -316,7 +277,7 @@ def download_familias_cadastradas():
         output = BytesIO()
         
         # Criar arquivo Excel
-        with pd.ExcelWriter(output, engine='openpyxl', options={'remove_timezone': True}) as writer:
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
             # Aba principal com todos os dados
             df.to_excel(writer, sheet_name='Dados_Familias', index=False)
             
