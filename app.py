@@ -1,7 +1,10 @@
-from flask import render_template, session, request, redirect, url_for, flash
+from flask import render_template, session, request, redirect, url_for, flash, send_file, jsonify
 from flask_login import login_required
 from app.routes.usuarios import admin_required
 import json
+import os
+import pandas as pd
+from io import BytesIO
 from datetime import datetime
 from app import create_app
 from app import db
@@ -199,14 +202,8 @@ def dashboard_em_desenvolvimento():
 @admin_required
 def download_familias_cadastradas():
     """Download de arquivo Excel com dados completos das famílias."""
-    from datetime import datetime
-    import pandas as pd
-    from io import BytesIO
-    from flask import send_file
-    
     try:
-        import os
-
+        # Obter caminho do arquivo SQL
         sql_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
             "reference_inputs",
@@ -214,23 +211,45 @@ def download_familias_cadastradas():
             "migracao_familias_e_relacionamentos.sql",
         )
 
+        # Verificar se o arquivo SQL existe
+        if not os.path.exists(sql_path):
+            print(f"Arquivo SQL não encontrado: {sql_path}")
+            return jsonify({"error": "Arquivo de consulta não encontrado"}), 500
+
+        # Ler e executar a query SQL
         with open(sql_path, "r", encoding="utf-8") as f:
             sql_query = text(f.read())
         
+        print("Executando query SQL...")
         # Executar query e converter para DataFrame
         resultados = db.session.execute(sql_query).mappings().all()
+        print(f"Query executada com sucesso. {len(resultados)} registros encontrados.")
         
         if not resultados:
-            flash("Nenhum dado encontrado para exportação.", "warning")
-            return redirect(url_for("dashboard_familias_cadastradas"))
+            return jsonify({"error": "Nenhum dado encontrado para exportação"}), 404
         
         # Converter para lista de dicionários
         dados = [dict(r) for r in resultados]
         
         # Criar DataFrame
         df = pd.DataFrame(dados)
+        print(f"DataFrame criado com {len(df)} linhas e {len(df.columns)} colunas.")
         
-        # Renomear colunas para português
+        # Converter campos de datetime com timezone para timezone-unaware
+        for column in df.columns:
+            if df[column].dtype == 'object':
+                # Verificar se a coluna contém datetimes com timezone
+                sample_values = df[column].dropna().head(5)
+                if len(sample_values) > 0:
+                    first_value = sample_values.iloc[0]
+                    if hasattr(first_value, 'tzinfo') and first_value.tzinfo is not None:
+                        print(f"Convertendo coluna {column} para timezone-unaware...")
+                        df[column] = pd.to_datetime(df[column], errors='ignore').dt.tz_localize(None)
+            elif 'datetime64[ns, ' in str(df[column].dtype):
+                print(f"Convertendo coluna {column} para timezone-unaware...")
+                df[column] = df[column].dt.tz_localize(None)
+        
+        # Renomear colunas para português (mapeamento básico - pode ser expandido)
         colunas_pt = {
             'familia_id': 'ID Família',
             'nome_responsavel': 'Nome do Responsável',
@@ -245,34 +264,14 @@ def download_familias_cadastradas():
             'bairro': 'Bairro',
             'cidade': 'Cidade',
             'estado': 'Estado',
-            'cep': 'CEP',
-            'telefone_alternativo': 'Telefone Alternativo',
-            'telefone_emergencia': 'Telefone Emergência',
-            'contato_emergencia_nome': 'Nome Contato Emergência',
-            'total_pessoas': 'Total de Pessoas',
-            'criancas_0_5': 'Crianças 0-5 anos',
-            'criancas_6_12': 'Crianças 6-12 anos',
-            'adolescentes_13_17': 'Adolescentes 13-17 anos',
-            'adultos_18_59': 'Adultos 18-59 anos',
-            'idosos_60_mais': 'Idosos 60+ anos',
-            'tipo_moradia': 'Tipo de Moradia',
-            'situacao_moradia': 'Situação da Moradia',
-            'num_comodos': 'Número de Cômodos',
-            'escolaridade': 'Escolaridade',
-            'sabe_ler_escrever': 'Sabe Ler/Escrever',
-            'situacao_trabalho': 'Situação de Trabalho',
-            'profissao': 'Profissão',
-            'renda_mensal': 'Renda Mensal',
-            'renda_total_familiar': 'Renda Total Familiar',
-            'beneficios_sociais': 'Benefícios Sociais',
-            'problema_saude_familia': 'Problemas de Saúde',
-            'medicacao_continua': 'Medicação Contínua',
-            'deficiencia_familia': 'Deficiência na Família'
+            'cep': 'CEP'
         }
         
-        # Aplicar nomes das colunas em português
-        df = df.rename(columns=colunas_pt)
+        # Aplicar renomeação apenas para colunas que existem
+        colunas_existentes = {k: v for k, v in colunas_pt.items() if k in df.columns}
+        df = df.rename(columns=colunas_existentes)
         
+        print("Criando arquivo Excel...")
         # Criar buffer em memória para o arquivo Excel
         output = BytesIO()
         
@@ -291,19 +290,21 @@ def download_familias_cadastradas():
                 column_letter = column[0].column_letter
                 for cell in column:
                     try:
-                        if len(str(cell.value)) > max_length:
+                        if cell.value and len(str(cell.value)) > max_length:
                             max_length = len(str(cell.value))
                     except:
                         pass
-                adjusted_width = min(max_length + 2, 50)
+                adjusted_width = min(max(max_length + 2, 10), 50)
                 worksheet.column_dimensions[column_letter].width = adjusted_width
         
         output.seek(0)
+        print("Arquivo Excel criado com sucesso.")
         
         # Gerar nome do arquivo com data atual
         data_atual = datetime.now().strftime("%Y_%m_%d")
         nome_arquivo = f"migracao_familias_{data_atual}.xlsx"
         
+        print(f"Enviando arquivo: {nome_arquivo}")
         return send_file(
             output,
             as_attachment=True,
@@ -312,9 +313,13 @@ def download_familias_cadastradas():
         )
         
     except Exception as e:
-        print(f"Erro detalhado: {str(e)}")  # Para debug
-        flash(f"Erro ao gerar arquivo: {str(e)}", "danger")
-        return redirect(url_for("dashboard_familias_cadastradas"))
+        print(f"Erro detalhado no download: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        # Retornar erro em JSON para requisições AJAX
+        return jsonify({
+            "error": f"Erro ao gerar arquivo: {str(e)}"
+        }), 500
 
 
 if __name__ == "__main__":

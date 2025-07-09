@@ -120,16 +120,33 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch(downloadUrl, {
             method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
+                'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             }
         })
         .then(response => {
             if (!response.ok) {
-                throw new Error('Erro na requisição: ' + response.status);
+                // Se a resposta não for ok, tentar ler como JSON para obter a mensagem de erro
+                return response.json().then(errorData => {
+                    throw new Error(errorData.error || `Erro na requisição: ${response.status}`);
+                }).catch(() => {
+                    throw new Error(`Erro na requisição: ${response.status}`);
+                });
             }
+            
+            // Verificar se o Content-Type é realmente um arquivo Excel
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('spreadsheetml')) {
+                throw new Error('Resposta não é um arquivo Excel válido');
+            }
+            
             return response.blob();
         })
         .then(blob => {
+            // Verificar se o blob tem o tamanho adequado
+            if (blob.size === 0) {
+                throw new Error('Arquivo vazio recebido');
+            }
+            
             // Criar URL temporária para o blob
             const url = window.URL.createObjectURL(blob);
             
