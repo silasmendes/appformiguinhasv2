@@ -203,37 +203,98 @@ def dashboard_em_desenvolvimento():
 def download_familias_cadastradas():
     """Download de arquivo Excel com dados completos das famílias."""
     try:
-        # Obter caminho do arquivo SQL
-        sql_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),
-            "reference_inputs",
-            "sql",
-            "migracao_familias_e_relacionamentos.sql",
-        )
-
-        # Verificar se o arquivo SQL existe
-        if not os.path.exists(sql_path):
-            print(f"Arquivo SQL não encontrado: {sql_path}")
-            return jsonify({"error": "Arquivo de consulta não encontrado"}), 500
-
-        # Ler e executar a query SQL
-        with open(sql_path, "r", encoding="utf-8") as f:
-            sql_query = text(f.read())
+        print(f"Iniciando download de famílias - Ambiente: {os.name}")
+        print(f"Diretório atual: {os.getcwd()}")
+        print(f"Arquivo main.py: {os.path.abspath(__file__)}")
+        
+        # Query SQL embarcada para garantir compatibilidade cross-platform
+        sql_query_string = """
+        SELECT 
+            f.*, 
+            e.*, 
+            c.*, 
+            cf.*, 
+            cm.*, 
+            ed.*, 
+            ep.*, 
+            rf.*, 
+            sf.*,
+            demandas_json.demandas,
+            atendimentos_json.atendimentos
+        FROM familias f
+        LEFT JOIN enderecos e ON f.familia_id = e.familia_id
+        LEFT JOIN contatos c ON f.familia_id = c.familia_id
+        LEFT JOIN composicao_familiar cf ON f.familia_id = cf.familia_id
+        LEFT JOIN condicoes_moradia cm ON f.familia_id = cm.familia_id
+        LEFT JOIN educacao_entrevistado ed ON f.familia_id = ed.familia_id
+        LEFT JOIN emprego_provedor ep ON f.familia_id = ep.familia_id
+        LEFT JOIN renda_familiar rf ON f.familia_id = rf.familia_id
+        LEFT JOIN saude_familiar sf ON f.familia_id = sf.familia_id
+        OUTER APPLY (
+            SELECT 
+                df.demanda_id,
+                df.familia_id,
+                df.demanda_tipo_id,
+                dt.demanda_tipo_nome,
+                df.status,
+                df.descricao,
+                df.data_identificacao,
+                df.prioridade,
+                de.data_atualizacao,
+                de.status_atual,
+                de.observacao,
+                de.usuario_atualizacao
+            FROM demanda_familia df
+            INNER JOIN demanda_tipo dt ON df.demanda_tipo_id = dt.demanda_tipo_id
+            INNER JOIN demanda_etapa de ON df.demanda_id = de.demanda_id
+            WHERE df.familia_id = f.familia_id
+            FOR JSON PATH
+        ) AS demandas_json(demandas)
+        OUTER APPLY (
+            SELECT 
+                a.*
+            FROM atendimentos a
+            WHERE a.familia_id = f.familia_id
+            FOR JSON PATH
+        ) AS atendimentos_json(atendimentos)
+        """
+        
+        print("Usando query SQL embarcada...")
+        try:
+            sql_query = text(sql_query_string)
+        except Exception as e:
+            print(f"Erro ao criar query SQL: {str(e)}")
+            return jsonify({"error": "Erro na consulta SQL"}), 500
         
         print("Executando query SQL...")
-        # Executar query e converter para DataFrame
-        resultados = db.session.execute(sql_query).mappings().all()
-        print(f"Query executada com sucesso. {len(resultados)} registros encontrados.")
+        try:
+            resultados = db.session.execute(sql_query).mappings().all()
+            print(f"Query executada com sucesso. {len(resultados)} registros encontrados.")
+        except Exception as e:
+            print(f"Erro ao executar query SQL: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({"error": f"Erro na execução da consulta: {str(e)}"}), 500
         
         if not resultados:
+            print("Nenhum dado encontrado na base de dados.")
             return jsonify({"error": "Nenhum dado encontrado para exportação"}), 404
         
         # Converter para lista de dicionários
-        dados = [dict(r) for r in resultados]
+        try:
+            dados = [dict(r) for r in resultados]
+            print(f"Dados convertidos: {len(dados)} registros")
+        except Exception as e:
+            print(f"Erro ao converter dados: {str(e)}")
+            return jsonify({"error": "Erro ao processar dados"}), 500
         
         # Criar DataFrame
-        df = pd.DataFrame(dados)
-        print(f"DataFrame criado com {len(df)} linhas e {len(df.columns)} colunas.")
+        try:
+            df = pd.DataFrame(dados)
+            print(f"DataFrame criado com {len(df)} linhas e {len(df.columns)} colunas.")
+        except Exception as e:
+            print(f"Erro ao criar DataFrame: {str(e)}")
+            return jsonify({"error": "Erro ao criar planilha"}), 500
         
         # Converter campos de datetime com timezone para timezone-unaware
         for column in df.columns:
@@ -272,46 +333,61 @@ def download_familias_cadastradas():
         df = df.rename(columns=colunas_existentes)
         
         print("Criando arquivo Excel...")
-        # Criar buffer em memória para o arquivo Excel
-        output = BytesIO()
-        
-        # Criar arquivo Excel
-        with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            # Aba principal com todos os dados
-            df.to_excel(writer, sheet_name='Dados_Familias', index=False)
+        try:
+            # Criar buffer em memória para o arquivo Excel
+            output = BytesIO()
             
-            # Obter o workbook e worksheet para formatação
-            workbook = writer.book
-            worksheet = writer.sheets['Dados_Familias']
+            # Criar arquivo Excel
+            with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                # Aba principal com todos os dados
+                df.to_excel(writer, sheet_name='Dados_Familias', index=False)
+                
+                # Obter o workbook e worksheet para formatação
+                workbook = writer.book
+                worksheet = writer.sheets['Dados_Familias']
+                
+                # Ajustar largura das colunas
+                for column in worksheet.columns:
+                    max_length = 0
+                    column_letter = column[0].column_letter
+                    for cell in column:
+                        try:
+                            if cell.value and len(str(cell.value)) > max_length:
+                                max_length = len(str(cell.value))
+                        except:
+                            pass
+                    adjusted_width = min(max(max_length + 2, 10), 50)
+                    worksheet.column_dimensions[column_letter].width = adjusted_width
             
-            # Ajustar largura das colunas
-            for column in worksheet.columns:
-                max_length = 0
-                column_letter = column[0].column_letter
-                for cell in column:
-                    try:
-                        if cell.value and len(str(cell.value)) > max_length:
-                            max_length = len(str(cell.value))
-                    except:
-                        pass
-                adjusted_width = min(max(max_length + 2, 10), 50)
-                worksheet.column_dimensions[column_letter].width = adjusted_width
-        
-        output.seek(0)
-        print("Arquivo Excel criado com sucesso.")
+            output.seek(0)
+            print("Arquivo Excel criado com sucesso.")
+        except Exception as e:
+            print(f"Erro ao criar arquivo Excel: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({"error": f"Erro ao gerar arquivo Excel: {str(e)}"}), 500
         
         # Gerar nome do arquivo com data atual
-        data_atual = datetime.now().strftime("%Y_%m_%d")
-        nome_arquivo = f"migracao_familias_{data_atual}.xlsx"
+        try:
+            data_atual = datetime.now().strftime("%Y_%m_%d")
+            nome_arquivo = f"migracao_familias_{data_atual}.xlsx"
+            
+            print(f"Enviando arquivo: {nome_arquivo}")
+            return send_file(
+                output,
+                as_attachment=True,
+                download_name=nome_arquivo,
+                mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+        except Exception as e:
+            print(f"Erro ao enviar arquivo: {str(e)}")
+            return jsonify({"error": f"Erro ao enviar arquivo: {str(e)}"}), 500
         
-        print(f"Enviando arquivo: {nome_arquivo}")
-        return send_file(
-            output,
-            as_attachment=True,
-            download_name=nome_arquivo,
-            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-        
+    except FileNotFoundError as e:
+        print(f"Erro de arquivo não encontrado: {str(e)}")
+        return jsonify({
+            "error": "Arquivo de consulta não encontrado"
+        }), 500
     except Exception as e:
         print(f"Erro detalhado no download: {str(e)}")
         import traceback
