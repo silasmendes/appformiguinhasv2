@@ -1,0 +1,36 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Ambientes virtuais
+venv/
+env/
+.venv/
+
+# Arquivos sensíveis e variáveis de ambiente
+.env
+*.env
+
+# IDEs e arquivos do sistema
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Arquivos de banco/local
+*.db
+*.sqlite3
+instance/
+flask_session/
+
+# Scripts locais
+*.ps1
+*.bat
+
+# Testes e dados auxiliares
+tests/
+seeds/
+reference_inputs/
+
+# Git
+.git
+.gitignore
