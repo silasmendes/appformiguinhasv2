@@ -219,13 +219,15 @@ def test_cadastro_nova_familia():
         context = browser.new_context()
         page = context.new_page()
 
-        page.goto("http://127.0.0.1:5000/")
+        # page.goto("http://127.0.0.1:5000/")
+        page.goto("https://formiguinhasbr-a4g2cxeycmh8f7gy.brazilsouth-01.azurewebsites.net/")
         page.fill("input#login", "admin")
         page.fill("input#senha", os.getenv("SENHA_ADMIN"))
         page.click("button[type='submit']")
         page.wait_for_load_state("networkidle")
 
-        page.goto("http://127.0.0.1:5000/menu_atendimento")
+        # page.goto("http://127.0.0.1:5000/menu_atendimento")
+        page.goto("https://formiguinhasbr-a4g2cxeycmh8f7gy.brazilsouth-01.azurewebsites.net/menu_atendimento")
         page.click("#btnNovaFamilia")
 
         # Etapa 1 - dados pessoais
