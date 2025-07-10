@@ -75,6 +75,7 @@ def atendimento_familia(familia_id):
 
     cadastro = get_cadastro()
     session['familia_id'] = familia_id
+    session['resumo_expandido'] = 1  # Sempre iniciar expandido
     cadastro['novo_cadastro'] = 0
 
     cadastro.update({
@@ -389,6 +390,22 @@ def atendimento_etapa10():
         session['cadastro'] = cadastro
         return redirect(url_for('fluxo_atendimento.atendimento_etapa11'))
     return render_template('atendimento/etapa10_outras_necessidades.html', etapa_atual=10, etapas=ETAPAS)
+
+
+@bp.route('/toggle_resumo_familia', methods=['POST'])
+@login_required
+def toggle_resumo_familia():
+    """Alterna o estado do resumo da família (expandido/recolhido)"""
+    from flask import jsonify
+    
+    current_state = session.get('resumo_expandido', 1)
+    # Inverte o estado: 1 -> 0, 0 -> 1
+    session['resumo_expandido'] = 1 - current_state
+    
+    return jsonify({
+        'success': True,
+        'resumo_expandido': session['resumo_expandido']
+    })
 
 
 @bp.route('/atendimento/etapa11', methods=['GET', 'POST'])

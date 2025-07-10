@@ -9,50 +9,45 @@ document.addEventListener('DOMContentLoaded', function() {
         return; // Elementos não encontrados, não fazer nada
     }
     
-    // Recuperar estado do localStorage
-    const isCollapsed = localStorage.getItem('familySummaryCollapsed') === 'true';
-    
-    // Aplicar estado inicial SEM animação para evitar efeito visual
-    if (isCollapsed) {
-        // Adicionar classe para desabilitar transições
-        familySummary.classList.add('no-transition');
-        
-        familySummary.classList.add('collapsed');
-        toggleButton.classList.add('collapsed');
-        summaryContent.classList.add('collapsed');
-        if (summaryArrow) {
-            summaryArrow.classList.add('collapsed');
-        }
-        
-        // Remover classe de transição após aplicar o estado
-        setTimeout(() => {
-            familySummary.classList.remove('no-transition');
-        }, 50);
-    }
-    
-    // Função para alternar o estado
+    // Função para alternar o estado via Flask
     function toggleSummary() {
-        const isCurrentlyCollapsed = familySummary.classList.contains('collapsed');
-        
-        if (isCurrentlyCollapsed) {
-            // Expandir
-            familySummary.classList.remove('collapsed');
-            toggleButton.classList.remove('collapsed');
-            summaryContent.classList.remove('collapsed');
-            if (summaryArrow) {
-                summaryArrow.classList.remove('collapsed');
+        // Fazer requisição POST para a rota Flask
+        fetch('/toggle_resumo_familia', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || ''
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Atualizar o estado visual baseado na resposta do servidor
+                const isExpanded = data.resumo_expandido === 1;
+                
+                if (isExpanded) {
+                    // Expandir
+                    familySummary.classList.remove('collapsed');
+                    toggleButton.classList.remove('collapsed');
+                    summaryContent.classList.remove('collapsed');
+                    if (summaryArrow) {
+                        summaryArrow.classList.remove('collapsed');
+                    }
+                } else {
+                    // Recolher
+                    familySummary.classList.add('collapsed');
+                    toggleButton.classList.add('collapsed');
+                    summaryContent.classList.add('collapsed');
+                    if (summaryArrow) {
+                        summaryArrow.classList.add('collapsed');
+                    }
+                }
             }
-            localStorage.setItem('familySummaryCollapsed', 'false');
-        } else {
-            // Recolher
-            familySummary.classList.add('collapsed');
-            toggleButton.classList.add('collapsed');
-            summaryContent.classList.add('collapsed');
-            if (summaryArrow) {
-                summaryArrow.classList.add('collapsed');
-            }
-            localStorage.setItem('familySummaryCollapsed', 'true');
-        }
+        })
+        .catch(error => {
+            console.error('Erro ao alternar resumo da família:', error);
+        });
     }
     
     // Adicionar event listener para o botão

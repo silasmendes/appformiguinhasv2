@@ -35,6 +35,7 @@ def reset_atendimento_sessao():
     session.pop("cadastro", None)
     session.pop("cadastro_inicio", None)
     session.pop("familia_id", None)
+    session.pop("resumo_expandido", None)  # Limpar estado do resumo
 
 
 def _bool_to_sim_nao(valor):

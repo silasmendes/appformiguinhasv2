@@ -48,20 +48,20 @@
 
 <!-- Resumo da Família (Colapsável) -->
 {% if session.get('familia_id') and (request.path.startswith('/atendimento/') or request.path.startswith('/gerenciar_demandas')) and session.get('cadastro', {}).get('novo_cadastro') == 0 %}
-<div id="familySummary" class="family-summary">
+<div id="familySummary" class="family-summary{% if session.get('resumo_expandido', 1) == 0 %} collapsed{% endif %}">
     <div class="family-summary-header">
         <div class="d-flex align-items-center">
-            <i class="fas fa-chevron-down family-summary-arrow me-2"></i>
+            <i class="fas fa-chevron-down family-summary-arrow me-2{% if session.get('resumo_expandido', 1) == 0 %} collapsed{% endif %}"></i>
             <span class="me-2">📋</span>
             <span>Resumo da família em atendimento</span>
             <span class="family-summary-badge ms-2">ID: {{ session.get('familia_id') }}</span>
             <small class="text-muted ms-2">(clique para expandir/recolher)</small>
         </div>
-        <button id="familySummaryToggle" class="family-summary-toggle">
+        <button id="familySummaryToggle" class="family-summary-toggle{% if session.get('resumo_expandido', 1) == 0 %} collapsed{% endif %}">
             <i class="fas fa-chevron-down"></i>
         </button>
     </div>
-    <div id="familySummaryContent" class="family-summary-content">
+    <div id="familySummaryContent" class="family-summary-content{% if session.get('resumo_expandido', 1) == 0 %} collapsed{% endif %}">
         {% set cadastro = session.get('cadastro', {}) %}
         {% set resumo_ai = gerar_resumo_familia(cadastro) %}
         
