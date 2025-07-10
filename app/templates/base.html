@@ -106,10 +106,54 @@
 </footer>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ url_for('static', filename='js/resumo_familia.js') }}"></script>
+<script src="{{ url_for('static', filename='js/keyboard_navigation.js') }}"></script>
 <script>
     window.sessionCadastro = {{ session.get('cadastro', {}) | tojson | safe }};
     window.sessionFamiliaId = {{ session.get('familia_id') | tojson }};
     console.log('Estado atual da sessão:', window.sessionCadastro);
+    
+    // Navegação por teclado entre etapas
+    document.addEventListener('keydown', function(event) {
+        // Verificar se é possível navegar (novo_cadastro == 0)
+        if (!window.sessionCadastro || window.sessionCadastro.novo_cadastro !== 0) {
+            return;
+        }
+        
+        // Verificar se ALT está pressionado (sem outras teclas modificadoras)
+        if (event.altKey && !event.ctrlKey && !event.shiftKey && !event.metaKey) {
+            let targetEtapa = null;
+            
+            // Mapear as teclas para as etapas
+            const keyMap = {
+                'Digit1': 1, 'Digit2': 2, 'Digit3': 3, 'Digit4': 4, 'Digit5': 5,
+                'Digit6': 6, 'Digit7': 7, 'Digit8': 8, 'Digit9': 9,
+                'KeyQ': 10, 'KeyW': 11
+            };
+            
+            targetEtapa = keyMap[event.code];
+            
+            // Verificar se a etapa é válida (1-11)
+            if (targetEtapa && targetEtapa >= 1 && targetEtapa <= 11) {
+                event.preventDefault();
+                
+                // Construir URL da etapa
+                const baseUrl = '{{ url_for("fluxo_atendimento.atendimento_etapa1") }}';
+                const etapaUrl = baseUrl.replace('etapa1', 'etapa' + targetEtapa);
+                
+                // Adicionar feedback visual momentâneo
+                const body = document.body;
+                body.style.transition = 'opacity 0.1s ease';
+                body.style.opacity = '0.8';
+                
+                setTimeout(() => {
+                    body.style.opacity = '1';
+                }, 100);
+                
+                // Redirecionar para a etapa
+                window.location.href = etapaUrl;
+            }
+        }
+    });
 </script>
 {% block extra_js %}{% endblock %}
 </body>

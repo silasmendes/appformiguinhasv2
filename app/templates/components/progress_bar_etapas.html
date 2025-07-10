@@ -4,7 +4,13 @@
         {% for nome in etapas %}
         {% set num = loop.index %}
         <li class="timeline-item {% if num == etapa_atual %}active{% elif num < etapa_atual %}complete{% endif %}">
-            <div class="circle">{{ num }}</div>
+            {% if session.get('cadastro', {}).get('novo_cadastro') == 0 %}
+                <a href="{{ url_for('fluxo_atendimento.atendimento_etapa' + num|string) }}" class="circle-link">
+                    <div class="circle">{{ num }}</div>
+                </a>
+            {% else %}
+                <div class="circle">{{ num }}</div>
+            {% endif %}
             <div class="timeline-label">{{ nome }}</div>
         </li>
         {% endfor %}
@@ -17,7 +23,13 @@
         <!-- Sempre mostrar a primeira etapa se não for a atual -->
         {% if etapa_atual > 1 %}
         <li class="timeline-item complete">
-            <div class="circle">1</div>
+            {% if session.get('cadastro', {}).get('novo_cadastro') == 0 %}
+                <a href="{{ url_for('fluxo_atendimento.atendimento_etapa1') }}" class="circle-link">
+                    <div class="circle">1</div>
+                </a>
+            {% else %}
+                <div class="circle">1</div>
+            {% endif %}
             <div class="timeline-label">{{ etapas[0] }}</div>
         </li>
         {% endif %}
@@ -33,7 +45,13 @@
         <!-- Mostrar etapa anterior se existir e não for a primeira -->
         {% if etapa_atual > 2 %}
         <li class="timeline-item complete">
-            <div class="circle">{{ etapa_atual - 1 }}</div>
+            {% if session.get('cadastro', {}).get('novo_cadastro') == 0 %}
+                <a href="{{ url_for('fluxo_atendimento.atendimento_etapa' + (etapa_atual - 1)|string) }}" class="circle-link">
+                    <div class="circle">{{ etapa_atual - 1 }}</div>
+                </a>
+            {% else %}
+                <div class="circle">{{ etapa_atual - 1 }}</div>
+            {% endif %}
             <div class="timeline-label">{{ etapas[etapa_atual - 2] }}</div>
         </li>
         {% endif %}
@@ -47,7 +65,13 @@
         <!-- Mostrar próxima etapa se existir e não for a última -->
         {% if etapa_atual < total_etapas and etapa_atual < total_etapas - 1 %}
         <li class="timeline-item">
-            <div class="circle">{{ etapa_atual + 1 }}</div>
+            {% if session.get('cadastro', {}).get('novo_cadastro') == 0 %}
+                <a href="{{ url_for('fluxo_atendimento.atendimento_etapa' + (etapa_atual + 1)|string) }}" class="circle-link">
+                    <div class="circle">{{ etapa_atual + 1 }}</div>
+                </a>
+            {% else %}
+                <div class="circle">{{ etapa_atual + 1 }}</div>
+            {% endif %}
             <div class="timeline-label">{{ etapas[etapa_atual] }}</div>
         </li>
         {% endif %}
@@ -63,7 +87,13 @@
         <!-- Sempre mostrar a última etapa se não for a atual -->
         {% if etapa_atual < total_etapas %}
         <li class="timeline-item">
-            <div class="circle">{{ total_etapas }}</div>
+            {% if session.get('cadastro', {}).get('novo_cadastro') == 0 %}
+                <a href="{{ url_for('fluxo_atendimento.atendimento_etapa' + total_etapas|string) }}" class="circle-link">
+                    <div class="circle">{{ total_etapas }}</div>
+                </a>
+            {% else %}
+                <div class="circle">{{ total_etapas }}</div>
+            {% endif %}
             <div class="timeline-label">{{ etapas[total_etapas - 1] }}</div>
         </li>
         {% endif %}
