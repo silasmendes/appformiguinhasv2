@@ -1,0 +1,21 @@
+{
+  "name": "Flask API com ODBC",
+  "build": {
+    "dockerfile": "../Dockerfile"
+  },
+  "forwardPorts": [5000],
+  "postCreateCommand": "pip install --no-cache-dir -r requirements.txt",
+  "remoteUser": "root",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-azuretools.vscode-docker"
+      ]
+    }
+  }
+}
