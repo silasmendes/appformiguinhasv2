@@ -162,12 +162,35 @@ def dashboard():
     resultado_cestas = db.session.execute(sql_entregas_cestas_30_dias).mappings().first()
     total_entregas_cestas_30_dias = resultado_cestas['total_entregas_cestas_30_dias'] if resultado_cestas else 0
     
+    # Calcular número de famílias sem atendimento nos últimos 3 meses (cadastradas no último ano)
+    sql_familias_sem_atendimento_recente = text(
+        """
+        SELECT COUNT(*) as total_familias_sem_atendimento_recente
+        FROM familias f
+        LEFT JOIN (
+            SELECT 
+                familia_id, 
+                MAX(data_hora_atendimento) as ultima_data_atendimento
+            FROM atendimentos 
+            GROUP BY familia_id
+        ) ultimo_atendimento ON f.familia_id = ultimo_atendimento.familia_id
+        WHERE f.data_hora_log_utc >= DATEADD(YEAR, -1, GETDATE())
+        AND (
+            ultimo_atendimento.ultima_data_atendimento IS NULL 
+            OR ultimo_atendimento.ultima_data_atendimento < DATEADD(DAY, -90, GETDATE())
+        )
+        """
+    )
+    
+    resultado_sem_atendimento = db.session.execute(sql_familias_sem_atendimento_recente).mappings().first()
+    total_familias_sem_atendimento_recente = resultado_sem_atendimento['total_familias_sem_atendimento_recente'] if resultado_sem_atendimento else 0
+    
     # Dados mock para demonstração (outros valores podem ser calculados dinamicamente no futuro)
     dados_dashboard = {
         'total_familias': 48,
         'familias_atendidas_30_dias': total_familias_atendidas_30_dias,
         'entregas_cestas_30_dias': total_entregas_cestas_30_dias,
-        'bairro_mais_atendimentos': 'Campo Belo',
+        'familias_sem_atendimento_recente': total_familias_sem_atendimento_recente,
         'familias_demandas_ativas': total_demandas_ativas,
         'familias_maior_vulnerabilidade': 7
     }
@@ -275,6 +298,46 @@ def dashboard_entregas_cestas_30_dias():
     resultados = db.session.execute(sql).mappings().all()
     entregas = [dict(r) for r in resultados]
     return render_template("dashboards/entregas_cestas_30_dias.html", entregas=entregas)
+
+
+@app.route("/dashboard/familias-sem-atendimento-recente")
+@login_required
+@admin_required
+def dashboard_familias_sem_atendimento_recente():
+    """Lista de famílias cadastradas no último ano sem atendimento nos últimos 3 meses."""
+    sql = text(
+        """
+        SELECT 
+            f.familia_id, 
+            f.nome_responsavel, 
+            f.cpf, 
+            e.bairro,
+            c.telefone_principal, 
+            c.email_responsavel,
+            f.data_hora_log_utc as data_cadastro,
+            ultimo_atendimento.ultima_data_atendimento
+        FROM familias f
+        LEFT JOIN enderecos e ON f.familia_id = e.familia_id
+        LEFT JOIN contatos c ON f.familia_id = c.familia_id
+        LEFT JOIN (
+            SELECT 
+                familia_id, 
+                MAX(data_hora_atendimento) as ultima_data_atendimento
+            FROM atendimentos 
+            GROUP BY familia_id
+        ) ultimo_atendimento ON f.familia_id = ultimo_atendimento.familia_id
+        WHERE f.data_hora_log_utc >= DATEADD(YEAR, -1, GETDATE())
+        AND (
+            ultimo_atendimento.ultima_data_atendimento IS NULL 
+            OR ultimo_atendimento.ultima_data_atendimento < DATEADD(DAY, -90, GETDATE())
+        )
+        ORDER BY f.data_hora_log_utc DESC
+        """
+    )
+
+    resultados = db.session.execute(sql).mappings().all()
+    familias = [dict(r) for r in resultados]
+    return render_template("dashboards/familias_sem_atendimento_recente.html", familias=familias)
 
 
 @app.route("/dashboard/em-desenvolvimento")

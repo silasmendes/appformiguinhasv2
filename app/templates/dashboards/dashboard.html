@@ -46,14 +46,14 @@
         <div class="card-subtitle">Últimos 30 dias</div>
     </div>
 
-    <!-- Bairros com Maior Número de Atendimentos -->
+    <!-- Famílias Sem Atendimento Recente -->
     <div class="dashboard-card">
         <div class="card-icon info">
-            <i class="fas fa-map-marker-alt"></i>
+            <i class="fas fa-user-clock"></i>
         </div>
-        <div class="card-title">Bairros com maior número de atendimentos</div>
-        <div class="card-value" style="font-size: 1.8rem;">{{ dados.bairro_mais_atendimentos }}</div>
-        <div class="card-subtitle">Região prioritária</div>
+        <div class="card-title">Famílias sem atendimento nos últimos 3 meses</div>
+        <div class="card-value">{{ dados.familias_sem_atendimento_recente }}</div>
+        <div class="card-subtitle">Cadastradas no último ano</div>
     </div>
 
     <!-- Famílias com Demandas Ativas -->
@@ -105,8 +105,8 @@
                 window.location.href = "{{ url_for('dashboard_familias_atendidas_30_dias') }}";
             } else if (title === 'Entregas de cestas realizadas nos últimos 30 dias') {
                 window.location.href = "{{ url_for('dashboard_entregas_cestas_30_dias') }}";
-            } else if (title === 'Bairros com maior número de atendimentos') {
-                window.location.href = "{{ url_for('dashboard_em_desenvolvimento') }}";
+            } else if (title === 'Famílias sem atendimento nos últimos 3 meses') {
+                window.location.href = "{{ url_for('dashboard_familias_sem_atendimento_recente') }}";
             } else if (title === 'Famílias em situação de maior vulnerabilidade') {
                 window.location.href = "{{ url_for('dashboard_em_desenvolvimento') }}";
             }
