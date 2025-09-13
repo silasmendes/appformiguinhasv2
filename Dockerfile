@@ -1,5 +1,5 @@
 # Usa imagem baseada em Debian com Python 3.12
-FROM python:3.12-slim
+FROM python:3.12-slim-bullseye
 
 # Instala dependências do sistema, incluindo ODBC Driver 17
 RUN apt-get update && apt-get install -y --no-install-recommends \

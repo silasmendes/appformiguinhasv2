@@ -9,7 +9,7 @@ ACR_IMAGE="${ACR_NAME}.azurecr.io/${IMAGE_NAME}"
 WEBAPP_NAME="formiguinhasbr"
 
 echo "🚧 Iniciando build da imagem..."
-docker build -t $APP_NAME .
+docker build --no-cache -t $APP_NAME .
 
 echo "🏷️  Tagueando imagem para o ACR..."
 docker tag $APP_NAME $ACR_IMAGE
