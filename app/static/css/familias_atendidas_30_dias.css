@@ -6,6 +6,16 @@
     gap: 2rem;
 }
 
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-actions .btn {
+    white-space: nowrap;
+}
+
 .header-text h1 {
     color: white;
     font-weight: 700;

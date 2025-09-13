@@ -23,12 +23,12 @@ app/
 │   └── js/
 │       ├── dashboard_demandas.js            # JS específico de demandas
 │       └── [novo_relatorio].js              # JS específico do novo relatório
-main.py                                      # Rotas do backend
+main.py                                      # Rotas do back-end
 ```
 
 ## Padrão de Implementação
 
-### 1. Rota no Backend (main.py)
+### 1. Rota no Back-end (main.py)
 
 #### Padrão de Nomenclatura
 - URL: `/dashboard/[nome-relatorio-kebab-case]`
@@ -142,7 +142,7 @@ def dashboard_familias_atendidas_30_dias():
 #### Padrões de Estilo
 
 ```css
-/* Header Styles - Padrão para todos os relatórios */
+/* Estilos de cabeçalho - padrão para todos os relatórios */
 .header-content {
     display: flex;
     justify-content: space-between;
@@ -166,7 +166,7 @@ def dashboard_familias_atendidas_30_dias():
     font-size: 1.1rem;
 }
 
-/* Responsive Header */
+/* Cabeçalho responsivo */
 @media (max-width: 768px) {
     .header-content {
         flex-direction: column;
@@ -453,7 +453,7 @@ No arquivo `dashboard.html`, localizar o script de clique dos cards e atualizar:
 
 #### Padrão de Implementação
 
-No arquivo `main.py`, na função `dashboard()`, adicionar uma query SQL para calcular dinamicamente o valor do card:
+No arquivo `main.py`, na função `dashboard()`, adicionar uma consulta SQL para calcular dinamicamente o valor do card:
 
 ```python
 # Exemplo para famílias atendidas nos últimos 30 dias
@@ -477,7 +477,7 @@ dados_dashboard = {
 }
 ```
 
-#### Template de Query para Cards Dinâmicos
+#### Template de consulta para cards dinâmicos
 
 ```python
 # Template genérico para contagem de registros
@@ -494,7 +494,7 @@ resultado_[nome_metrica] = db.session.execute(sql_[nome_metrica]).mappings().fir
 total_[nome_metrica] = resultado_[nome_metrica]['total_[nome_metrica]'] if resultado_[nome_metrica] else 0
 ```
 
-#### Exemplos de Queries por Tipo de Card
+#### Exemplos de consultas por tipo de card
 
 **Contagem de Famílias por Período:**
 ```sql
@@ -532,10 +532,10 @@ WHERE a.percepcao_necessidade = 'Alta'
 AND a.data_hora_atendimento >= DATEADD(DAY, -30, GETDATE())
 ```
 
-#### Checklist para Atualização de Cards
+#### Lista de verificação para atualização de cards
 
-- [ ] Implementar query SQL específica para a métrica do card
-- [ ] Executar a query na função `dashboard()` em `main.py`
+- [ ] Implementar consulta SQL específica para a métrica do card
+- [ ] Executar a consulta na função `dashboard()` em `main.py`
 - [ ] Substituir o valor mock no dicionário `dados_dashboard`
 - [ ] Testar se o card exibe o valor correto no dashboard
 - [ ] Verificar se o valor é atualizado quando novos dados são inseridos
@@ -551,9 +551,54 @@ AND a.data_hora_atendimento >= DATEADD(DAY, -30, GETDATE())
 - **Download**: `fas fa-download`
 - **Relatórios**: `fas fa-chart-line`
 
+## Exportação de dados em Excel
+
+### 1. Rota no back-end (`main.py`)
+- **URL**: `/dashboard/[nome-relatorio-kebab-case]/download`
+- **Função**: `download_[nome_relatorio_snake_case]()`
+- **Requisitos**
+  - Incluir `@login_required` e `@admin_required`.
+  - Buscar **todas** as colunas relevantes (família, endereços, contatos etc.), mesmo as não exibidas na tabela do relatório.
+  - Transformar o resultado em `pandas.DataFrame`, remover fuso horário (`tzinfo`) quando existir e renomear colunas para PT-BR.
+  - Retornar o arquivo usando `send_file(..., as_attachment=True, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')`.
+- **Exemplo**
+  `download_familias_atendidas_30_dias()` em `main.py`.
+
+### 2. Template HTML (`app/templates/dashboards/[novo_relatorio].html`)
+- Adicionar botão de download dentro de `.header-actions`:
+  ```html
+  <button id="downloadBtn" class="btn btn-primary"
+          data-url="{{ url_for('download_[nome_relatorio]') }}">
+      <i class="fas fa-file-excel"></i>
+      Baixar Excel
+  </button>
+  ```
+- Manter o link “Voltar ao Dashboard” ao lado do botão, conforme padrão das páginas existentes.
+
+### 3. JavaScript (`app/static/js/[novo_relatorio].js`)
+- No `DOMContentLoaded`, capturar clique em `#downloadBtn`.
+- Efetuar `fetch` `GET` para `downloadBtn.dataset.url`.
+- Converter a resposta para `blob`, criar `URL.createObjectURL`, definir o nome do arquivo `"[nome_relatorio]_AAAA_MM_DD.xlsx"` e disparar o download.
+- Exemplo de uso: `familias_atendidas_30_dias.js`.
+
+### 4. CSS (`app/static/css/[novo_relatorio].css`)
+- Utilizar layout flexível do cabeçalho:
+  ```css
+  .header-content { display: flex; justify-content: space-between; align-items: center; gap: 2rem; }
+  .header-actions { display: flex; align-items: center; gap: 1rem; }
+  ```
+  - Garantir responsividade via consultas de mídia (`media queries`) semelhantes às usadas em `familias_atendidas_30_dias.css`.
+
+### 5. Lista de verificação adicional
+- [ ] Rota de download criada com `@login_required` e `@admin_required`.
+- [ ] Botão “Baixar Excel” adicionado ao template.
+- [ ] Lógica de download implementada em JS.
+- [ ] Arquivo CSS do relatório contém estilos do cabeçalho e botão.
+- [ ] Planilha contém todas as colunas necessárias com nomenclatura em PT-BR.
+
 ## Responsividade
 
-### Breakpoints Padrão
+### Pontos de quebra padrão
 
 ```css
 /* Tablet */
@@ -570,15 +615,15 @@ AND a.data_hora_atendimento >= DATEADD(DAY, -30, GETDATE())
 }
 ```
 
-## Checklist de Implementação
+## Lista de verificação de implementação
 
-### ✅ Backend
+### ✅ Back-end
 - [ ] Criar rota em `main.py` com decorators `@login_required` e `@admin_required`
-- [ ] Implementar query SQL com JOINs apropriados
+- [ ] Implementar consulta SQL com JOINs apropriados
 - [ ] Converter resultados para lista de dicionários
 - [ ] Passar dados para template via `render_template`
 
-### ✅ Frontend
+### ✅ Front-end
 - [ ] Criar template HTML seguindo estrutura padrão
 - [ ] Implementar cabeçalhos e filtros de tabela
 - [ ] Criar CSS específico com ID único da tabela
@@ -593,7 +638,7 @@ AND a.data_hora_atendimento >= DATEADD(DAY, -30, GETDATE())
 - [ ] Validar formatação de dados e badges
 - [ ] **Verificar se o card exibe dados reais (não mock) no dashboard principal**
 
-## Exemplos de Queries por Tipo de Relatório
+## Exemplos de consultas por tipo de relatório
 
 ### Relatórios Temporais (30 dias, 90 dias, etc.)
 ```sql
@@ -620,7 +665,7 @@ GROUP BY e.bairro
 ORDER BY total_familias DESC
 ```
 
-## Considerações de Performance
+## Considerações de desempenho
 
 ### Índices Recomendados
 - `familia_id` em todas as tabelas relacionadas
@@ -630,13 +675,13 @@ ORDER BY total_familias DESC
 
 ### Paginação
 - Manter padrão de 15 registros por página
-- Implementar paginação no frontend (não no backend)
+- Implementar paginação no front-end (não no back-end)
 - Mostrar indicador de "Nenhum registro encontrado"
 
 ## Manutenção e Evolução
 
 ### Versionamento
-- Manter comentários nas queries SQL explicando a lógica
+- Manter comentários nas consultas SQL explicando a lógica
 - Documentar formatações específicas em comentários no CSS
 - Usar nomes descritivos para funções JavaScript
 
