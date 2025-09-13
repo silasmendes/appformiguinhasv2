@@ -342,13 +342,17 @@ cesta_entregue
 data_hora_atendimento
 ```
 
+### SQL Sintaxe
+
+- Compátivel com SQL Server (T-SQL).
+
 ### Padrões de JOIN Comuns
 
 ```sql
--- Join básico família + endereço + contato
+-- Join básico família + endereço + contato (dados cadastrais podem nao estar completos, por isso o LEFT JOIN)
 FROM familias f
-JOIN enderecos e ON f.familia_id = e.familia_id
-JOIN contatos c ON f.familia_id = c.familia_id
+LEFT JOIN enderecos e ON f.familia_id = e.familia_id
+LEFT JOIN contatos c ON f.familia_id = c.familia_id
 
 -- Join com atendimentos (últimos 30 dias)
 JOIN atendimentos a ON f.familia_id = a.familia_id
@@ -443,6 +447,99 @@ No arquivo `dashboard.html`, localizar o script de clique dos cards e atualizar:
     window.location.href = "{{ url_for('[nome_funcao_rota]') }}";
 ```
 
+### Atualização Dinâmica dos Cards do Dashboard
+
+**IMPORTANTE**: Após implementar um novo relatório, é necessário atualizar o respectivo card no dashboard principal para mostrar dados reais em vez de valores mock.
+
+#### Padrão de Implementação
+
+No arquivo `main.py`, na função `dashboard()`, adicionar uma query SQL para calcular dinamicamente o valor do card:
+
+```python
+# Exemplo para famílias atendidas nos últimos 30 dias
+sql_familias_atendidas_30_dias = text(
+    """
+    SELECT COUNT(DISTINCT f.familia_id) as total_familias_atendidas_30_dias
+    FROM familias f
+    JOIN atendimentos a ON f.familia_id = a.familia_id
+    WHERE a.data_hora_atendimento >= DATEADD(DAY, -30, GETDATE())
+    """
+)
+
+resultado_atendidas = db.session.execute(sql_familias_atendidas_30_dias).mappings().first()
+total_familias_atendidas_30_dias = resultado_atendidas['total_familias_atendidas_30_dias'] if resultado_atendidas else 0
+
+# Atualizar o valor no dicionário dados_dashboard
+dados_dashboard = {
+    # ... outros valores
+    'familias_atendidas_30_dias': total_familias_atendidas_30_dias,  # ← Substituir valor mock
+    # ... outros valores
+}
+```
+
+#### Template de Query para Cards Dinâmicos
+
+```python
+# Template genérico para contagem de registros
+sql_[nome_metrica] = text(
+    """
+    SELECT COUNT(DISTINCT [tabela_principal].[id_campo]) as total_[nome_metrica]
+    FROM [tabela_principal] [alias]
+    [JOINS necessários]
+    WHERE [condições específicas da métrica]
+    """
+)
+
+resultado_[nome_metrica] = db.session.execute(sql_[nome_metrica]).mappings().first()
+total_[nome_metrica] = resultado_[nome_metrica]['total_[nome_metrica]'] if resultado_[nome_metrica] else 0
+```
+
+#### Exemplos de Queries por Tipo de Card
+
+**Contagem de Famílias por Período:**
+```sql
+SELECT COUNT(DISTINCT f.familia_id) as total
+FROM familias f
+JOIN atendimentos a ON f.familia_id = a.familia_id
+WHERE a.data_hora_atendimento >= DATEADD(DAY, -[DIAS], GETDATE())
+```
+
+**Contagem de Entregas de Cestas:**
+```sql
+SELECT COUNT(*) as total
+FROM atendimentos a
+WHERE a.cesta_entregue = 1 
+AND a.data_hora_atendimento >= DATEADD(DAY, -30, GETDATE())
+```
+
+**Bairro com Mais Atendimentos:**
+```sql
+SELECT TOP 1 e.bairro
+FROM enderecos e
+JOIN familias f ON e.familia_id = f.familia_id
+JOIN atendimentos a ON f.familia_id = a.familia_id
+WHERE a.data_hora_atendimento >= DATEADD(DAY, -30, GETDATE())
+GROUP BY e.bairro
+ORDER BY COUNT(*) DESC
+```
+
+**Famílias por Nível de Vulnerabilidade:**
+```sql
+SELECT COUNT(DISTINCT f.familia_id) as total
+FROM familias f
+JOIN atendimentos a ON f.familia_id = a.familia_id
+WHERE a.percepcao_necessidade = 'Alta'
+AND a.data_hora_atendimento >= DATEADD(DAY, -30, GETDATE())
+```
+
+#### Checklist para Atualização de Cards
+
+- [ ] Implementar query SQL específica para a métrica do card
+- [ ] Executar a query na função `dashboard()` em `main.py`
+- [ ] Substituir o valor mock no dicionário `dados_dashboard`
+- [ ] Testar se o card exibe o valor correto no dashboard
+- [ ] Verificar se o valor é atualizado quando novos dados são inseridos
+
 ### Ícones Recomendados (Font Awesome)
 
 - **Famílias**: `fas fa-users`
@@ -490,9 +587,11 @@ No arquivo `dashboard.html`, localizar o script de clique dos cards e atualizar:
 
 ### ✅ Integração
 - [ ] Atualizar link no dashboard principal
+- [ ] **Implementar atualização dinâmica do card correspondente no dashboard**
 - [ ] Testar navegação entre páginas
 - [ ] Verificar responsividade em diferentes tamanhos de tela
 - [ ] Validar formatação de dados e badges
+- [ ] **Verificar se o card exibe dados reais (não mock) no dashboard principal**
 
 ## Exemplos de Queries por Tipo de Relatório
 

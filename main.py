@@ -149,11 +149,24 @@ def dashboard():
     resultado_atendidas = db.session.execute(sql_familias_atendidas_30_dias).mappings().first()
     total_familias_atendidas_30_dias = resultado_atendidas['total_familias_atendidas_30_dias'] if resultado_atendidas else 0
     
+    # Calcular número de entregas de cestas nos últimos 30 dias dinamicamente
+    sql_entregas_cestas_30_dias = text(
+        """
+        SELECT COUNT(*) as total_entregas_cestas_30_dias
+        FROM atendimentos a
+        WHERE a.data_hora_atendimento >= DATEADD(DAY, -30, GETDATE())
+        AND a.cesta_entregue = 1
+        """
+    )
+    
+    resultado_cestas = db.session.execute(sql_entregas_cestas_30_dias).mappings().first()
+    total_entregas_cestas_30_dias = resultado_cestas['total_entregas_cestas_30_dias'] if resultado_cestas else 0
+    
     # Dados mock para demonstração (outros valores podem ser calculados dinamicamente no futuro)
     dados_dashboard = {
         'total_familias': 48,
         'familias_atendidas_30_dias': total_familias_atendidas_30_dias,
-        'entregas_cestas_30_dias': 24,
+        'entregas_cestas_30_dias': total_entregas_cestas_30_dias,
         'bairro_mais_atendimentos': 'Campo Belo',
         'familias_demandas_ativas': total_demandas_ativas,
         'familias_maior_vulnerabilidade': 7
@@ -231,6 +244,37 @@ def dashboard_familias_atendidas_30_dias():
     resultados = db.session.execute(sql).mappings().all()
     familias = [dict(r) for r in resultados]
     return render_template("dashboards/familias_atendidas_30_dias.html", familias=familias)
+
+
+@app.route("/dashboard/entregas-cestas-30-dias")
+@login_required
+@admin_required
+def dashboard_entregas_cestas_30_dias():
+    """Lista de entregas de cestas realizadas nos últimos 30 dias."""
+    sql = text(
+        """
+        SELECT 
+            f.familia_id, 
+            f.nome_responsavel, 
+            f.cpf, 
+            e.bairro,
+            c.telefone_principal, 
+            c.email_responsavel,
+            a.percepcao_necessidade, 
+            a.data_hora_atendimento
+        FROM familias f
+        LEFT JOIN enderecos e ON f.familia_id = e.familia_id
+        LEFT JOIN contatos c ON f.familia_id = c.familia_id
+        INNER JOIN atendimentos a ON f.familia_id = a.familia_id
+        WHERE a.data_hora_atendimento >= DATEADD(DAY, -30, GETDATE())
+        AND a.cesta_entregue = 1
+        ORDER BY a.data_hora_atendimento DESC
+        """
+    )
+
+    resultados = db.session.execute(sql).mappings().all()
+    entregas = [dict(r) for r in resultados]
+    return render_template("dashboards/entregas_cestas_30_dias.html", entregas=entregas)
 
 
 @app.route("/dashboard/em-desenvolvimento")

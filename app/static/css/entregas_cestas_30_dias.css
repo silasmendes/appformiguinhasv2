@@ -1,0 +1,251 @@
+/* Header Styles */
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+}
+
+.header-text h1 {
+    color: white;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 2rem;
+}
+
+.header-text p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 1.1rem;
+}
+
+/* Responsive Header */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* Estilo moderno e limpo para a tabela de entregas de cestas */
+#tabelaEntregasCestas {
+    font-size: 0.875rem;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border-radius: 12px;
+    overflow: hidden;
+    background: white;
+}
+
+#tabelaEntregasCestas thead {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+}
+
+#tabelaEntregasCestas thead th {
+    border: none;
+    padding: 0.75rem 0.5rem;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: #495057;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    vertical-align: middle;
+}
+
+#tabelaEntregasCestas thead th:first-child {
+    padding-left: 1rem;
+}
+
+#tabelaEntregasCestas thead th:last-child {
+    padding-right: 1rem;
+}
+
+#tabelaEntregasCestas tbody tr {
+    border-bottom: 1px solid #f1f3f4;
+    transition: all 0.2s ease;
+    height: 3.2rem;
+}
+
+#tabelaEntregasCestas tbody tr:hover {
+    background-color: rgba(253, 126, 20, 0.02);
+    transform: scale(1.001);
+}
+
+#tabelaEntregasCestas tbody tr:last-child {
+    border-bottom: none;
+}
+
+#tabelaEntregasCestas tbody td {
+    padding: 0.875rem 0.5rem;
+    border: none;
+    vertical-align: middle;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: #495057;
+}
+
+#tabelaEntregasCestas tbody td:first-child {
+    padding-left: 1rem;
+    font-weight: 500;
+}
+
+#tabelaEntregasCestas tbody td:last-child {
+    padding-right: 1rem;
+}
+
+/* Links estilizados */
+#tabelaEntregasCestas a {
+    color: #fd7e14;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+#tabelaEntregasCestas a:hover {
+    color: #e8630e;
+    text-decoration: underline;
+}
+
+/* Filtros de busca */
+.filtros input {
+    border: 1px solid #e3e6f0;
+    border-radius: 6px;
+    padding: 0.375rem 0.5rem;
+    font-size: 0.75rem;
+    background-color: #fff;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.filtros input:focus {
+    border-color: #fd7e14;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(253, 126, 20, 0.25);
+}
+
+/* Paginação */
+.pagination {
+    margin-top: 1.5rem;
+    justify-content: center;
+}
+
+.pagination .page-link {
+    color: #fd7e14;
+    border: 1px solid #fd7e14;
+    padding: 0.5rem 0.75rem;
+    margin: 0 2px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.pagination .page-link:hover {
+    color: #fff;
+    background-color: #fd7e14;
+    border-color: #fd7e14;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #fd7e14;
+    border-color: #fd7e14;
+    color: #fff;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #6c757d;
+    background-color: #fff;
+    border-color: #dee2e6;
+}
+
+/* Badges para percepção de necessidade */
+.badge-percepcao {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-alta {
+    background-color: #dc3545;
+    color: white;
+}
+
+.badge-media {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.badge-baixa {
+    background-color: #28a745;
+    color: white;
+}
+
+/* Responsividade */
+@media (max-width: 992px) {
+    #tabelaEntregasCestas {
+        font-size: 0.8rem;
+    }
+    
+    #tabelaEntregasCestas thead th,
+    #tabelaEntregasCestas tbody td {
+        padding: 0.5rem 0.25rem;
+    }
+    
+    .filtros input {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.375rem;
+    }
+}
+
+@media (max-width: 768px) {
+    #tabelaEntregasCestas {
+        font-size: 0.75rem;
+    }
+    
+    .badge-percepcao {
+        font-size: 0.65rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .pagination .page-link {
+        padding: 0.375rem 0.5rem;
+        font-size: 0.8rem;
+    }
+}
+
+/* Loading state */
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+}
+
+.loading i {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Indicador de entrega de cesta */
+.cesta-entregue {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: #fd7e14;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.cesta-entregue i {
+    color: #fd7e14;
+}
