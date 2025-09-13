@@ -17,10 +17,16 @@
             </h1>
             <p>Listagem de famílias que receberam atendimento no período</p>
         </div>
-        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i>
-            Voltar ao Dashboard
-        </a>
+        <div class="header-actions">
+            <button id="downloadBtn" class="btn btn-primary" data-url="{{ url_for('download_familias_atendidas_30_dias') }}">
+                <i class="fas fa-file-excel"></i>
+                Baixar Excel
+            </button>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Voltar ao Dashboard
+            </a>
+        </div>
     </div>
 </div>
 <div class="table-responsive">
