@@ -185,6 +185,19 @@ def dashboard():
     resultado_sem_atendimento = db.session.execute(sql_familias_sem_atendimento_recente).mappings().first()
     total_familias_sem_atendimento_recente = resultado_sem_atendimento['total_familias_sem_atendimento_recente'] if resultado_sem_atendimento else 0
     
+    # Calcular número de famílias em situação de maior vulnerabilidade (percepção alta)
+    sql_familias_maior_vulnerabilidade = text(
+        """
+        SELECT COUNT(DISTINCT f.familia_id) as total_familias_maior_vulnerabilidade
+        FROM familias f
+        INNER JOIN atendimentos a ON f.familia_id = a.familia_id
+        WHERE a.percepcao_necessidade = 'Alta'
+        """
+    )
+    
+    resultado_vulnerabilidade = db.session.execute(sql_familias_maior_vulnerabilidade).mappings().first()
+    total_familias_maior_vulnerabilidade = resultado_vulnerabilidade['total_familias_maior_vulnerabilidade'] if resultado_vulnerabilidade else 0
+    
     # Dados mock para demonstração (outros valores podem ser calculados dinamicamente no futuro)
     dados_dashboard = {
         'total_familias': 48,
@@ -192,7 +205,7 @@ def dashboard():
         'entregas_cestas_30_dias': total_entregas_cestas_30_dias,
         'familias_sem_atendimento_recente': total_familias_sem_atendimento_recente,
         'familias_demandas_ativas': total_demandas_ativas,
-        'familias_maior_vulnerabilidade': 7
+        'familias_maior_vulnerabilidade': total_familias_maior_vulnerabilidade
     }
     return render_template("dashboards/dashboard.html", dados=dados_dashboard)
 
@@ -338,6 +351,47 @@ def dashboard_familias_sem_atendimento_recente():
     resultados = db.session.execute(sql).mappings().all()
     familias = [dict(r) for r in resultados]
     return render_template("dashboards/familias_sem_atendimento_recente.html", familias=familias)
+
+
+@app.route("/dashboard/familias-maior-vulnerabilidade")
+@login_required
+@admin_required
+def dashboard_familias_maior_vulnerabilidade():
+    """Lista de famílias em situação de maior vulnerabilidade (percepção alta)."""
+    sql = text(
+        """
+        SELECT 
+            f.familia_id,
+            f.nome_responsavel,
+            f.cpf,
+            e.bairro,
+            c.telefone_principal,
+            c.email_responsavel,
+            ultimo_atendimento.percepcao_necessidade,
+            ultimo_atendimento.cesta_entregue,
+            ultimo_atendimento.data_hora_atendimento,
+            ultimo_atendimento.motivo_duracao
+        FROM familias f
+        LEFT JOIN enderecos e ON f.familia_id = e.familia_id
+        LEFT JOIN contatos c ON f.familia_id = c.familia_id
+        INNER JOIN (
+            SELECT 
+                a1.familia_id,
+                a1.percepcao_necessidade,
+                a1.cesta_entregue,
+                a1.data_hora_atendimento,
+                a1.motivo_duracao,
+                ROW_NUMBER() OVER (PARTITION BY a1.familia_id ORDER BY a1.data_hora_atendimento DESC) as rn
+            FROM atendimentos a1
+            WHERE a1.percepcao_necessidade = 'Alta'
+        ) ultimo_atendimento ON f.familia_id = ultimo_atendimento.familia_id AND ultimo_atendimento.rn = 1
+        ORDER BY ultimo_atendimento.data_hora_atendimento DESC
+        """
+    )
+
+    resultados = db.session.execute(sql).mappings().all()
+    familias = [dict(r) for r in resultados]
+    return render_template("dashboards/familias_maior_vulnerabilidade.html", familias=familias)
 
 
 @app.route("/dashboard/em-desenvolvimento")

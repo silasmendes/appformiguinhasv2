@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Famílias em Situação de Maior Vulnerabilidade{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/familias_maior_vulnerabilidade.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div class="header-content">
+        <div class="header-text">
+            <h1>
+                <i class="fas fa-heartbeat"></i>
+                Famílias em Situação de Maior Vulnerabilidade
+            </h1>
+            <p>Famílias com percepção de necessidade alta identificadas em atendimentos</p>
+        </div>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i>
+            Voltar ao Dashboard
+        </a>
+    </div>
+</div>
+<div class="table-responsive">
+    <table id="tabelaFamiliasMaiorVulnerabilidade" class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Nome do responsável</th>
+                <th>CPF</th>
+                <th>Bairro</th>
+                <th>Telefone principal</th>
+                <th>Email</th>
+                <th>Percepção de necessidade</th>
+                <th>Retirou cesta básica?</th>
+                <th>Data do atendimento</th>
+                <th>Motivo/Duração</th>
+            </tr>
+            <tr class="filtros">
+                <th><input id="filter-nome" class="form-control form-control-sm" placeholder="Filtrar nome"></th>
+                <th><input id="filter-cpf" class="form-control form-control-sm" placeholder="Filtrar CPF"></th>
+                <th><input id="filter-bairro" class="form-control form-control-sm" placeholder="Filtrar bairro"></th>
+                <th><input id="filter-telefone" class="form-control form-control-sm" placeholder="Filtrar telefone"></th>
+                <th><input id="filter-email" class="form-control form-control-sm" placeholder="Filtrar email"></th>
+                <th><input id="filter-percepcao" class="form-control form-control-sm" placeholder="Filtrar percepção"></th>
+                <th><input id="filter-cesta" class="form-control form-control-sm" placeholder="Filtrar cesta"></th>
+                <th><input id="filter-data" class="form-control form-control-sm" placeholder="Filtrar data"></th>
+                <th><input id="filter-motivo" class="form-control form-control-sm" placeholder="Filtrar motivo"></th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+<nav>
+    <ul class="pagination" id="paginacaoFamiliasMaiorVulnerabilidade"></ul>
+</nav>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    window.familiasMaiorVulnerabilidadeData = {{ familias | tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/familias_maior_vulnerabilidade.js') }}"></script>
+{% endblock %}

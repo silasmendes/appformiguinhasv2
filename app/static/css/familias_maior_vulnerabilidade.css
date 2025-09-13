@@ -1,0 +1,283 @@
+/* Header Styles */
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+}
+
+.header-text h1 {
+    color: white;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 2rem;
+}
+
+.header-text p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 1.1rem;
+}
+
+/* Responsive Header */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* Estilo moderno e limpo para a tabela de famílias em maior vulnerabilidade */
+#tabelaFamiliasMaiorVulnerabilidade {
+    font-size: 0.875rem;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border-radius: 12px;
+    overflow: hidden;
+    background: white;
+}
+
+#tabelaFamiliasMaiorVulnerabilidade thead {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+}
+
+#tabelaFamiliasMaiorVulnerabilidade thead th {
+    border: none;
+    padding: 0.75rem 0.5rem;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: #495057;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    vertical-align: middle;
+}
+
+#tabelaFamiliasMaiorVulnerabilidade thead th:first-child {
+    padding-left: 1rem;
+}
+
+#tabelaFamiliasMaiorVulnerabilidade thead th:last-child {
+    padding-right: 1rem;
+}
+
+#tabelaFamiliasMaiorVulnerabilidade tbody tr {
+    border-bottom: 1px solid #f1f3f4;
+    transition: all 0.2s ease;
+    height: 3.2rem;
+}
+
+#tabelaFamiliasMaiorVulnerabilidade tbody tr:hover {
+    background-color: rgba(220, 53, 69, 0.02);
+    transform: scale(1.001);
+}
+
+#tabelaFamiliasMaiorVulnerabilidade tbody tr:last-child {
+    border-bottom: none;
+}
+
+#tabelaFamiliasMaiorVulnerabilidade tbody td {
+    padding: 0.875rem 0.5rem;
+    border: none;
+    vertical-align: middle;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: #495057;
+}
+
+#tabelaFamiliasMaiorVulnerabilidade tbody td:first-child {
+    padding-left: 1rem;
+    font-weight: 500;
+}
+
+#tabelaFamiliasMaiorVulnerabilidade tbody td:last-child {
+    padding-right: 1rem;
+}
+
+/* Links estilizados */
+#tabelaFamiliasMaiorVulnerabilidade a {
+    color: #dc3545;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+#tabelaFamiliasMaiorVulnerabilidade a:hover {
+    color: #c82333;
+    text-decoration: underline;
+}
+
+/* Filtros de busca */
+.filtros input {
+    border: 1px solid #e3e6f0;
+    border-radius: 6px;
+    padding: 0.375rem 0.5rem;
+    font-size: 0.75rem;
+    background-color: #fff;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.filtros input:focus {
+    border-color: #dc3545;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+/* Paginação */
+.pagination {
+    margin-top: 1.5rem;
+    justify-content: center;
+}
+
+.pagination .page-link {
+    color: #dc3545;
+    border: 1px solid #dc3545;
+    padding: 0.5rem 0.75rem;
+    margin: 0 2px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.pagination .page-link:hover {
+    color: #fff;
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: #fff;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #6c757d;
+    background-color: #fff;
+    border-color: #dee2e6;
+}
+
+/* Badges específicos para vulnerabilidade */
+.badge-percepcao-alta {
+    background-color: #dc3545;
+    color: white;
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+}
+
+.badge-cesta-sim {
+    background-color: #28a745;
+    color: white;
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+}
+
+.badge-cesta-nao {
+    background-color: #6c757d;
+    color: white;
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+}
+
+/* Destacar famílias críticas */
+.familia-critica {
+    background-color: rgba(220, 53, 69, 0.05) !important;
+    border-left: 3px solid #dc3545;
+}
+
+/* Coluna de motivo com texto truncado */
+.motivo-col {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.motivo-col:hover {
+    white-space: normal;
+    word-wrap: break-word;
+    overflow: visible;
+    background-color: rgba(220, 53, 69, 0.1);
+    position: relative;
+    z-index: 10;
+    padding: 0.5rem;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* Responsividade */
+@media (max-width: 992px) {
+    #tabelaFamiliasMaiorVulnerabilidade {
+        font-size: 0.8rem;
+    }
+    
+    #tabelaFamiliasMaiorVulnerabilidade thead th,
+    #tabelaFamiliasMaiorVulnerabilidade tbody td {
+        padding: 0.5rem 0.25rem;
+    }
+    
+    .filtros input {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.375rem;
+    }
+    
+    .motivo-col {
+        max-width: 150px;
+    }
+}
+
+@media (max-width: 768px) {
+    #tabelaFamiliasMaiorVulnerabilidade {
+        font-size: 0.75rem;
+    }
+    
+    .badge-percepcao-alta,
+    .badge-cesta-sim,
+    .badge-cesta-nao {
+        font-size: 0.65rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .pagination .page-link {
+        padding: 0.375rem 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    .motivo-col {
+        max-width: 100px;
+    }
+}
+
+/* Loading state */
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+}
+
+.loading i {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Indicador de prioridade crítica */
+.prioridade-critica::before {
+    content: '⚠️';
+    margin-right: 0.5rem;
+    font-size: 1rem;
+}
