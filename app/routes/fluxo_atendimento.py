@@ -416,5 +416,5 @@ def atendimento_etapa11():
         cadastro.update(request.form.to_dict(flat=True))
         session['cadastro'] = cadastro
         reset_atendimento_sessao()
-        return redirect(url_for('home'))
+        return redirect(url_for('menu_atendimento'))
     return render_template('atendimento/etapa11_atendimento.html', etapa_atual=11, etapas=ETAPAS)

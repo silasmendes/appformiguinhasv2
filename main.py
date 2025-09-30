@@ -16,6 +16,7 @@ from app.utils.fluxo_atendimento import (
     reset_atendimento_sessao,
     carregar_cadastro_familia,
 )
+from app.utils.pre_cadastro import buscar_pre_cadastros, converter_pre_cadastro_para_sessao
 
 app = create_app()
 
@@ -730,6 +731,50 @@ def download_familias_atendidas_30_dias():
         )
     except Exception as e:
         return jsonify({"error": f"Erro ao gerar arquivo: {str(e)}"}), 500
+
+
+@app.route("/buscar_pre_cadastro")
+@login_required
+def buscar_pre_cadastro():
+    """Busca pré-cadastros no banco de dados de pré-cadastro."""
+    termo = request.args.get("q", "").strip()
+    
+    if not termo:
+        return jsonify({"resultados": []})
+    
+    try:
+        resultados = buscar_pre_cadastros(termo)
+        return jsonify({"resultados": resultados})
+    except Exception as e:
+        print(f"Erro ao buscar pré-cadastros: {str(e)}")
+        return jsonify({"error": "Erro interno do servidor"}), 500
+
+
+@app.route("/carregar_pre_cadastro", methods=["POST"])
+@login_required
+def carregar_pre_cadastro():
+    """Carrega dados do pré-cadastro na sessão para iniciar atendimento."""
+    try:
+        dados_familia = request.get_json()
+        if not dados_familia or not dados_familia.get('dados_completos'):
+            return jsonify({"success": False, "message": "Dados inválidos"})
+        
+        # Resetar sessão de atendimento
+        reset_atendimento_sessao()
+        
+        # Converter dados do pré-cadastro para formato da sessão
+        cadastro = converter_pre_cadastro_para_sessao(dados_familia['dados_completos'])
+        
+        # Salvar na sessão
+        session['cadastro'] = cadastro
+        session['cadastro_inicio'] = datetime.utcnow().isoformat()
+        
+        return jsonify({"success": True})
+        
+    except Exception as e:
+        print(f"Erro ao carregar pré-cadastro: {str(e)}")
+        return jsonify({"success": False, "message": "Erro interno do servidor"})
+
 
 if __name__ == "__main__":
     app.run(debug=True)
