@@ -733,6 +733,582 @@ def download_familias_atendidas_30_dias():
         return jsonify({"error": f"Erro ao gerar arquivo: {str(e)}"}), 500
 
 
+@app.route("/dashboard/entregas-cestas-30-dias/download")
+@login_required
+@admin_required
+def download_entregas_cestas_30_dias():
+    """Download de arquivo Excel com dados completos das entregas de cestas nos últimos 30 dias."""
+    try:
+        sql_query_string = """
+        SELECT
+            f.*,
+            e.*,
+            c.*,
+            cf.*,
+            cm.*,
+            ed.*,
+            ep.*,
+            rf.*,
+            sf.*,
+            a.*,
+            demandas_json.demandas,
+            atendimentos_json.atendimentos
+        FROM familias f
+        LEFT JOIN enderecos e ON f.familia_id = e.familia_id
+        LEFT JOIN contatos c ON f.familia_id = c.familia_id
+        LEFT JOIN composicao_familiar cf ON f.familia_id = cf.familia_id
+        LEFT JOIN condicoes_moradia cm ON f.familia_id = cm.familia_id
+        LEFT JOIN educacao_entrevistado ed ON f.familia_id = ed.familia_id
+        LEFT JOIN emprego_provedor ep ON f.familia_id = ep.familia_id
+        LEFT JOIN renda_familiar rf ON f.familia_id = rf.familia_id
+        LEFT JOIN saude_familiar sf ON f.familia_id = sf.familia_id
+        INNER JOIN atendimentos a ON f.familia_id = a.familia_id
+        OUTER APPLY (
+            SELECT
+                df.demanda_id,
+                df.familia_id,
+                df.demanda_tipo_id,
+                dt.demanda_tipo_nome,
+                df.status,
+                df.descricao,
+                df.data_identificacao,
+                df.prioridade,
+                de.data_atualizacao,
+                de.status_atual,
+                de.observacao,
+                de.usuario_atualizacao
+            FROM demanda_familia df
+            INNER JOIN demanda_tipo dt ON df.demanda_tipo_id = dt.demanda_tipo_id
+            INNER JOIN demanda_etapa de ON df.demanda_id = de.demanda_id
+            WHERE df.familia_id = f.familia_id
+            FOR JSON PATH
+        ) AS demandas_json(demandas)
+        OUTER APPLY (
+            SELECT
+                a2.*
+            FROM atendimentos a2
+            WHERE a2.familia_id = f.familia_id
+            FOR JSON PATH
+        ) AS atendimentos_json(atendimentos)
+        WHERE a.data_hora_atendimento >= DATEADD(DAY, -30, GETDATE())
+        AND a.cesta_entregue = 1
+        ORDER BY a.data_hora_atendimento DESC
+        """
+
+        sql_query = text(sql_query_string)
+        resultados = db.session.execute(sql_query).mappings().all()
+        if not resultados:
+            return jsonify({"error": "Nenhum dado encontrado para exportação"}), 404
+
+        dados = [dict(r) for r in resultados]
+        df = pd.DataFrame(dados)
+
+        # Tratamento de timezone para colunas datetime
+        for column in df.columns:
+            if df[column].dtype == 'object':
+                sample_values = df[column].dropna().head(5)
+                if len(sample_values) > 0:
+                    first_value = sample_values.iloc[0]
+                    if hasattr(first_value, 'tzinfo') and first_value.tzinfo is not None:
+                        df[column] = pd.to_datetime(df[column], errors='ignore').dt.tz_localize(None)
+            elif 'datetime64[ns, ' in str(df[column].dtype):
+                df[column] = df[column].dt.tz_localize(None)
+
+        # Renomeação das colunas para português
+        colunas_pt = {
+            'familia_id': 'ID Família',
+            'nome_responsavel': 'Nome do Responsável',
+            'cpf': 'CPF',
+            'data_nascimento': 'Data de Nascimento',
+            'telefone_principal': 'Telefone Principal',
+            'email': 'Email',
+            'data_cadastro': 'Data de Cadastro',
+            'logradouro': 'Logradouro',
+            'numero': 'Número',
+            'complemento': 'Complemento',
+            'bairro': 'Bairro',
+            'cidade': 'Cidade',
+            'estado': 'Estado',
+            'cep': 'CEP',
+            'data_hora_atendimento': 'Data do Atendimento',
+            'percepcao_necessidade': 'Percepção de Necessidade',
+            'cesta_entregue': 'Cesta Entregue',
+            'observacoes': 'Observações'
+        }
+        colunas_existentes = {k: v for k, v in colunas_pt.items() if k in df.columns}
+        df = df.rename(columns=colunas_existentes)
+
+        # Criação do arquivo Excel
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, sheet_name='Entregas_Cestas', index=False)
+            workbook = writer.book
+            worksheet = writer.sheets['Entregas_Cestas']
+            
+            # Ajuste automático das colunas
+            for column in worksheet.columns:
+                max_length = 0
+                column_letter = column[0].column_letter
+                for cell in column:
+                    try:
+                        if cell.value and len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = min(max(max_length + 2, 10), 50)
+                worksheet.column_dimensions[column_letter].width = adjusted_width
+        output.seek(0)
+
+        data_atual = datetime.now().strftime("%Y_%m_%d")
+        nome_arquivo = f"entregas_cestas_30_dias_{data_atual}.xlsx"
+        return send_file(
+            output,
+            as_attachment=True,
+            download_name=nome_arquivo,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+    except Exception as e:
+        return jsonify({"error": f"Erro ao gerar arquivo: {str(e)}"}), 500
+
+
+@app.route("/dashboard/familias-sem-atendimento-recente/download")
+@login_required
+@admin_required
+def download_familias_sem_atendimento_recente():
+    """Download de arquivo Excel com dados completos das famílias sem atendimento recente."""
+    try:
+        sql_query_string = """
+        SELECT
+            f.*,
+            e.*,
+            c.*,
+            cf.*,
+            cm.*,
+            ed.*,
+            ep.*,
+            rf.*,
+            sf.*,
+            ultimo_atendimento.ultima_data_atendimento,
+            demandas_json.demandas,
+            atendimentos_json.atendimentos
+        FROM familias f
+        LEFT JOIN enderecos e ON f.familia_id = e.familia_id
+        LEFT JOIN contatos c ON f.familia_id = c.familia_id
+        LEFT JOIN composicao_familiar cf ON f.familia_id = cf.familia_id
+        LEFT JOIN condicoes_moradia cm ON f.familia_id = cm.familia_id
+        LEFT JOIN educacao_entrevistado ed ON f.familia_id = ed.familia_id
+        LEFT JOIN emprego_provedor ep ON f.familia_id = ep.familia_id
+        LEFT JOIN renda_familiar rf ON f.familia_id = rf.familia_id
+        LEFT JOIN saude_familiar sf ON f.familia_id = sf.familia_id
+        LEFT JOIN (
+            SELECT 
+                familia_id, 
+                MAX(data_hora_atendimento) as ultima_data_atendimento
+            FROM atendimentos 
+            GROUP BY familia_id
+        ) ultimo_atendimento ON f.familia_id = ultimo_atendimento.familia_id
+        OUTER APPLY (
+            SELECT
+                df.demanda_id,
+                df.familia_id,
+                df.demanda_tipo_id,
+                dt.demanda_tipo_nome,
+                df.status,
+                df.descricao,
+                df.data_identificacao,
+                df.prioridade,
+                de.data_atualizacao,
+                de.status_atual,
+                de.observacao,
+                de.usuario_atualizacao
+            FROM demanda_familia df
+            INNER JOIN demanda_tipo dt ON df.demanda_tipo_id = dt.demanda_tipo_id
+            INNER JOIN demanda_etapa de ON df.demanda_id = de.demanda_id
+            WHERE df.familia_id = f.familia_id
+            FOR JSON PATH
+        ) AS demandas_json(demandas)
+        OUTER APPLY (
+            SELECT
+                a.*
+            FROM atendimentos a
+            WHERE a.familia_id = f.familia_id
+            FOR JSON PATH
+        ) AS atendimentos_json(atendimentos)
+        WHERE f.data_hora_log_utc >= DATEADD(YEAR, -1, GETDATE())
+        AND (
+            ultimo_atendimento.ultima_data_atendimento IS NULL 
+            OR ultimo_atendimento.ultima_data_atendimento < DATEADD(DAY, -90, GETDATE())
+        )
+        ORDER BY f.data_hora_log_utc DESC
+        """
+
+        sql_query = text(sql_query_string)
+        resultados = db.session.execute(sql_query).mappings().all()
+        if not resultados:
+            return jsonify({"error": "Nenhum dado encontrado para exportação"}), 404
+
+        dados = [dict(r) for r in resultados]
+        df = pd.DataFrame(dados)
+
+        # Tratamento de timezone para colunas datetime
+        for column in df.columns:
+            if df[column].dtype == 'object':
+                sample_values = df[column].dropna().head(5)
+                if len(sample_values) > 0:
+                    first_value = sample_values.iloc[0]
+                    if hasattr(first_value, 'tzinfo') and first_value.tzinfo is not None:
+                        df[column] = pd.to_datetime(df[column], errors='ignore').dt.tz_localize(None)
+            elif 'datetime64[ns, ' in str(df[column].dtype):
+                df[column] = df[column].dt.tz_localize(None)
+
+        # Renomeação das colunas para português
+        colunas_pt = {
+            'familia_id': 'ID Família',
+            'nome_responsavel': 'Nome do Responsável',
+            'cpf': 'CPF',
+            'data_nascimento': 'Data de Nascimento',
+            'telefone_principal': 'Telefone Principal',
+            'email': 'Email',
+            'data_cadastro': 'Data de Cadastro',
+            'data_hora_log_utc': 'Data do Cadastro',
+            'logradouro': 'Logradouro',
+            'numero': 'Número',
+            'complemento': 'Complemento',
+            'bairro': 'Bairro',
+            'cidade': 'Cidade',
+            'estado': 'Estado',
+            'cep': 'CEP',
+            'ultima_data_atendimento': 'Último Atendimento',
+            'email_responsavel': 'Email do Responsável'
+        }
+        colunas_existentes = {k: v for k, v in colunas_pt.items() if k in df.columns}
+        df = df.rename(columns=colunas_existentes)
+
+        # Criação do arquivo Excel
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, sheet_name='Familias_Sem_Atendimento', index=False)
+            workbook = writer.book
+            worksheet = writer.sheets['Familias_Sem_Atendimento']
+            
+            # Ajuste automático das colunas
+            for column in worksheet.columns:
+                max_length = 0
+                column_letter = column[0].column_letter
+                for cell in column:
+                    try:
+                        if cell.value and len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = min(max(max_length + 2, 10), 50)
+                worksheet.column_dimensions[column_letter].width = adjusted_width
+        output.seek(0)
+
+        data_atual = datetime.now().strftime("%Y_%m_%d")
+        nome_arquivo = f"familias_sem_atendimento_recente_{data_atual}.xlsx"
+        return send_file(
+            output,
+            as_attachment=True,
+            download_name=nome_arquivo,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+    except Exception as e:
+        return jsonify({"error": f"Erro ao gerar arquivo: {str(e)}"}), 500
+
+
+@app.route("/dashboard/demandas-ativas/download")
+@login_required
+@admin_required
+def download_demandas_ativas():
+    """Download de arquivo Excel com dados completos das demandas ativas."""
+    try:
+        sql_query_string = """
+        SELECT
+            f.*,
+            e.*,
+            c.*,
+            cf.*,
+            cm.*,
+            ed.*,
+            ep.*,
+            rf.*,
+            sf.*,
+            df.*,
+            dt.demanda_tipo_nome,
+            de.status_atual,
+            de.data_atualizacao,
+            de.observacao as observacao_etapa,
+            de.usuario_atualizacao,
+            atendimentos_json.atendimentos
+        FROM familias f
+        LEFT JOIN enderecos e ON f.familia_id = e.familia_id
+        LEFT JOIN contatos c ON f.familia_id = c.familia_id
+        LEFT JOIN composicao_familiar cf ON f.familia_id = cf.familia_id
+        LEFT JOIN condicoes_moradia cm ON f.familia_id = cm.familia_id
+        LEFT JOIN educacao_entrevistado ed ON f.familia_id = ed.familia_id
+        LEFT JOIN emprego_provedor ep ON f.familia_id = ep.familia_id
+        LEFT JOIN renda_familiar rf ON f.familia_id = rf.familia_id
+        LEFT JOIN saude_familiar sf ON f.familia_id = sf.familia_id
+        INNER JOIN demanda_familia df ON f.familia_id = df.familia_id
+        INNER JOIN demanda_tipo dt ON df.demanda_tipo_id = dt.demanda_tipo_id
+        INNER JOIN (
+            SELECT de1.*
+            FROM demanda_etapa de1
+            INNER JOIN (
+                SELECT demanda_id, MAX(etapa_id) AS max_etapa_id
+                FROM demanda_etapa
+                GROUP BY demanda_id
+            ) m ON de1.demanda_id = m.demanda_id AND de1.etapa_id = m.max_etapa_id
+        ) de ON df.demanda_id = de.demanda_id
+        OUTER APPLY (
+            SELECT
+                a.*
+            FROM atendimentos a
+            WHERE a.familia_id = f.familia_id
+            FOR JSON PATH
+        ) AS atendimentos_json(atendimentos)
+        ORDER BY df.prioridade ASC
+        """
+
+        sql_query = text(sql_query_string)
+        resultados = db.session.execute(sql_query).mappings().all()
+        if not resultados:
+            return jsonify({"error": "Nenhum dado encontrado para exportação"}), 404
+
+        dados = [dict(r) for r in resultados]
+        df = pd.DataFrame(dados)
+
+        # Tratamento de timezone para colunas datetime
+        for column in df.columns:
+            if df[column].dtype == 'object':
+                sample_values = df[column].dropna().head(5)
+                if len(sample_values) > 0:
+                    first_value = sample_values.iloc[0]
+                    if hasattr(first_value, 'tzinfo') and first_value.tzinfo is not None:
+                        df[column] = pd.to_datetime(df[column], errors='ignore').dt.tz_localize(None)
+            elif 'datetime64[ns, ' in str(df[column].dtype):
+                df[column] = df[column].dt.tz_localize(None)
+
+        # Renomeação das colunas para português
+        colunas_pt = {
+            'familia_id': 'ID Família',
+            'nome_responsavel': 'Nome do Responsável',
+            'cpf': 'CPF',
+            'data_nascimento': 'Data de Nascimento',
+            'telefone_principal': 'Telefone Principal',
+            'email': 'Email',
+            'data_cadastro': 'Data de Cadastro',
+            'data_hora_log_utc': 'Data do Cadastro',
+            'logradouro': 'Logradouro',
+            'numero': 'Número',
+            'complemento': 'Complemento',
+            'bairro': 'Bairro',
+            'cidade': 'Cidade',
+            'estado': 'Estado',
+            'cep': 'CEP',
+            'email_responsavel': 'Email do Responsável',
+            'demanda_id': 'ID Demanda',
+            'descricao': 'Descrição da Demanda',
+            'data_identificacao': 'Data de Identificação',
+            'prioridade': 'Prioridade',
+            'demanda_tipo_nome': 'Tipo de Demanda',
+            'status_atual': 'Status Atual',
+            'data_atualizacao': 'Data da Última Atualização',
+            'observacao_etapa': 'Observações da Etapa',
+            'usuario_atualizacao': 'Usuário da Última Atualização'
+        }
+        colunas_existentes = {k: v for k, v in colunas_pt.items() if k in df.columns}
+        df = df.rename(columns=colunas_existentes)
+
+        # Criação do arquivo Excel
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, sheet_name='Demandas_Ativas', index=False)
+            workbook = writer.book
+            worksheet = writer.sheets['Demandas_Ativas']
+            
+            # Ajuste automático das colunas
+            for column in worksheet.columns:
+                max_length = 0
+                column_letter = column[0].column_letter
+                for cell in column:
+                    try:
+                        if cell.value and len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = min(max(max_length + 2, 10), 50)
+                worksheet.column_dimensions[column_letter].width = adjusted_width
+        output.seek(0)
+
+        data_atual = datetime.now().strftime("%Y_%m_%d")
+        nome_arquivo = f"demandas_ativas_{data_atual}.xlsx"
+        return send_file(
+            output,
+            as_attachment=True,
+            download_name=nome_arquivo,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+    except Exception as e:
+        return jsonify({"error": f"Erro ao gerar arquivo: {str(e)}"}), 500
+
+
+@app.route("/dashboard/familias-maior-vulnerabilidade/download")
+@login_required
+@admin_required
+def download_familias_maior_vulnerabilidade():
+    """Download de arquivo Excel com dados completos das famílias em maior vulnerabilidade."""
+    # FUNÇÃO CORRIGIDA - SEM OBSERVACOES
+    try:
+        sql_query_string = """
+        SELECT
+            f.*,
+            e.*,
+            c.*,
+            cf.*,
+            cm.*,
+            ed.*,
+            ep.*,
+            rf.*,
+            sf.*,
+            ultimo_atendimento.percepcao_necessidade,
+            ultimo_atendimento.cesta_entregue,
+            ultimo_atendimento.data_hora_atendimento,
+            ultimo_atendimento.motivo_duracao,
+            ultimo_atendimento.duracao_necessidade,
+            demandas_json.demandas,
+            atendimentos_json.atendimentos
+        FROM familias f
+        LEFT JOIN enderecos e ON f.familia_id = e.familia_id
+        LEFT JOIN contatos c ON f.familia_id = c.familia_id
+        LEFT JOIN composicao_familiar cf ON f.familia_id = cf.familia_id
+        LEFT JOIN condicoes_moradia cm ON f.familia_id = cm.familia_id
+        LEFT JOIN educacao_entrevistado ed ON f.familia_id = ed.familia_id
+        LEFT JOIN emprego_provedor ep ON f.familia_id = ep.familia_id
+        LEFT JOIN renda_familiar rf ON f.familia_id = rf.familia_id
+        LEFT JOIN saude_familiar sf ON f.familia_id = sf.familia_id
+        INNER JOIN (
+            SELECT 
+                a1.familia_id,
+                a1.percepcao_necessidade,
+                a1.cesta_entregue,
+                a1.data_hora_atendimento,
+                a1.motivo_duracao,
+                a1.duracao_necessidade,
+                ROW_NUMBER() OVER (PARTITION BY a1.familia_id ORDER BY a1.data_hora_atendimento DESC) as rn
+            FROM atendimentos a1
+            WHERE a1.percepcao_necessidade = 'Alta'
+        ) ultimo_atendimento ON f.familia_id = ultimo_atendimento.familia_id AND ultimo_atendimento.rn = 1
+        OUTER APPLY (
+            SELECT
+                df.demanda_id,
+                df.familia_id,
+                df.demanda_tipo_id,
+                dt.demanda_tipo_nome,
+                df.status,
+                df.descricao,
+                df.data_identificacao,
+                df.prioridade,
+                de.data_atualizacao,
+                de.status_atual,
+                de.observacao,
+                de.usuario_atualizacao
+            FROM demanda_familia df
+            INNER JOIN demanda_tipo dt ON df.demanda_tipo_id = dt.demanda_tipo_id
+            INNER JOIN demanda_etapa de ON df.demanda_id = de.demanda_id
+            WHERE df.familia_id = f.familia_id
+            FOR JSON PATH
+        ) AS demandas_json(demandas)
+        OUTER APPLY (
+            SELECT
+                a.*
+            FROM atendimentos a
+            WHERE a.familia_id = f.familia_id
+            FOR JSON PATH
+        ) AS atendimentos_json(atendimentos)
+        ORDER BY ultimo_atendimento.data_hora_atendimento DESC
+        """
+
+        sql_query = text(sql_query_string)
+        resultados = db.session.execute(sql_query).mappings().all()
+        if not resultados:
+            return jsonify({"error": "Nenhum dado encontrado para exportação"}), 404
+
+        dados = [dict(r) for r in resultados]
+        df = pd.DataFrame(dados)
+
+        # Tratamento de timezone para colunas datetime
+        for column in df.columns:
+            if df[column].dtype == 'object':
+                sample_values = df[column].dropna().head(5)
+                if len(sample_values) > 0:
+                    first_value = sample_values.iloc[0]
+                    if hasattr(first_value, 'tzinfo') and first_value.tzinfo is not None:
+                        df[column] = pd.to_datetime(df[column], errors='ignore').dt.tz_localize(None)
+            elif 'datetime64[ns, ' in str(df[column].dtype):
+                df[column] = df[column].dt.tz_localize(None)
+
+        # Renomeação das colunas para português
+        colunas_pt = {
+            'familia_id': 'ID Família',
+            'nome_responsavel': 'Nome do Responsável',
+            'cpf': 'CPF',
+            'data_nascimento': 'Data de Nascimento',
+            'telefone_principal': 'Telefone Principal',
+            'email': 'Email',
+            'data_cadastro': 'Data de Cadastro',
+            'data_hora_log_utc': 'Data do Cadastro',
+            'logradouro': 'Logradouro',
+            'numero': 'Número',
+            'complemento': 'Complemento',
+            'bairro': 'Bairro',
+            'cidade': 'Cidade',
+            'estado': 'Estado',
+            'cep': 'CEP',
+            'email_responsavel': 'Email do Responsável',
+            'percepcao_necessidade': 'Percepção de Necessidade',
+            'cesta_entregue': 'Cesta Entregue',
+            'data_hora_atendimento': 'Data do Atendimento',
+            'motivo_duracao': 'Motivo/Duração',
+            'duracao_necessidade': 'Duração da Necessidade'
+        }
+        colunas_existentes = {k: v for k, v in colunas_pt.items() if k in df.columns}
+        df = df.rename(columns=colunas_existentes)
+
+        # Criação do arquivo Excel
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, sheet_name='Familias_Alta_Vulnerabilidade', index=False)
+            workbook = writer.book
+            worksheet = writer.sheets['Familias_Alta_Vulnerabilidade']
+            
+            # Ajuste automático das colunas
+            for column in worksheet.columns:
+                max_length = 0
+                column_letter = column[0].column_letter
+                for cell in column:
+                    try:
+                        if cell.value and len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = min(max(max_length + 2, 10), 50)
+                worksheet.column_dimensions[column_letter].width = adjusted_width
+        output.seek(0)
+
+        data_atual = datetime.now().strftime("%Y_%m_%d")
+        nome_arquivo = f"familias_maior_vulnerabilidade_{data_atual}.xlsx"
+        return send_file(
+            output,
+            as_attachment=True,
+            download_name=nome_arquivo,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+    except Exception as e:
+        return jsonify({"error": f"Erro ao gerar arquivo: {str(e)}"}), 500
+
+
 @app.route("/buscar_pre_cadastro")
 @login_required
 def buscar_pre_cadastro():

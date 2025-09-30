@@ -1,4 +1,39 @@
 document.addEventListener('DOMContentLoaded', function () {
+    // Funcionalidade do botão de download
+    const downloadBtn = document.getElementById('downloadBtn');
+    if (downloadBtn) {
+        const downloadUrl = downloadBtn.dataset.url;
+        downloadBtn.addEventListener('click', () => {
+            fetch(downloadUrl, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao gerar arquivo');
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                const now = new Date();
+                const dateStr = now.getFullYear() + '_' + String(now.getMonth() + 1).padStart(2, '0') + '_' + String(now.getDate()).padStart(2, '0');
+                link.href = url;
+                link.download = `familias_sem_atendimento_recente_${dateStr}.xlsx`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+            })
+            .catch(error => {
+                console.error('Erro no download:', error);
+            });
+        });
+    }
+
     const dados = window.familiasSemAtendimentoData || [];
     const tbody = document.querySelector('#tabelaFamiliasSemAtendimento tbody');
     const paginacao = document.getElementById('paginacaoFamiliasSemAtendimento');
