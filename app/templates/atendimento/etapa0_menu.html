@@ -52,6 +52,12 @@
                             <a href="{{ url_for('fluxo_atendimento.atendimento_familia', familia_id=f.familia_id) }}" class="text-decoration-none familia-link">
                                 <div class="familia-nome">Nome: {{ f.nome_responsavel }}</div>
                                 <div class="familia-cpf">CPF: {{ f.cpf or 'Não informado' }}</div>
+                                {% if f.nome_mae %}
+                                <div class="familia-mae">Mãe: {{ f.nome_mae }}</div>
+                                {% endif %}
+                                {% if f.nome_pai %}
+                                <div class="familia-pai">Pai: {{ f.nome_pai }}</div>
+                                {% endif %}
                                 {% if f.ultimo_atendimento %}
                                 <div class="familia-atendimento">Atendimento mais recente: {{ f.ultimo_atendimento.strftime('%d/%m/%Y') if f.ultimo_atendimento else 'Não informado' }}</div>
                                 {% endif %}

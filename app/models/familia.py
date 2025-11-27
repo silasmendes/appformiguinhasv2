@@ -12,6 +12,8 @@ class Familia(db.Model):
     estado_civil = db.Column(db.String(50))
     rg = db.Column(db.String(20))
     cpf = db.Column(db.String(14))
+    nome_mae = db.Column(db.String(100))
+    nome_pai = db.Column(db.String(100))
     autoriza_uso_imagem = db.Column(db.Boolean)
     status_cadastro = db.Column(
         db.String(20), nullable=False, default="rascunho"

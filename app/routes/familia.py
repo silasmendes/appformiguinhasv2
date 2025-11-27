@@ -50,6 +50,8 @@ def buscar_familias():
             "nome_responsavel": familia.nome_responsavel,
             "data_nascimento": familia.data_nascimento.isoformat() if familia.data_nascimento else None,
             "cpf": familia.cpf,
+            "nome_mae": familia.nome_mae,
+            "nome_pai": familia.nome_pai,
             "ultimo_atendimento": ultimo.date().isoformat() if ultimo else None,
         })
     return jsonify(resultados)

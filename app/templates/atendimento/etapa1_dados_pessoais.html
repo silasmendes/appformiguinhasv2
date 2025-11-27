@@ -46,6 +46,14 @@
         <div id="cpf-feedback" class="invalid-feedback">CPF inválido</div>
     </div>
     <div class="mb-3">
+        <label for="nome_mae" class="form-label">Nome da mãe do responsável</label>
+        <input type="text" class="form-control" id="nome_mae" name="nome_mae" autocomplete="off" value="{{ session['cadastro'].get('nome_mae', '') }}">
+    </div>
+    <div class="mb-3">
+        <label for="nome_pai" class="form-label">Nome do pai do responsável</label>
+        <input type="text" class="form-control" id="nome_pai" name="nome_pai" autocomplete="off" value="{{ session['cadastro'].get('nome_pai', '') }}">
+    </div>
+    <div class="mb-3">
         <label class="form-label">Autoriza o uso de imagem em registros e divulgações?</label>
         <div>
             <div class="form-check form-check-inline">

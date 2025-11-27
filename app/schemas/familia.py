@@ -24,6 +24,8 @@ class FamiliaSchema(ma.SQLAlchemySchema):
     estado_civil = ma.auto_field()
     rg = ma.auto_field()
     cpf = ma.auto_field()
+    nome_mae = ma.auto_field()
+    nome_pai = ma.auto_field()
     autoriza_uso_imagem = ma.auto_field()
     status_cadastro = ma.auto_field()
     data_hora_log_utc = ma.auto_field(dump_only=True)

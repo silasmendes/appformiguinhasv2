@@ -67,6 +67,8 @@ def carregar_cadastro_familia(familia_id):
         "estado_civil": familia.estado_civil,
         "rg": familia.rg,
         "cpf": familia.cpf,
+        "nome_mae": familia.nome_mae,
+        "nome_pai": familia.nome_pai,
     })
     if familia.autoriza_uso_imagem is not None:
         cadastro["autoriza_uso_imagem"] = _bool_to_sim_nao(familia.autoriza_uso_imagem)

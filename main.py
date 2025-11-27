@@ -50,6 +50,8 @@ def menu_atendimento():
                 "nome_responsavel": familia.nome_responsavel,
                 "data_nascimento": familia.data_nascimento,
                 "cpf": familia.cpf,
+                "nome_mae": familia.nome_mae,
+                "nome_pai": familia.nome_pai,
                 "ultimo_atendimento": ultimo.date() if ultimo else None,
             })
         auto_open = True
