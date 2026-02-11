@@ -201,9 +201,20 @@ def dashboard():
     resultado_vulnerabilidade = db.session.execute(sql_familias_maior_vulnerabilidade).mappings().first()
     total_familias_maior_vulnerabilidade = resultado_vulnerabilidade['total_familias_maior_vulnerabilidade'] if resultado_vulnerabilidade else 0
     
-    # Dados mock para demonstração (outros valores podem ser calculados dinamicamente no futuro)
+    # Calcular número total de famílias cadastradas
+    sql_total_familias = text(
+        """
+        SELECT COUNT(*) as total_familias
+        FROM familias
+        """
+    )
+    
+    resultado_total_familias = db.session.execute(sql_total_familias).mappings().first()
+    total_familias = resultado_total_familias['total_familias'] if resultado_total_familias else 0
+    
+    # Dados do dashboard calculados dinamicamente
     dados_dashboard = {
-        'total_familias': 48,
+        'total_familias': total_familias,
         'familias_atendidas_30_dias': total_familias_atendidas_30_dias,
         'entregas_cestas_30_dias': total_entregas_cestas_30_dias,
         'familias_sem_atendimento_recente': total_familias_sem_atendimento_recente,
