@@ -25,6 +25,32 @@ def get_last_atendimento_date():
         print(f"Erro ao buscar data do último atendimento: {e}")
         return None
 
+def get_last_atendente_nome():
+    """Obtém o nome completo do atendente do último atendimento da família atual"""
+    try:
+        familia_id = session.get('familia_id')
+        if not familia_id:
+            return None
+        
+        from app import db
+        from app.models.atendimento import Atendimento
+        from app.models.usuario import Usuario
+        
+        atendimento = db.session.query(Atendimento).filter_by(
+            familia_id=familia_id
+        ).order_by(Atendimento.data_hora_atendimento.desc()).first()
+        
+        if atendimento and atendimento.usuario_atendente_id:
+            usuario = db.session.query(Usuario).filter_by(
+                id=atendimento.usuario_atendente_id
+            ).first()
+            if usuario:
+                return usuario.nome_completo
+        return None
+    except Exception as e:
+        print(f"Erro ao buscar nome do último atendente: {e}")
+        return None
+
 def register_template_helpers(app):
     """Registra funções helper para os templates"""
     
@@ -33,7 +59,8 @@ def register_template_helpers(app):
         """Injeta a função de resumo da família nos templates"""
         return dict(
             gerar_resumo_familia=gerar_resumo_familia,
-            get_last_atendimento_date=get_last_atendimento_date
+            get_last_atendimento_date=get_last_atendimento_date,
+            get_last_atendente_nome=get_last_atendente_nome
         )
     
     @app.template_filter('simple_markdown')
