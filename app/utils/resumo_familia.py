@@ -8,6 +8,10 @@ from typing import Dict, Any, Optional
 from app.utils.openai_usage_tracker import OpenAIUsageTracker
 from app import db
 from app.models.resumo_familia_ia import ResumoFamiliaIA
+from app.models.atendimento import Atendimento
+from app.models.demanda_familia import DemandaFamilia
+from app.models.demanda_etapa import DemandaEtapa
+from app.models.demanda_tipo import DemandaTipo
 from datetime import datetime, timezone, timedelta
 
 logger = logging.getLogger(__name__)
@@ -104,35 +108,153 @@ class ResumoFamiliaService:
         else:
             return data
     
-    def _create_prompt(self, clean_data: Dict[str, Any]) -> str:
+    def _fetch_additional_context(self, familia_id: int) -> Dict[str, Any]:
+        """Busca dados adicionais de atendimentos e demandas do banco de dados"""
+        context = {
+            'ultimos_atendimentos': [],
+            'demandas_ativas': [],
+            'ultima_visita_domiciliar': None
+        }
+        
+        if not familia_id:
+            return context
+        
+        try:
+            # Buscar últimos 3 atendimentos
+            atendimentos = db.session.query(Atendimento).filter_by(
+                familia_id=familia_id
+            ).order_by(Atendimento.data_hora_atendimento.desc()).limit(3).all()
+            
+            for a in atendimentos:
+                atend_info = {
+                    'tipo_atendimento': a.tipo_atendimento,
+                    'percepcao_necessidade': a.percepcao_necessidade,
+                    'duracao_necessidade': a.duracao_necessidade,
+                    'motivo_duracao': a.motivo_duracao,
+                    'cesta_entregue': a.cesta_entregue,
+                    'data_atendimento': a.data_hora_atendimento.strftime('%d/%m/%Y') if a.data_hora_atendimento else None,
+                    'notas_visita': a.notas_visita
+                }
+                context['ultimos_atendimentos'].append(atend_info)
+                
+                # Registrar última visita domiciliar
+                if a.tipo_atendimento == 'Visita domiciliar' and not context['ultima_visita_domiciliar']:
+                    context['ultima_visita_domiciliar'] = {
+                        'data': a.data_visita.strftime('%d/%m/%Y') if a.data_visita else a.data_hora_atendimento.strftime('%d/%m/%Y'),
+                        'notas': a.notas_visita
+                    }
+            
+            # Buscar demandas ativas (não concluídas/canceladas) com tipo e última etapa
+            demandas = db.session.query(
+                DemandaFamilia, DemandaTipo
+            ).join(
+                DemandaTipo, DemandaFamilia.demanda_tipo_id == DemandaTipo.demanda_tipo_id
+            ).filter(
+                DemandaFamilia.familia_id == familia_id,
+                ~DemandaFamilia.status.in_(['Concluída', 'Cancelada'])
+            ).all()
+            
+            for demanda, tipo in demandas:
+                # Buscar a etapa mais recente desta demanda
+                ultima_etapa = db.session.query(DemandaEtapa).filter_by(
+                    demanda_id=demanda.demanda_id
+                ).order_by(DemandaEtapa.data_atualizacao.desc()).first()
+                
+                demanda_info = {
+                    'tipo': tipo.demanda_tipo_nome,
+                    'descricao': demanda.descricao,
+                    'status': demanda.status,
+                    'prioridade': demanda.prioridade,
+                    'data_identificacao': demanda.data_identificacao.strftime('%d/%m/%Y') if demanda.data_identificacao else None
+                }
+                
+                if ultima_etapa:
+                    demanda_info['ultimo_status'] = ultima_etapa.status_atual
+                    demanda_info['ultima_observacao'] = ultima_etapa.observacao
+                    demanda_info['data_ultima_atualizacao'] = ultima_etapa.data_atualizacao.strftime('%d/%m/%Y') if ultima_etapa.data_atualizacao else None
+                
+                context['demandas_ativas'].append(demanda_info)
+            
+            logger.info(f"Contexto adicional obtido: {len(context['ultimos_atendimentos'])} atendimentos, "
+                       f"{len(context['demandas_ativas'])} demandas ativas")
+                       
+        except Exception as e:
+            logger.error(f"Erro ao buscar contexto adicional para família {familia_id}: {e}")
+        
+        return context
+
+    def _create_prompt(self, clean_data: Dict[str, Any], additional_context: Optional[Dict[str, Any]] = None) -> str:
         """Cria o prompt para o Azure OpenAI"""
         json_data = json.dumps(clean_data, indent=2, ensure_ascii=False)
         
-        prompt = f"""
-Analise os dados abaixo de uma família em vulnerabilidade social e gere um resumo CONCISO em formato Markdown.
+        # Montar seção de contexto adicional
+        contexto_extra = ""
+        if additional_context:
+            partes = []
+            
+            # Atendimentos recentes
+            atendimentos = additional_context.get('ultimos_atendimentos', [])
+            if atendimentos:
+                partes.append("\nÚLTIMOS ATENDIMENTOS:")
+                for a in atendimentos:
+                    linha = f"- {a.get('data_atendimento', 'N/A')} ({a.get('tipo_atendimento', 'N/A')}): "
+                    linha += f"Necessidade {a.get('percepcao_necessidade', 'N/A')}, {a.get('duracao_necessidade', 'N/A')}"
+                    if a.get('motivo_duracao'):
+                        linha += f" ({a['motivo_duracao']})"
+                    if a.get('cesta_entregue'):
+                        linha += " | Cesta entregue"
+                    if a.get('notas_visita'):
+                        linha += f" | Notas: {a['notas_visita']}"
+                    partes.append(linha)
+            
+            # Última visita domiciliar
+            visita = additional_context.get('ultima_visita_domiciliar')
+            if visita:
+                partes.append(f"\nÚLTIMA VISITA DOMICILIAR: {visita.get('data', 'N/A')}")
+                if visita.get('notas'):
+                    partes.append(f"Observações da visita: {visita['notas']}")
+            
+            # Demandas ativas
+            demandas = additional_context.get('demandas_ativas', [])
+            if demandas:
+                partes.append("\nDEMANDAS ATIVAS:")
+                for d in demandas:
+                    linha = f"- {d.get('tipo', 'N/A')} (Prioridade: {d.get('prioridade', 'N/A')}, Status: {d.get('status', 'N/A')})"
+                    if d.get('descricao'):
+                        linha += f" - {d['descricao']}"
+                    if d.get('ultima_observacao'):
+                        linha += f" | Última atualização ({d.get('data_ultima_atualizacao', 'N/A')}): {d['ultima_observacao']}"
+                    partes.append(linha)
+            
+            if partes:
+                contexto_extra = "\n".join(partes)
+        
+        prompt = f"""Analise os dados abaixo de uma família em vulnerabilidade social e gere um resumo em formato Markdown.
 
-Dados da família:
+Dados cadastrais da família:
 {json_data}
+{contexto_extra}
 
 INSTRUÇÕES OBRIGATÓRIAS:
-- Máximo 3 frases curtas e diretas
+- Máximo 5-6 frases curtas e diretas
 - Use **negrito** para destacar os problemas mais críticos
 - Use *itálico* para condições secundárias
-- Foque apenas nos 2-3 desafios mais graves
+- Foque nos desafios mais graves e nas demandas em andamento
+- RESUMA as notas e observações com suas próprias palavras — NÃO copie o texto original literalmente
+- Extraia apenas a essência: qual o problema, qual a ação em curso, e se há próxima data prevista
+- Se houve visita domiciliar recente, mencione a data
+- Mencione as demandas ativas com seu status atual e uma síntese curta da observação
 - Linguagem técnica e objetiva
-- NÃO inclua dados pessoais
+- NÃO inclua dados pessoais (nomes de pessoas, CPF, endereço, telefone)
 
-FORMATO OBRIGATÓRIO:
-Família de X pessoas enfrentando **[problema crítico 1]** e **[problema crítico 2]**. *[Condição secundária]* agrava a situação. Demandas urgentes: **[demanda prioritária]**.
+EXEMPLO DE RESUMO BOM:
+Família de 5 pessoas enfrentando **desemprego** e **demandas urgentes**. *Necessidades médicas* agravam a situação. Última visita domiciliar em 21/02/2026: situação crítica. Demandas ativas: **Reparação do telhado** (Em andamento - resolver humidade; próximo update em 26/02).
 
-EXEMPLO:
-Família de 4 pessoas com **baixa renda** e **ausência de saneamento básico**. *Problemas de saúde crônicos* comprometem a qualidade de vida. Demandas urgentes: **moradia adequada**.
-
-Seja CONCISO - máximo 400 caracteres:
+Seja informativo mas conciso - máximo 600 caracteres:
 """
         return prompt
     
-    def gerar_resumo(self, cadastro_data: Dict[str, Any]) -> str:
+    def gerar_resumo(self, cadastro_data: Dict[str, Any], familia_id: Optional[int] = None) -> str:
         """Gera resumo inteligente da situação familiar"""
         if not cadastro_data:
             return "Dados da família não disponíveis para análise."
@@ -143,8 +265,12 @@ Seja CONCISO - máximo 400 caracteres:
         if not clean_data:
             return "Dados da família não disponíveis para análise."
         
-        # Verifica cache
-        cache_key = self._get_cache_key(clean_data)
+        # Busca contexto adicional (atendimentos e demandas)
+        additional_context = self._fetch_additional_context(familia_id)
+        
+        # Verifica cache (incluindo contexto adicional na chave)
+        cache_input = {'cadastro': clean_data, 'contexto': additional_context}
+        cache_key = self._get_cache_key(cache_input)
         if cache_key in self.cache:
             logger.info("Resumo obtido do cache")
             return self.cache[cache_key]
@@ -153,22 +279,22 @@ Seja CONCISO - máximo 400 caracteres:
         
         if not client:
             logger.warning("Cliente Azure OpenAI não disponível, usando resumo padrão")
-            resumo = self._get_fallback_summary(cadastro_data)
+            resumo = self._get_fallback_summary(cadastro_data, additional_context)
             self.cache[cache_key] = resumo
             return resumo
         
         try:
             # Cria o prompt
-            prompt = self._create_prompt(clean_data)
+            prompt = self._create_prompt(clean_data, additional_context)
             
             # Faz a chamada para o Azure OpenAI
             response = client.chat.completions.create(
                 model=current_app.config.get('AZURE_OPENAI_DEPLOYMENT_NAME'),
                 messages=[
-                    {"role": "system", "content": "Você é um especialista em análise social que gera resumos CONCISOS em Markdown. Seja direto, objetivo e use formatação Markdown para destacar problemas críticos. Máximo 400 caracteres por resposta."},
+                    {"role": "system", "content": "Você é um especialista em análise social que gera resumos informativos em Markdown. Seja direto, objetivo e use formatação Markdown para destacar problemas críticos. RESUMA as observações dos atendimentos com suas próprias palavras — nunca copie o texto original. Extraia a essência: problema, ação em curso, próxima data. Máximo 600 caracteres."},
                     {"role": "user", "content": prompt}
                 ],
-                max_tokens=150,  # Reduzido significativamente para forçar concisão
+                max_tokens=300,  # Aumentado para permitir resumo mais rico
                 temperature=0.1,  # Menor para mais consistência
                 top_p=0.8,
                 frequency_penalty=0.2,  # Evita repetições
@@ -176,6 +302,12 @@ Seja CONCISO - máximo 400 caracteres:
             )
             
             resumo = response.choices[0].message.content.strip()
+            
+            # Remover code fences (```markdown ... ```) que a IA pode incluir
+            import re
+            resumo = re.sub(r'^```\w*\s*', '', resumo)
+            resumo = re.sub(r'\s*```$', '', resumo)
+            resumo = resumo.strip()
             
             # Registrar o uso de tokens
             OpenAIUsageTracker.track_usage(
@@ -209,11 +341,11 @@ Seja CONCISO - máximo 400 caracteres:
                 error_message=str(e)
             )
             
-            resumo = self._get_fallback_summary(cadastro_data)
+            resumo = self._get_fallback_summary(cadastro_data, additional_context)
             self.cache[cache_key] = resumo
             return resumo
     
-    def _get_fallback_summary(self, cadastro_data: Dict[str, Any]) -> str:
+    def _get_fallback_summary(self, cadastro_data: Dict[str, Any], additional_context: Optional[Dict[str, Any]] = None) -> str:
         """Gera resumo básico em Markdown quando Azure OpenAI não está disponível"""
         if not cadastro_data:
             return "Informações da família não disponíveis."
@@ -221,6 +353,7 @@ Seja CONCISO - máximo 400 caracteres:
         summary_parts = []
         critical_issues = []
         secondary_issues = []
+        extra_parts = []
         
         # Composição familiar
         total_residentes = cadastro_data.get('total_residentes', 0)
@@ -254,6 +387,33 @@ Seja CONCISO - máximo 400 caracteres:
         if creche == 'Não':
             secondary_issues.append("*falta de acesso à creche*")
         
+        # Informações de atendimentos e demandas (contexto adicional)
+        if additional_context:
+            # Última visita domiciliar
+            visita = additional_context.get('ultima_visita_domiciliar')
+            if visita:
+                extra_parts.append(f"Última visita domiciliar em **{visita.get('data', 'N/A')}**")
+                if visita.get('notas'):
+                    extra_parts.append(f"Obs: *{visita['notas'].strip()}*")
+            
+            # Notas do último atendimento
+            atendimentos = additional_context.get('ultimos_atendimentos', [])
+            if atendimentos:
+                ultimo = atendimentos[0]
+                if ultimo.get('percepcao_necessidade'):
+                    extra_parts.append(f"Necessidade percebida: **{ultimo['percepcao_necessidade']}**")
+                if ultimo.get('motivo_duracao'):
+                    extra_parts.append(f"Motivo: *{ultimo['motivo_duracao']}*")
+            
+            # Demandas ativas
+            demandas_ativas = additional_context.get('demandas_ativas', [])
+            if demandas_ativas:
+                demanda_strs = []
+                for d in demandas_ativas[:3]:  # Máximo 3 demandas
+                    s = f"**{d.get('tipo', 'N/A')}** ({d.get('ultimo_status', d.get('status', 'N/A'))})"
+                    demanda_strs.append(s)
+                extra_parts.append(f"Demandas ativas: {'; '.join(demanda_strs)}")
+        
         # Constrói o resumo em Markdown
         if summary_parts and critical_issues:
             base = f"{' '.join(summary_parts)} enfrentando {' e '.join(critical_issues[:2])}"
@@ -261,11 +421,16 @@ Seja CONCISO - máximo 400 caracteres:
             if secondary_issues:
                 base += f". {secondary_issues[0]} agrava a situação"
             
-            return base + "."
+            base += "."
         elif summary_parts:
-            return f"{' '.join(summary_parts)} em acompanhamento social."
+            base = f"{' '.join(summary_parts)} em acompanhamento social."
         else:
-            return "Família em acompanhamento social."
+            base = "Família em acompanhamento social."
+        
+        if extra_parts:
+            base += " " + ". ".join(extra_parts) + "."
+        
+        return base
 
 # Instância global do serviço - será inicializada sob demanda
 _resumo_service = None
@@ -338,7 +503,7 @@ def gerar_resumo_familia(cadastro_data: Dict[str, Any]) -> str:
         logger.debug(f"🔥 NOVO RESUMO SENDO GERADO - Família {familia_id or 'SEM_ID'}: "
                     f"Nenhum resumo encontrado nas últimas 12h. Chamada OpenAI necessária.")
         service = get_resumo_service()
-        resumo = service.gerar_resumo(cadastro_data)
+        resumo = service.gerar_resumo(cadastro_data, familia_id=familia_id)
         
         # Salvar resumo no banco de dados se temos familia_id e resumo válido
         if familia_id and resumo and resumo not in [
