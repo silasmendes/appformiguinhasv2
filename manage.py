@@ -1,6 +1,7 @@
 from app import create_app, db
 from app.models.demanda_tipo import DemandaTipo
 from app.models.resumo_familia_ia import ResumoFamiliaIA
+from app.models.password_reset_token import PasswordResetToken
 from seeds.admin_user_seed import seed_admin_user
 
 app = create_app()
