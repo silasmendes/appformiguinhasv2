@@ -32,6 +32,7 @@
                 <tr>
                     <th><i class="fas fa-user me-2"></i>Login</th>
                     <th><i class="fas fa-id-card me-2"></i>Nome Completo</th>
+                    <th><i class="fas fa-envelope me-2"></i>Email</th>
                     <th><i class="fas fa-shield-alt me-2"></i>Tipo</th>
                     <th><i class="fas fa-calendar-times me-2"></i>Expiração</th>
                     <th><i class="fas fa-clock me-2"></i>Último Login</th>
@@ -43,6 +44,13 @@
                 <tr>
                     <td class="fw-medium">{{ u.login }}</td>
                     <td>{{ u.nome_completo }}</td>
+                    <td>
+                        {% if u.email %}
+                            <span class="text-muted">{{ u.email }}</span>
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
                     <td>
                         {% if u.tipo == 'admin' %}
                             <span class="badge bg-danger">{{ u.tipo }}</span>
@@ -76,13 +84,16 @@
                                 <i class="fas fa-key"></i>
                             </button>
                             <button type="button"
-                                    class="btn btn-outline-danger btn-delete-usuario"
+                                    class="btn btn-outline-primary btn-edit-usuario"
                                     data-user-id="{{ u.id }}"
                                     data-user-name="{{ u.nome_completo }}"
                                     data-user-login="{{ u.login }}"
-                                    data-action="{{ url_for('usuarios.deletar_usuario', id=u.id) }}"
-                                    title="Excluir usuário">
-                                <i class="fas fa-trash"></i>
+                                    data-user-email="{{ u.email or '' }}"
+                                    data-user-tipo="{{ u.tipo }}"
+                                    data-user-expires="{{ u.expires_at.strftime('%d/%m/%Y %H:%M') if u.expires_at else '' }}"
+                                    data-action="{{ url_for('usuarios.atualizar_usuario', id=u.id) }}"
+                                    title="Alterar este usuário">
+                                <i class="fas fa-edit"></i>
                             </button>
                         </div>
                     </td>
@@ -140,13 +151,13 @@
                                    placeholder="Nome completo do usuário" autocomplete="off">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label" for="expires_at">
-                                <i class="fas fa-calendar-times me-1"></i>
-                                Data e hora da expiração
+                            <label class="form-label" for="email">
+                                <i class="fas fa-envelope me-1"></i>
+                                Email
                             </label>
-                            <input type="text" class="form-control" name="expires_at" id="expires_at" 
-                                   placeholder="Ex: 31/12/2025 23:59">
-                            <div class="form-text">Disponível apenas para usuários temporários. Formato: dd/mm/aaaa hh:mm</div>
+                            <input type="email" class="form-control" name="email" id="email" 
+                                   placeholder="Ex: usuario@email.com" autocomplete="off">
+                            <div class="form-text">Opcional</div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" for="senha">
@@ -155,6 +166,15 @@
                             </label>
                             <input type="password" class="form-control" name="senha" id="senha" required 
                                    placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="expires_at">
+                                <i class="fas fa-calendar-times me-1"></i>
+                                Data e hora da expiração
+                            </label>
+                            <input type="text" class="form-control" name="expires_at" id="expires_at" 
+                                   placeholder="Ex: 31/12/2025 23:59">
+                            <div class="form-text">Disponível apenas para usuários temporários. Formato: dd/mm/aaaa hh:mm</div>
                         </div>
                     </div>
                     
@@ -209,26 +229,84 @@
     </div>
 </div>
 
-<!-- Modal Deletar Usuário -->
-<div class="modal fade" id="modalDeleteUsuario" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <form class="modal-content" id="formDeleteUsuario" method="post">
-            <input type="hidden" name="_method" value="DELETE">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title">
-                    <i class="fas fa-trash me-2"></i>
-                    Excluir Usuário
+<!-- Modal Editar Usuário -->
+<div class="modal fade" id="modalEditUsuario" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalEditTitulo">
+                    <i class="fas fa-user-edit me-2"></i>
+                    Alterar Usuário
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <p>Tem certeza que deseja excluir o usuário <strong id="deleteUsuarioInfo"></strong>?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-danger">Sim</button>
-            </div>
-        </form>
+            <form method="post" id="formEditUsuario">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="edit_login">
+                                <i class="fas fa-user me-1"></i>
+                                Login
+                            </label>
+                            <input class="form-control" name="login" id="edit_login" readonly
+                                   style="background-color: #e9ecef;">
+                            <div class="form-text">O login não pode ser alterado</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="edit_tipo">
+                                <i class="fas fa-shield-alt me-1"></i>
+                                Tipo de Usuário <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select" name="tipo" id="edit_tipo" required>
+                                <option value="admin">Administrador</option>
+                                <option value="temporario">Temporário</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="edit_nome_completo">
+                                <i class="fas fa-id-card me-1"></i>
+                                Nome Completo <span class="text-danger">*</span>
+                            </label>
+                            <input class="form-control" name="nome_completo" id="edit_nome_completo" required 
+                                   placeholder="Nome completo do usuário" autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="edit_email">
+                                <i class="fas fa-envelope me-1"></i>
+                                Email
+                            </label>
+                            <input type="email" class="form-control" name="email" id="edit_email" 
+                                   placeholder="Ex: usuario@email.com" autocomplete="off">
+                            <div class="form-text">Opcional</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="edit_expires_at">
+                                <i class="fas fa-calendar-times me-1"></i>
+                                Data e hora da expiração
+                            </label>
+                            <input type="text" class="form-control" name="expires_at" id="edit_expires_at" 
+                                   placeholder="Ex: 31/12/2025 23:59">
+                            <div class="form-text">Disponível apenas para usuários temporários. Formato: dd/mm/aaaa hh:mm</div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info mt-3" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Nota:</strong> Para alterar a senha do usuário, utilize o botão de resetar senha na listagem.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>
+                        Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 

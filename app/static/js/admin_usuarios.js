@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Configurar modais de ação
     setupResetSenhaModal();
-    setupDeleteUsuarioModal();
+    setupEditUsuarioModal();
     
     // Validação do formulário
     setupFormValidation();
@@ -47,10 +47,10 @@ function addStatusIndicators() {
     
     rows.forEach(row => {
         const cells = row.querySelectorAll('td');
-        if (cells.length >= 5) {
-            const tipoCell = cells[2];
-            const expiracaoCell = cells[3];
-            const ultimoLoginCell = cells[4];
+        if (cells.length >= 6) {
+            const tipoCell = cells[3];
+            const expiracaoCell = cells[4];
+            const ultimoLoginCell = cells[5];
             
             // Badge para tipo de usuário
             const tipo = tipoCell.textContent.trim();
@@ -221,22 +221,85 @@ function setupResetSenhaModal() {
 }
 
 function setupDeleteUsuarioModal() {
-    const buttons = document.querySelectorAll('.btn-delete-usuario');
-    const modalEl = document.getElementById('modalDeleteUsuario');
+    // Funcionalidade de exclusão removida por questões de rastreabilidade
+}
+
+function setupEditUsuarioModal() {
+    const buttons = document.querySelectorAll('.btn-edit-usuario');
+    const modalEl = document.getElementById('modalEditUsuario');
     if (!modalEl) return;
 
     const modal = new bootstrap.Modal(modalEl);
-    const form = document.getElementById('formDeleteUsuario');
-    const info = document.getElementById('deleteUsuarioInfo');
+    const form = document.getElementById('formEditUsuario');
+    const titulo = document.getElementById('modalEditTitulo');
+    const loginInput = document.getElementById('edit_login');
+    const nomeInput = document.getElementById('edit_nome_completo');
+    const emailInput = document.getElementById('edit_email');
+    const tipoSelect = document.getElementById('edit_tipo');
+    const expiresInput = document.getElementById('edit_expires_at');
+
+    function toggleEditExpires() {
+        if (!tipoSelect || !expiresInput) return;
+        if (tipoSelect.value === 'admin' || tipoSelect.value === '') {
+            expiresInput.disabled = true;
+            expiresInput.value = '';
+            expiresInput.style.backgroundColor = '#e9ecef';
+        } else if (tipoSelect.value === 'temporario') {
+            expiresInput.disabled = false;
+            expiresInput.style.backgroundColor = '';
+        }
+    }
+
+    if (tipoSelect) {
+        tipoSelect.addEventListener('change', toggleEditExpires);
+    }
+
+    // Máscara de data para o campo de expiração do modal de edição
+    if (expiresInput) {
+        expiresInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) value = value.replace(/^(\d{2})/, '$1/');
+            if (value.length >= 5) value = value.replace(/^(\d{2}\/\d{2})/, '$1/');
+            if (value.length >= 10) value = value.replace(/^(\d{2}\/\d{2}\/\d{4})/, '$1 ');
+            if (value.length >= 13) value = value.replace(/^(\d{2}\/\d{2}\/\d{4} \d{2})/, '$1:');
+            if (value.length > 16) value = value.substring(0, 16);
+            e.target.value = value;
+        });
+
+        expiresInput.addEventListener('keydown', function(e) {
+            if ([8, 9, 27, 13, 36, 35, 37, 39, 46].indexOf(e.keyCode) !== -1 ||
+                (e.keyCode === 65 && e.ctrlKey === true) ||
+                (e.keyCode === 67 && e.ctrlKey === true) ||
+                (e.keyCode === 86 && e.ctrlKey === true) ||
+                (e.keyCode === 88 && e.ctrlKey === true)) {
+                return;
+            }
+            if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+                e.preventDefault();
+            }
+        });
+    }
 
     buttons.forEach(btn => {
         btn.addEventListener('click', () => {
             form.action = btn.dataset.action;
-            if (info) {
-                info.textContent = `${btn.dataset.userName} (${btn.dataset.userLogin})`;
+            if (titulo) {
+                titulo.innerHTML = '<i class="fas fa-user-edit me-2"></i>Alterar Usuário: ' + btn.dataset.userName;
             }
+            if (loginInput) loginInput.value = btn.dataset.userLogin;
+            if (nomeInput) nomeInput.value = btn.dataset.userName;
+            if (emailInput) emailInput.value = btn.dataset.userEmail || '';
+            if (tipoSelect) tipoSelect.value = btn.dataset.userTipo;
+            if (expiresInput) expiresInput.value = btn.dataset.userExpires || '';
+            toggleEditExpires();
             modal.show();
         });
+    });
+
+    // Resetar quando modal fechar
+    modalEl.addEventListener('hidden.bs.modal', function() {
+        form.reset();
+        toggleEditExpires();
     });
 }
 
@@ -253,8 +316,8 @@ function initializeTooltips() {
     document.querySelectorAll('.btn-reset-senha').forEach(btn => {
         btn.setAttribute('title', 'Gerar nova senha para este usuário');
     });
-    document.querySelectorAll('.btn-delete-usuario').forEach(btn => {
-        btn.setAttribute('title', 'Excluir este usuário');
+    document.querySelectorAll('.btn-edit-usuario').forEach(btn => {
+        btn.setAttribute('title', 'Alterar este usuário');
     });
 }
 

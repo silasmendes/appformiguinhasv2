@@ -46,18 +46,46 @@ def criar_usuario():
     flash('Usuário criado com sucesso', 'success')
     return redirect(url_for('usuarios.listar_usuarios'))
 
-@bp.route('/<int:id>', methods=['PUT', 'PATCH'])
+@bp.route('/<int:id>', methods=['PUT', 'PATCH', 'POST'])
 @login_required
 @admin_required
 def atualizar_usuario(id):
     usuario = db.session.get(Usuario, id)
     if not usuario:
         abort(404)
-    expires_at = request.form.get('expires_at')
-    if expires_at:
-        usuario.expires_at = datetime.fromisoformat(expires_at)
+
+    nome_completo = request.form.get('nome_completo', '').strip()
+    email = request.form.get('email', '').strip()
+    tipo = request.form.get('tipo', '').strip()
+    expires_at_str = request.form.get('expires_at', '').strip()
+
+    if nome_completo:
+        usuario.nome_completo = nome_completo
+
+    usuario.email = email if email else None
+
+    if tipo in ('admin', 'temporario'):
+        usuario.tipo = tipo
+
+    if expires_at_str:
+        try:
+            usuario.expires_at = datetime.strptime(expires_at_str, '%d/%m/%Y %H:%M')
+        except ValueError:
+            try:
+                usuario.expires_at = datetime.fromisoformat(expires_at_str)
+            except ValueError:
+                flash('Formato de data de expiração inválido', 'danger')
+                return redirect(url_for('usuarios.listar_usuarios'))
+    else:
+        if tipo == 'admin':
+            usuario.expires_at = None
+
+    if tipo == 'temporario' and not usuario.expires_at:
+        flash('Data de expiração é obrigatória para usuários temporários', 'danger')
+        return redirect(url_for('usuarios.listar_usuarios'))
+
     db.session.commit()
-    flash('Usuário atualizado', 'success')
+    flash('Usuário atualizado com sucesso', 'success')
     return redirect(url_for('usuarios.listar_usuarios'))
 
 @bp.route('/<int:id>/reset-senha', methods=['POST'])
@@ -75,14 +103,13 @@ def reset_senha(id):
     flash('Senha redefinida', 'success')
     return redirect(url_for('usuarios.listar_usuarios'))
 
-@bp.route('/<int:id>', methods=['DELETE', 'POST'])
+@bp.route('/<int:id>/delete', methods=['DELETE', 'POST'])
 @login_required
 @admin_required
 def deletar_usuario(id):
-    # Verificar se é uma requisição de delete válida
-    # Aceita DELETE direto ou POST com _method=DELETE (method override)
+    # Rota mantida mas não exposta na interface por questões de rastreabilidade
     if request.method == 'POST' and request.form.get('_method') != 'DELETE':
-        abort(405)  # Method not allowed se for POST sem _method=DELETE
+        abort(405)
     
     usuario = db.session.get(Usuario, id)
     if not usuario:

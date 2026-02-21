@@ -273,20 +273,8 @@
     }
 }
 
-/* Dark mode ready */
-@media (prefers-color-scheme: dark) {
-    .card {
-        background: #1a1a1a;
-    }
-    
-    .table thead th {
-        background: #2d2d2d;
-        color: #e9ecef;
-    }
-    
-    .table tbody td {
-        background: #1a1a1a;
-        color: #e9ecef;
-        border-bottom-color: #333;
-    }
+/* Dark mode desabilitado - sistema não suporta dark mode global.
+   Forçar color-scheme light para evitar interferência do tema do SO. */
+:root {
+    color-scheme: light;
 }
