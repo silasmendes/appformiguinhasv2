@@ -39,11 +39,16 @@
         </div>
         <div id="avisoCesta" class="text-danger fw-semibold fs-6 fst-italic {% if session['cadastro'].get('cesta_entregue') %}d-none{% endif %}">⚠️ Atenção: Você está registrando que nenhuma cesta básica será entregue neste atendimento (do contrário, marque o checkbox acima).</div>
     </div>
+    <div class="mb-3" id="dataEntregaCestaContainer" {% if not session['cadastro'].get('cesta_entregue') %}style="display:none"{% endif %}>
+        <label for="data_entrega_cesta" class="form-label">Data da entrega da cesta</label>
+        <input type="text" class="form-control" id="data_entrega_cesta" name="data_entrega_cesta" placeholder="dd/mm/yyyy" autocomplete="off" value="{{ session['cadastro'].get('data_entrega_cesta', '') }}">
+    </div>
     <div class="d-flex justify-content-between w-100">
         <button type="submit" class="btn btn-success" id="btnFinalizar" data-next-url="{{ url_for('fluxo_atendimento.atendimento_etapa11') }}">Finalizar atendimento</button>
     </div>
 </form>
 {% endblock %}
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/inputmask@5.0.8/dist/inputmask.min.js"></script>
 <script src="{{ url_for('static', filename='js/etapa11_atendimento.js') }}"></script>
 {% endblock %}

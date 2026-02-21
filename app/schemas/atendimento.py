@@ -16,6 +16,7 @@ class AtendimentoSchema(ma.SQLAlchemySchema):
     duracao_necessidade = ma.auto_field()
     motivo_duracao = ma.auto_field()
     cesta_entregue = ma.auto_field()
+    data_entrega_cesta = ma.auto_field()
     data_hora_atendimento = ma.auto_field(dump_only=True)
 
     @validates("percepcao_necessidade")

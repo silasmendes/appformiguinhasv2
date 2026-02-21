@@ -2,6 +2,10 @@ import random
 import os
 from datetime import datetime, timedelta
 from playwright.sync_api import sync_playwright
+from dotenv import load_dotenv
+
+# Carregar variáveis de ambiente do arquivo .env
+load_dotenv()
 
 
 def texto_aleatorio(prefix="Descricao"):
@@ -203,6 +207,11 @@ def gerar_renda_gastos():
 
 
 def test_cadastro_nova_familia():
+    # Verificar se a senha está configurada
+    senha_admin = os.getenv("SENHA_ADMIN")
+    if not senha_admin:
+        raise ValueError("A variável de ambiente SENHA_ADMIN não está configurada. Configure no arquivo .env")
+    
     # Gerar dados aleatórios para o teste
     dados_pessoa = gerar_dados_pessoa()
     endereco = gerar_endereco()
@@ -219,15 +228,16 @@ def test_cadastro_nova_familia():
         context = browser.new_context()
         page = context.new_page()
 
-        # page.goto("http://127.0.0.1:5000/")
-        page.goto("https://formiguinhasbr-a4g2cxeycmh8f7gy.brazilsouth-01.azurewebsites.net/")
+        page.goto("http://127.0.0.1:5000/")
+        # page.goto("https://formiguinhasbr-a4g2cxeycmh8f7gy.brazilsouth-01.azurewebsites.net/")
         page.fill("input#login", "admin")
-        page.fill("input#senha", os.getenv("SENHA_ADMIN"))
+        page.fill("input#senha", senha_admin)
+        page.wait_for_timeout(1000)  # Pequena pausa para simular tempo de digitação
         page.click("button[type='submit']")
         page.wait_for_load_state("networkidle")
 
-        # page.goto("http://127.0.0.1:5000/menu_atendimento")
-        page.goto("https://formiguinhasbr-a4g2cxeycmh8f7gy.brazilsouth-01.azurewebsites.net/menu_atendimento")
+        page.goto("http://127.0.0.1:5000/menu_atendimento")
+        #page.goto("https://formiguinhasbr-a4g2cxeycmh8f7gy.brazilsouth-01.azurewebsites.net/menu_atendimento")
         page.click("#btnNovaFamilia")
 
         # Etapa 1 - dados pessoais

@@ -46,7 +46,8 @@ document.addEventListener('DOMContentLoaded', function () {
         telefone: document.getElementById('filter-telefone'),
         email: document.getElementById('filter-email'),
         percepcao: document.getElementById('filter-percepcao'),
-        cesta: document.getElementById('filter-cesta')
+        cesta: document.getElementById('filter-cesta'),
+        dataEntrega: document.getElementById('filter-data-entrega')
     };
 
     Object.values(filtros).forEach(input => {
@@ -66,7 +67,8 @@ document.addEventListener('DOMContentLoaded', function () {
                    (!filtros.telefone.value || (item.telefone_principal || '').toLowerCase().includes(filtros.telefone.value.toLowerCase())) &&
                    (!filtros.email.value || (item.email_responsavel || '').toLowerCase().includes(filtros.email.value.toLowerCase())) &&
                    (!filtros.percepcao.value || (item.percepcao_necessidade || '').toLowerCase().includes(filtros.percepcao.value.toLowerCase())) &&
-                   (!filtros.cesta.value || formatarCesta(item.cesta_entregue).toLowerCase().includes(filtros.cesta.value.toLowerCase()));
+                   (!filtros.cesta.value || formatarCesta(item.cesta_entregue).toLowerCase().includes(filtros.cesta.value.toLowerCase())) &&
+                   (!filtros.dataEntrega.value || formatarData(item.data_entrega_cesta).toLowerCase().includes(filtros.dataEntrega.value.toLowerCase()));
         });
     }
 
@@ -82,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (paginaDados.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="text-center py-4">
+                    <td colspan="8" class="text-center py-4">
                         <i class="fas fa-search text-muted"></i>
                         <p class="text-muted mb-0 mt-2">Nenhuma família encontrada com os filtros aplicados</p>
                     </td>
@@ -99,6 +101,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td>${item.email_responsavel || ''}</td>
                     <td>${formatarPercepcao(item.percepcao_necessidade)}</td>
                     <td>${formatarCesta(item.cesta_entregue)}</td>
+                    <td>${formatarData(item.data_entrega_cesta)}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -204,6 +207,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const classe = entregue ? 'badge-cesta badge-sim' : 'badge-cesta badge-nao';
         
         return `<span class="${classe}">${texto}</span>`;
+    }
+
+    function formatarData(data) {
+        if (!data) return '';
+        const d = new Date(data);
+        if (isNaN(d)) return data;
+        return d.toLocaleDateString('pt-BR');
     }
 
     renderTable();

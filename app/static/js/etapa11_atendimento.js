@@ -1,5 +1,20 @@
 // JS para etapa 11 - conclusão do atendimento
 
+function converterDataParaISO(dataBR) {
+    if (!dataBR || dataBR.trim() === '' || dataBR.length !== 10) return null;
+    const [dia, mes, ano] = dataBR.split('/');
+    if (!dia || !mes || !ano || dia.length !== 2 || mes.length !== 2 || ano.length !== 4) return null;
+    return `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+}
+
+function obterDataHojeBR() {
+    const hoje = new Date();
+    const dia = String(hoje.getDate()).padStart(2, '0');
+    const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+    const ano = hoje.getFullYear();
+    return `${dia}/${mes}/${ano}`;
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     console.log('Estado atual da sessão:', window.sessionCadastro);
     const hiddenIdInput = document.getElementById('familia_id_hidden');
@@ -17,13 +32,32 @@ document.addEventListener('DOMContentLoaded', function () {
     const radiosDuracao = document.querySelectorAll('input[name="duracao_necessidade"]');
     const cestaCheckbox = document.getElementById('cesta_entregue');
     const avisoCesta = document.getElementById('avisoCesta');
+    const dataEntregaCestaContainer = document.getElementById('dataEntregaCestaContainer');
+    const dataEntregaCestaInput = document.getElementById('data_entrega_cesta');
+
+    // Aplicar máscara de data no campo de data de entrega da cesta
+    if (dataEntregaCestaInput) {
+        dataEntregaCestaInput.setAttribute('autocomplete', 'off');
+        Inputmask({ alias: 'datetime', inputFormat: 'dd/mm/yyyy' }).mask(dataEntregaCestaInput);
+    }
 
     function toggleAviso() {
         if (!avisoCesta) return;
         if (cestaCheckbox.checked) {
             avisoCesta.classList.add('d-none');
+            // Mostrar campo de data e preencher com data atual se vazio
+            if (dataEntregaCestaContainer) {
+                dataEntregaCestaContainer.style.display = '';
+            }
+            if (dataEntregaCestaInput && !dataEntregaCestaInput.value) {
+                dataEntregaCestaInput.value = obterDataHojeBR();
+            }
         } else {
             avisoCesta.classList.remove('d-none');
+            // Ocultar campo de data
+            if (dataEntregaCestaContainer) {
+                dataEntregaCestaContainer.style.display = 'none';
+            }
         }
     }
 
@@ -59,6 +93,18 @@ document.addEventListener('DOMContentLoaded', function () {
             dadosFormulario.usuario_atendente_id = 1; // TODO: substituir pelo ID do usuário logado
             dadosFormulario.cesta_entregue = cestaCheckbox.checked;
             if (dadosFormulario.motivo_duracao === '') delete dadosFormulario.motivo_duracao;
+
+            // Converter data de entrega da cesta do formato brasileiro para ISO
+            if (dadosFormulario.cesta_entregue && dadosFormulario.data_entrega_cesta && dadosFormulario.data_entrega_cesta.trim() !== '') {
+                const dataISO = converterDataParaISO(dadosFormulario.data_entrega_cesta);
+                if (dataISO) {
+                    dadosFormulario.data_entrega_cesta = dataISO;
+                } else {
+                    delete dadosFormulario.data_entrega_cesta;
+                }
+            } else {
+                delete dadosFormulario.data_entrega_cesta;
+            }
 
             btnFinalizar.disabled = true;
             try {

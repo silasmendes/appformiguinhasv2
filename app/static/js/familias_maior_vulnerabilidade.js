@@ -48,6 +48,7 @@ document.addEventListener('DOMContentLoaded', function () {
         email: document.getElementById('filter-email'),
         percepcao: document.getElementById('filter-percepcao'),
         cesta: document.getElementById('filter-cesta'),
+        dataEntrega: document.getElementById('filter-data-entrega'),
         data: document.getElementById('filter-data'),
         motivo: document.getElementById('filter-motivo')
     };
@@ -70,6 +71,7 @@ document.addEventListener('DOMContentLoaded', function () {
                    (!filtros.email.value || (item.email_responsavel || '').toLowerCase().includes(filtros.email.value.toLowerCase())) &&
                    (!filtros.percepcao.value || formatarPercepcao(item.percepcao_necessidade).toLowerCase().includes(filtros.percepcao.value.toLowerCase())) &&
                    (!filtros.cesta.value || formatarCesta(item.cesta_entregue).toLowerCase().includes(filtros.cesta.value.toLowerCase())) &&
+                   (!filtros.dataEntrega.value || formatarData(item.data_entrega_cesta).toLowerCase().includes(filtros.dataEntrega.value.toLowerCase())) &&
                    (!filtros.data.value || formatarData(item.data_hora_atendimento).toLowerCase().includes(filtros.data.value.toLowerCase())) &&
                    (!filtros.motivo.value || (item.motivo_duracao || '').toLowerCase().includes(filtros.motivo.value.toLowerCase()));
         });
@@ -87,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (paginaDados.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="9" class="text-center text-muted py-4">
+                    <td colspan="10" class="text-center text-muted py-4">
                         <i class="fas fa-search mb-3" style="font-size: 2rem; opacity: 0.5;"></i>
                         <p class="mb-0">Nenhuma família encontrada</p>
                     </td>
@@ -106,6 +108,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td>${item.email_responsavel || 'N/A'}</td>
                     <td>${formatarPercepcao(item.percepcao_necessidade)}</td>
                     <td>${formatarCesta(item.cesta_entregue)}</td>
+                    <td>${formatarData(item.data_entrega_cesta)}</td>
                     <td>${formatarData(item.data_hora_atendimento)}</td>
                     <td class="motivo-col" title="${item.motivo_duracao || 'N/A'}">${item.motivo_duracao || 'N/A'}</td>
                 `;

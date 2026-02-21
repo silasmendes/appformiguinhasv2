@@ -11,6 +11,7 @@ class Atendimento(db.Model):
     duracao_necessidade = db.Column(db.String(20))
     motivo_duracao = db.Column(db.String(255))
     cesta_entregue = db.Column(db.Boolean)
+    data_entrega_cesta = db.Column(db.Date)
     data_hora_atendimento = db.Column(
         db.DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),

@@ -30,7 +30,8 @@ def test_post_atendimento(client):
         "percepcao_necessidade": "Alta",
         "duracao_necessidade": "Temporária",
         "motivo_duracao": "Teste",
-        "cesta_entregue": True
+        "cesta_entregue": True,
+        "data_entrega_cesta": "2026-02-21"
     }
     resp = client.post("/atendimentos", json=payload)
     assert resp.status_code == 201

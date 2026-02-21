@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', function () {
         telefone: document.getElementById('filter-telefone'),
         email: document.getElementById('filter-email'),
         percepcao: document.getElementById('filter-percepcao'),
+        dataEntrega: document.getElementById('filter-data-entrega'),
         data: document.getElementById('filter-data')
     };
 
@@ -67,6 +68,7 @@ document.addEventListener('DOMContentLoaded', function () {
                    (!filtros.telefone.value || (item.telefone_principal || '').toLowerCase().includes(filtros.telefone.value.toLowerCase())) &&
                    (!filtros.email.value || (item.email_responsavel || '').toLowerCase().includes(filtros.email.value.toLowerCase())) &&
                    (!filtros.percepcao.value || (item.percepcao_necessidade || '').toLowerCase().includes(filtros.percepcao.value.toLowerCase())) &&
+                   (!filtros.dataEntrega.value || formatarData(item.data_entrega_cesta).toLowerCase().includes(filtros.dataEntrega.value.toLowerCase())) &&
                    (!filtros.data.value || formatarData(item.data_hora_atendimento).toLowerCase().includes(filtros.data.value.toLowerCase()));
         });
     }
@@ -83,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (paginaDados.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="text-center py-4">
+                    <td colspan="8" class="text-center py-4">
                         <i class="fas fa-search text-muted"></i>
                         <p class="text-muted mb-0 mt-2">Nenhuma entrega de cesta encontrada com os filtros aplicados</p>
                     </td>
@@ -99,6 +101,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td>${formatarTelefone(item.telefone_principal)}</td>
                     <td>${item.email_responsavel || ''}</td>
                     <td>${formatarPercepcao(item.percepcao_necessidade)}</td>
+                    <td>${formatarData(item.data_entrega_cesta)}</td>
                     <td>${formatarDataHora(item.data_hora_atendimento)}</td>
                 `;
                 tbody.appendChild(tr);

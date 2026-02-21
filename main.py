@@ -281,6 +281,7 @@ def dashboard_familias_atendidas_30_dias():
                 c.email_responsavel,
                 a.percepcao_necessidade, 
                 a.cesta_entregue, 
+                a.data_entrega_cesta,
                 a.data_hora_atendimento
             FROM familias f
             LEFT JOIN enderecos e ON f.familia_id = e.familia_id
@@ -311,6 +312,7 @@ def dashboard_entregas_cestas_30_dias():
             c.telefone_principal, 
             c.email_responsavel,
             a.percepcao_necessidade, 
+            a.data_entrega_cesta,
             a.data_hora_atendimento
         FROM familias f
         LEFT JOIN enderecos e ON f.familia_id = e.familia_id
@@ -383,6 +385,7 @@ def dashboard_familias_maior_vulnerabilidade():
             c.email_responsavel,
             ultimo_atendimento.percepcao_necessidade,
             ultimo_atendimento.cesta_entregue,
+            ultimo_atendimento.data_entrega_cesta,
             ultimo_atendimento.data_hora_atendimento,
             ultimo_atendimento.motivo_duracao
         FROM familias f
@@ -393,6 +396,7 @@ def dashboard_familias_maior_vulnerabilidade():
                 a1.familia_id,
                 a1.percepcao_necessidade,
                 a1.cesta_entregue,
+                a1.data_entrega_cesta,
                 a1.data_hora_atendimento,
                 a1.motivo_duracao,
                 ROW_NUMBER() OVER (PARTITION BY a1.familia_id ORDER BY a1.data_hora_atendimento DESC) as rn
@@ -846,6 +850,7 @@ def download_entregas_cestas_30_dias():
             'data_hora_atendimento': 'Data do Atendimento',
             'percepcao_necessidade': 'Percepção de Necessidade',
             'cesta_entregue': 'Cesta Entregue',
+            'data_entrega_cesta': 'Data de Entrega da Cesta',
             'observacoes': 'Observações'
         }
         colunas_existentes = {k: v for k, v in colunas_pt.items() if k in df.columns}
@@ -1187,6 +1192,7 @@ def download_familias_maior_vulnerabilidade():
             sf.*,
             ultimo_atendimento.percepcao_necessidade,
             ultimo_atendimento.cesta_entregue,
+            ultimo_atendimento.data_entrega_cesta,
             ultimo_atendimento.data_hora_atendimento,
             ultimo_atendimento.motivo_duracao,
             ultimo_atendimento.duracao_necessidade,
@@ -1206,6 +1212,7 @@ def download_familias_maior_vulnerabilidade():
                 a1.familia_id,
                 a1.percepcao_necessidade,
                 a1.cesta_entregue,
+                a1.data_entrega_cesta,
                 a1.data_hora_atendimento,
                 a1.motivo_duracao,
                 a1.duracao_necessidade,
@@ -1282,6 +1289,7 @@ def download_familias_maior_vulnerabilidade():
             'email_responsavel': 'Email do Responsável',
             'percepcao_necessidade': 'Percepção de Necessidade',
             'cesta_entregue': 'Cesta Entregue',
+            'data_entrega_cesta': 'Data de Entrega da Cesta',
             'data_hora_atendimento': 'Data do Atendimento',
             'motivo_duracao': 'Motivo/Duração',
             'duracao_necessidade': 'Duração da Necessidade'
