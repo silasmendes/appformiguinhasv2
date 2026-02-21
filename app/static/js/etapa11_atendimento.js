@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const storedFamiliaId = sessionStorage.getItem('familia_id');
             dadosFormulario.familia_id = storedFamiliaId !== null ? parseInt(storedFamiliaId) : parseInt(window.sessionFamiliaId || '0');
-            dadosFormulario.usuario_atendente_id = 1; // TODO: substituir pelo ID do usuário logado
+            // usuario_atendente_id é definido automaticamente pelo backend com base no usuário logado
             dadosFormulario.cesta_entregue = cestaCheckbox.checked;
             if (dadosFormulario.motivo_duracao === '') delete dadosFormulario.motivo_duracao;
 
