@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from flask_login import current_user, login_required
 from marshmallow import ValidationError
 from app.models.demanda_etapa import DemandaEtapa
 from app.schemas.demanda_etapa import DemandaEtapaSchema
@@ -10,8 +11,11 @@ demanda_etapa_schema = DemandaEtapaSchema()
 demanda_etapas_schema = DemandaEtapaSchema(many=True)
 
 @bp.route("", methods=["POST"])
+@login_required
 def criar_demanda_etapa():
     data = request.get_json()
+    # Sempre usar o ID do usuário logado para rastreabilidade
+    data["usuario_atendente_id"] = current_user.id
     try:
         nova_etapa = demanda_etapa_schema.load(data)
     except ValidationError as err:
@@ -34,12 +38,15 @@ def obter_demanda_etapa(etapa_id):
     return demanda_etapa_schema.jsonify(etapa)
 
 @bp.route("/<int:etapa_id>", methods=["PUT"])
+@login_required
 def atualizar_demanda_etapa(etapa_id):
     etapa = db.session.get(DemandaEtapa, etapa_id)
     if not etapa:
         return jsonify({"mensagem": "Etapa não encontrada"}), 404
 
     data = request.get_json()
+    # Registra quem fez a última alteração
+    data["usuario_atendente_id"] = current_user.id
     etapa = demanda_etapa_schema.load(data, instance=etapa, partial=True)
 
     db.session.commit()

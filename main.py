@@ -412,6 +412,163 @@ def dashboard_familias_maior_vulnerabilidade():
     return render_template("dashboards/familias_maior_vulnerabilidade.html", familias=familias)
 
 
+@app.route("/dashboard/painel-demandas")
+@login_required
+@admin_required
+def dashboard_painel_demandas():
+    """Painel de pendências x concluídas por família, com ciclo completo da demanda."""
+    sql = text(
+        """
+        SELECT
+            f.familia_id,
+            f.nome_responsavel,
+            f.cpf,
+            e.bairro,
+            df.demanda_id,
+            df.descricao,
+            df.data_identificacao,
+            df.prioridade,
+            dt.demanda_tipo_nome,
+            de_last.status_atual,
+            de_last.data_atualizacao,
+            de_last.observacao,
+            (
+                SELECT
+                    de2.etapa_id,
+                    de2.status_atual,
+                    de2.observacao,
+                    de2.data_atualizacao,
+                    u.nome_completo AS atendente
+                FROM demanda_etapa de2
+                LEFT JOIN usuarios u ON de2.usuario_atendente_id = u.id
+                WHERE de2.demanda_id = df.demanda_id
+                ORDER BY de2.data_atualizacao ASC
+                FOR JSON PATH
+            ) AS historico_json
+        FROM familias f
+        LEFT JOIN enderecos e ON f.familia_id = e.familia_id
+        INNER JOIN demanda_familia df ON f.familia_id = df.familia_id
+        INNER JOIN demanda_tipo dt ON df.demanda_tipo_id = dt.demanda_tipo_id
+        INNER JOIN (
+            SELECT de1.*
+            FROM demanda_etapa de1
+            INNER JOIN (
+                SELECT demanda_id, MAX(etapa_id) AS max_etapa_id
+                FROM demanda_etapa
+                GROUP BY demanda_id
+            ) m ON de1.demanda_id = m.demanda_id AND de1.etapa_id = m.max_etapa_id
+        ) de_last ON df.demanda_id = de_last.demanda_id
+        ORDER BY f.nome_responsavel, df.data_identificacao DESC
+        """
+    )
+
+    resultados = db.session.execute(sql).mappings().all()
+    demandas = []
+    for r in resultados:
+        d = dict(r)
+        # Parse historico_json from MSSQL FOR JSON PATH
+        hist_raw = d.pop('historico_json', None)
+        if hist_raw:
+            try:
+                d['historico'] = json.loads(hist_raw)
+            except (json.JSONDecodeError, TypeError):
+                d['historico'] = []
+        else:
+            d['historico'] = []
+        demandas.append(d)
+
+    return render_template("dashboards/painel_demandas.html", demandas=demandas)
+
+
+@app.route("/dashboard/painel-demandas/download")
+@login_required
+@admin_required
+def download_painel_demandas():
+    """Download de arquivo Excel com dados do painel de demandas."""
+    try:
+        sql = text(
+            """
+            SELECT
+                f.familia_id,
+                f.nome_responsavel,
+                f.cpf,
+                e.bairro,
+                df.demanda_id,
+                df.descricao,
+                df.data_identificacao,
+                df.prioridade,
+                dt.demanda_tipo_nome,
+                de_last.status_atual,
+                de_last.data_atualizacao,
+                de_last.observacao
+            FROM familias f
+            LEFT JOIN enderecos e ON f.familia_id = e.familia_id
+            INNER JOIN demanda_familia df ON f.familia_id = df.familia_id
+            INNER JOIN demanda_tipo dt ON df.demanda_tipo_id = dt.demanda_tipo_id
+            INNER JOIN (
+                SELECT de1.*
+                FROM demanda_etapa de1
+                INNER JOIN (
+                    SELECT demanda_id, MAX(etapa_id) AS max_etapa_id
+                    FROM demanda_etapa
+                    GROUP BY demanda_id
+                ) m ON de1.demanda_id = m.demanda_id AND de1.etapa_id = m.max_etapa_id
+            ) de_last ON df.demanda_id = de_last.demanda_id
+            ORDER BY f.nome_responsavel, df.data_identificacao DESC
+            """
+        )
+        resultados = db.session.execute(sql).mappings().all()
+        if not resultados:
+            return jsonify({"error": "Nenhum dado encontrado para exportação"}), 404
+
+        dados = [dict(r) for r in resultados]
+        df_excel = pd.DataFrame(dados)
+
+        for column in df_excel.columns:
+            if df_excel[column].dtype == 'object':
+                sample_values = df_excel[column].dropna().head(5)
+                if len(sample_values) > 0:
+                    first_value = sample_values.iloc[0]
+                    if hasattr(first_value, 'tzinfo') and first_value.tzinfo is not None:
+                        df_excel[column] = pd.to_datetime(df_excel[column], errors='ignore').dt.tz_localize(None)
+            elif 'datetime64[ns, ' in str(df_excel[column].dtype):
+                df_excel[column] = df_excel[column].dt.tz_localize(None)
+
+        colunas_pt = {
+            'familia_id': 'ID Família',
+            'nome_responsavel': 'Nome do Responsável',
+            'cpf': 'CPF',
+            'bairro': 'Bairro',
+            'demanda_id': 'ID Demanda',
+            'descricao': 'Descrição',
+            'data_identificacao': 'Data Identificação',
+            'prioridade': 'Prioridade',
+            'demanda_tipo_nome': 'Tipo',
+            'status_atual': 'Status Atual',
+            'data_atualizacao': 'Última Atualização',
+            'observacao': 'Observação',
+        }
+        df_excel.rename(columns=colunas_pt, inplace=True)
+
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine="openpyxl") as writer:
+            df_excel.to_excel(writer, index=False, sheet_name="Painel Demandas")
+            worksheet = writer.sheets["Painel Demandas"]
+            for col in worksheet.columns:
+                max_length = max(len(str(cell.value or "")) for cell in col)
+                col_letter = col[0].column_letter
+                worksheet.column_dimensions[col_letter].width = min(max_length + 2, 50)
+        output.seek(0)
+
+        now = datetime.utcnow()
+        filename = f"painel_demandas_{now.strftime('%Y_%m_%d')}.xlsx"
+        return send_file(output, mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                         as_attachment=True, download_name=filename)
+    except Exception as e:
+        print(f"Erro ao gerar download do painel de demandas: {str(e)}")
+        return jsonify({"error": "Erro ao gerar arquivo"}), 500
+
+
 @app.route("/dashboard/em-desenvolvimento")
 @login_required
 @admin_required
@@ -466,7 +623,7 @@ def download_familias_cadastradas():
                 de.data_atualizacao,
                 de.status_atual,
                 de.observacao,
-                de.usuario_atualizacao
+                de.usuario_atendente_id
             FROM demanda_familia df
             INNER JOIN demanda_tipo dt ON df.demanda_tipo_id = dt.demanda_tipo_id
             INNER JOIN demanda_etapa de ON df.demanda_id = de.demanda_id
@@ -662,7 +819,7 @@ def download_familias_atendidas_30_dias():
                 de.data_atualizacao,
                 de.status_atual,
                 de.observacao,
-                de.usuario_atualizacao
+                de.usuario_atendente_id
             FROM demanda_familia df
             INNER JOIN demanda_tipo dt ON df.demanda_tipo_id = dt.demanda_tipo_id
             INNER JOIN demanda_etapa de ON df.demanda_id = de.demanda_id
@@ -793,7 +950,7 @@ def download_entregas_cestas_30_dias():
                 de.data_atualizacao,
                 de.status_atual,
                 de.observacao,
-                de.usuario_atualizacao
+                de.usuario_atendente_id
             FROM demanda_familia df
             INNER JOIN demanda_tipo dt ON df.demanda_tipo_id = dt.demanda_tipo_id
             INNER JOIN demanda_etapa de ON df.demanda_id = de.demanda_id
@@ -938,7 +1095,7 @@ def download_familias_sem_atendimento_recente():
                 de.data_atualizacao,
                 de.status_atual,
                 de.observacao,
-                de.usuario_atualizacao
+                de.usuario_atendente_id
             FROM demanda_familia df
             INNER JOIN demanda_tipo dt ON df.demanda_tipo_id = dt.demanda_tipo_id
             INNER JOIN demanda_etapa de ON df.demanda_id = de.demanda_id
@@ -1057,7 +1214,7 @@ def download_demandas_ativas():
             de.status_atual,
             de.data_atualizacao,
             de.observacao as observacao_etapa,
-            de.usuario_atualizacao,
+            de.usuario_atendente_id,
             atendimentos_json.atendimentos
         FROM familias f
         LEFT JOIN enderecos e ON f.familia_id = e.familia_id
@@ -1134,7 +1291,7 @@ def download_demandas_ativas():
             'status_atual': 'Status Atual',
             'data_atualizacao': 'Data da Última Atualização',
             'observacao_etapa': 'Observações da Etapa',
-            'usuario_atualizacao': 'Usuário da Última Atualização'
+            'usuario_atendente_id': 'Usuário da Última Atualização'
         }
         colunas_existentes = {k: v for k, v in colunas_pt.items() if k in df.columns}
         df = df.rename(columns=colunas_existentes)
@@ -1233,7 +1390,7 @@ def download_familias_maior_vulnerabilidade():
                 de.data_atualizacao,
                 de.status_atual,
                 de.observacao,
-                de.usuario_atualizacao
+                de.usuario_atendente_id
             FROM demanda_familia df
             INNER JOIN demanda_tipo dt ON df.demanda_tipo_id = dt.demanda_tipo_id
             INNER JOIN demanda_etapa de ON df.demanda_id = de.demanda_id

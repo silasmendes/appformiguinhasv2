@@ -11,6 +11,6 @@ class DemandaEtapa(db.Model):
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
-    status_atual = db.Column(db.String(20), nullable=False)
+    status_atual = db.Column(db.String(50), nullable=False)
     observacao = db.Column(db.Text)
-    usuario_atualizacao = db.Column(db.String(100))
+    usuario_atendente_id = db.Column(db.Integer)

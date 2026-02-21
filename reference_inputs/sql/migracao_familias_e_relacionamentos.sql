@@ -32,7 +32,7 @@ OUTER APPLY (
         de.data_atualizacao,
         de.status_atual,
         de.observacao,
-        de.usuario_atualizacao
+        de.usuario_atendente_id
     FROM demanda_familia df
     INNER JOIN demanda_tipo dt ON df.demanda_tipo_id = dt.demanda_tipo_id
     INNER JOIN demanda_etapa de ON df.demanda_id = de.demanda_id

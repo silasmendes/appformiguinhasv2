@@ -5,7 +5,8 @@ STATUS_PERMITIDOS = [
     "Em análise",
     "Em andamento",
     "Encaminhada",
-    "Aguardando resposta",
+    "Aguardando resposta externa",
+    "Aguardando ação da família",
     "Suspensa",
     "Cancelada",
     "Concluída",
@@ -22,7 +23,7 @@ class DemandaEtapaSchema(ma.SQLAlchemySchema):
     data_atualizacao = ma.auto_field()
     status_atual = ma.auto_field()
     observacao = ma.auto_field()
-    usuario_atualizacao = ma.auto_field()
+    usuario_atendente_id = ma.auto_field()
 
     @validates("status_atual")
     def validar_status(self, value, **kwargs):

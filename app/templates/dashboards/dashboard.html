@@ -56,16 +56,6 @@
         <div class="card-subtitle">Cadastradas no último ano</div>
     </div>
 
-    <!-- Famílias com Demandas Ativas -->
-    <div class="dashboard-card">
-        <div class="card-icon danger">
-            <i class="fas fa-exclamation-triangle"></i>
-        </div>
-        <div class="card-title">Famílias com demandas ativas</div>
-        <div class="card-value">{{ dados.familias_demandas_ativas }}</div>
-        <div class="card-subtitle">Requer atenção</div>
-    </div>
-
     <!-- Famílias em Situação de Maior Vulnerabilidade -->
     <div class="dashboard-card">
         <div class="card-icon critical">
@@ -74,6 +64,15 @@
         <div class="card-title">Famílias em situação de maior vulnerabilidade</div>
         <div class="card-value">{{ dados.familias_maior_vulnerabilidade }}</div>
         <div class="card-subtitle">Prioridade máxima</div>
+    </div>
+
+    <!-- Painel de Demandas por Família -->
+    <div class="dashboard-card">
+        <div class="card-icon info">
+            <i class="fas fa-clipboard-check"></i>
+        </div>
+        <div class="card-title">Painel de demandas por família</div>
+        <div class="card-subtitle">Pendências x concluídas — ciclo completo</div>
     </div>
 </div>
 
@@ -97,9 +96,7 @@
             }, 100);
 
             const title = this.querySelector('.card-title').textContent.trim();
-            if (title === 'Famílias com demandas ativas') {
-                window.location.href = "{{ url_for('dashboard_demandas_ativas') }}";
-            } else if (title === 'Quantidade total de famílias cadastradas') {
+            if (title === 'Quantidade total de famílias cadastradas') {
                 window.location.href = "{{ url_for('dashboard_familias_cadastradas') }}";
             } else if (title === 'Quantidade famílias atendidas nos últimos 30 dias') {
                 window.location.href = "{{ url_for('dashboard_familias_atendidas_30_dias') }}";
@@ -109,6 +106,8 @@
                 window.location.href = "{{ url_for('dashboard_familias_sem_atendimento_recente') }}";
             } else if (title === 'Famílias em situação de maior vulnerabilidade') {
                 window.location.href = "{{ url_for('dashboard_familias_maior_vulnerabilidade') }}";
+            } else if (title === 'Painel de demandas por família') {
+                window.location.href = "{{ url_for('dashboard_painel_demandas') }}";
             }
         });
     });

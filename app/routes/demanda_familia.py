@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from flask_login import current_user, login_required
 from marshmallow import ValidationError
 from app.models.demanda_familia import DemandaFamilia
 from app.models.demanda_etapa import DemandaEtapa
@@ -11,6 +12,7 @@ demanda_schema = DemandaFamiliaSchema()
 demandas_schema = DemandaFamiliaSchema(many=True)
 
 @bp.route("", methods=["POST"])
+@login_required
 def criar_demanda():
     data = request.get_json()
     try:
@@ -23,6 +25,7 @@ def criar_demanda():
     etapa_inicial = DemandaEtapa(
         demanda_id=nova_demanda.demanda_id,
         status_atual=nova_demanda.status,
+        usuario_atendente_id=current_user.id,
     )
     db.session.add(etapa_inicial)
     db.session.commit()
@@ -67,6 +70,7 @@ def deletar_demanda(demanda_id):
 
 
 @bp.route("/upsert/lote/familia/<int:familia_id>", methods=["PUT"])
+@login_required
 def upsert_demandas_familia(familia_id):
     dados = request.get_json()
     if not isinstance(dados, list):
@@ -92,6 +96,7 @@ def upsert_demandas_familia(familia_id):
                 etapa = DemandaEtapa(
                     demanda_id=demanda.demanda_id,
                     status_atual=demanda.status,
+                    usuario_atendente_id=current_user.id,
                 )
                 db.session.add(etapa)
 

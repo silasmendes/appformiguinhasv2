@@ -5,6 +5,27 @@
 <form id="formEtapa11" autocomplete="off" method="post">
     <input type="hidden" id="familia_id_hidden" name="familia_id" value="{{ session.get('familia_id', '') }}">
     <div class="mb-3">
+        <label class="form-label">Tipo de atendimento</label>
+        <div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="tipo_atendimento" id="tipo_base" value="Atendimento na base" {% if session['cadastro'].get('tipo_atendimento', 'Atendimento na base')=='Atendimento na base' %}checked{% endif %}>
+                <label class="form-check-label" for="tipo_base">Atendimento na base</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="tipo_atendimento" id="tipo_visita" value="Visita domiciliar" {% if session['cadastro'].get('tipo_atendimento')=='Visita domiciliar' %}checked{% endif %}>
+                <label class="form-check-label" for="tipo_visita">Visita domiciliar</label>
+            </div>
+        </div>
+    </div>
+    <div class="mb-3" id="dataVisitaContainer" {% if session['cadastro'].get('tipo_atendimento') != 'Visita domiciliar' %}style="display:none"{% endif %}>
+        <label for="data_visita" class="form-label">Data da visita</label>
+        <input type="text" class="form-control" id="data_visita" name="data_visita" placeholder="dd/mm/yyyy" autocomplete="off" value="{{ session['cadastro'].get('data_visita', '') }}">
+    </div>
+    <div class="mb-3" id="notasVisitaContainer" {% if session['cadastro'].get('tipo_atendimento') != 'Visita domiciliar' %}style="display:none"{% endif %}>
+        <label for="notas_visita" class="form-label">Notas sobre a visita domiciliar</label>
+        <input type="text" class="form-control" name="notas_visita" id="notas_visita" maxlength="500" placeholder="Observações sobre a visita (opcional)" autocomplete="off" value="{{ session['cadastro'].get('notas_visita', '') }}">
+    </div>
+    <div class="mb-3">
         <label for="percepcao_necessidade" class="form-label">Percepção de necessidade</label>
         <select class="form-select" name="percepcao_necessidade" id="percepcao_necessidade" required>
             <option value="" disabled {% if not session['cadastro'].get('percepcao_necessidade') %}selected{% endif %}>Selecione</option>

@@ -34,12 +34,38 @@ document.addEventListener('DOMContentLoaded', function () {
     const avisoCesta = document.getElementById('avisoCesta');
     const dataEntregaCestaContainer = document.getElementById('dataEntregaCestaContainer');
     const dataEntregaCestaInput = document.getElementById('data_entrega_cesta');
+    const tipoAtendimentoRadios = document.querySelectorAll('input[name="tipo_atendimento"]');
+    const dataVisitaContainer = document.getElementById('dataVisitaContainer');
+    const dataVisitaInput = document.getElementById('data_visita');
+    const notasVisitaContainer = document.getElementById('notasVisitaContainer');
 
     // Aplicar máscara de data no campo de data de entrega da cesta
     if (dataEntregaCestaInput) {
         dataEntregaCestaInput.setAttribute('autocomplete', 'off');
         Inputmask({ alias: 'datetime', inputFormat: 'dd/mm/yyyy' }).mask(dataEntregaCestaInput);
     }
+
+    // Aplicar máscara de data no campo de data da visita
+    if (dataVisitaInput) {
+        dataVisitaInput.setAttribute('autocomplete', 'off');
+        Inputmask({ alias: 'datetime', inputFormat: 'dd/mm/yyyy' }).mask(dataVisitaInput);
+    }
+
+    function toggleVisitaFields() {
+        const visitaSelecionada = document.getElementById('tipo_visita').checked;
+        if (dataVisitaContainer) {
+            dataVisitaContainer.style.display = visitaSelecionada ? '' : 'none';
+        }
+        if (notasVisitaContainer) {
+            notasVisitaContainer.style.display = visitaSelecionada ? '' : 'none';
+        }
+        if (visitaSelecionada && dataVisitaInput && !dataVisitaInput.value) {
+            dataVisitaInput.value = obterDataHojeBR();
+        }
+    }
+
+    tipoAtendimentoRadios.forEach(r => r.addEventListener('change', toggleVisitaFields));
+    toggleVisitaFields();
 
     function toggleAviso() {
         if (!avisoCesta) return;
@@ -93,6 +119,24 @@ document.addEventListener('DOMContentLoaded', function () {
             // usuario_atendente_id é definido automaticamente pelo backend com base no usuário logado
             dadosFormulario.cesta_entregue = cestaCheckbox.checked;
             if (dadosFormulario.motivo_duracao === '') delete dadosFormulario.motivo_duracao;
+
+            // Tipo de atendimento e campos de visita domiciliar
+            if (dadosFormulario.tipo_atendimento !== 'Visita domiciliar') {
+                delete dadosFormulario.data_visita;
+                delete dadosFormulario.notas_visita;
+            } else {
+                if (dadosFormulario.data_visita && dadosFormulario.data_visita.trim() !== '') {
+                    const dataVisitaISO = converterDataParaISO(dadosFormulario.data_visita);
+                    if (dataVisitaISO) {
+                        dadosFormulario.data_visita = dataVisitaISO;
+                    } else {
+                        delete dadosFormulario.data_visita;
+                    }
+                } else {
+                    delete dadosFormulario.data_visita;
+                }
+                if (dadosFormulario.notas_visita === '') delete dadosFormulario.notas_visita;
+            }
 
             // Converter data de entrega da cesta do formato brasileiro para ISO
             if (dadosFormulario.cesta_entregue && dadosFormulario.data_entrega_cesta && dadosFormulario.data_entrega_cesta.trim() !== '') {

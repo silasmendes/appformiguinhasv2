@@ -7,7 +7,7 @@ class DemandaFamilia(db.Model):
     demanda_id = db.Column(db.Integer, primary_key=True)
     familia_id = db.Column(db.Integer, nullable=False)
     demanda_tipo_id = db.Column(db.Integer, nullable=False)
-    status = db.Column(db.String(20), nullable=False, default="Em análise")
+    status = db.Column(db.String(50), nullable=False, default="Em análise")
     descricao = db.Column(db.Text)
     data_identificacao = db.Column(db.Date, nullable=False)
     prioridade = db.Column(db.String(20))

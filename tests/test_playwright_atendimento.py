@@ -255,12 +255,16 @@ def gerar_demanda() -> Dict[str, str]:
 
 
 def gerar_atendimento() -> Dict[str, Any]:
+    visita = random.choice([True, False])
     return {
         "percepcao": "Media",
         "duracao": "Tempor\u00e1ria",
         "motivo": texto_aleatorio("Situacao de desemprego"),
         "cesta_entregue": True,
-        "data_cesta": datetime.utcnow().strftime("%d/%m/%Y")
+        "data_cesta": datetime.utcnow().strftime("%d/%m/%Y"),
+        "tipo_atendimento": "Visita domiciliar" if visita else "Atendimento na base",
+        "data_visita": datetime.utcnow().strftime("%d/%m/%Y") if visita else "",
+        "notas_visita": texto_aleatorio("Observacao da visita") if visita else ""
     }
 
 
@@ -474,6 +478,16 @@ def preencher_etapa10(page: Page, demanda: Dict[str, str]) -> None:
 
 
 def preencher_etapa11(page: Page, atendimento: Dict[str, Any]) -> None:
+    # Tipo de atendimento
+    if atendimento["tipo_atendimento"] == "Visita domiciliar":
+        page.check("#tipo_visita")
+        page.wait_for_function("document.getElementById('dataVisitaContainer').style.display !== 'none'")
+        _fill_masked_date(page, "#data_visita", atendimento["data_visita"])
+        if atendimento.get("notas_visita"):
+            page.fill("#notas_visita", atendimento["notas_visita"])
+    else:
+        page.check("#tipo_base")
+
     page.select_option("#percepcao_necessidade", value=atendimento["percepcao"])
     alvo = "#duracao_temporaria" if atendimento["duracao"] == "Tempor\u00e1ria" else "#duracao_permanente"
     page.check(alvo)

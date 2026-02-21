@@ -379,8 +379,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     alvo.status_atual = status;
                     alvo.observacao = observacao;
                 }
-                renderizarDemandasAtivas();
                 fecharModal();
+                window.location.href = '/menu_atendimento';
+                return;
             } else {
                 alert('Erro ao salvar atualização da demanda.');
             }
