@@ -380,7 +380,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     alvo.observacao = observacao;
                 }
                 fecharModal();
-                window.location.href = '/menu_atendimento';
+                renderizarDemandasAtivas();
+                salvarModalBtn.disabled = false;
                 return;
             } else {
                 alert('Erro ao salvar atualização da demanda.');
