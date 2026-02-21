@@ -1,18 +1,99 @@
-import random
 import os
+import random
+import re
+import time
 from datetime import datetime, timedelta
-from playwright.sync_api import sync_playwright
-from dotenv import load_dotenv
+from typing import Any, Dict, Optional
 
-# Carregar variáveis de ambiente do arquivo .env
+import pytest
+import requests
+from dotenv import load_dotenv
+from playwright.sync_api import Page, expect, sync_playwright
+
 load_dotenv()
 
+DEFAULT_LOCAL_URL = "http://127.0.0.1:5000"
+DEFAULT_PROD_URL = "https://formiguinhasbr-a4g2cxeycmh8f7gy.brazilsouth-01.azurewebsites.net"
+STEP_TIMEOUT = 45_000
+API_WAIT_SECONDS = 20
 
-def texto_aleatorio(prefix="Descricao"):
+RUN_COUNT = max(1, int(os.getenv("ATENDIMENTO_RUNS", "1")))
+
+pytestmark = pytest.mark.e2e
+
+
+def _str_to_bool(value: Optional[str], default: bool = True) -> bool:
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _resolve_base_url() -> str:
+    explicit = os.getenv("ATENDIMENTO_BASE_URL")
+    if explicit:
+        return explicit.rstrip("/")
+    target = os.getenv("ATENDIMENTO_TARGET", "local").strip().lower()
+    if target in {"prod", "production", "remote", "azure"}:
+        return os.getenv("ATENDIMENTO_PROD_URL", DEFAULT_PROD_URL).rstrip("/")
+    return DEFAULT_LOCAL_URL
+
+
+def _resolve_headless() -> bool:
+    return _str_to_bool(os.getenv("PLAYWRIGHT_HEADLESS", "1"), True)
+
+
+def _resolve_slow_mo() -> int:
+    raw = os.getenv("PLAYWRIGHT_SLOW_MO")
+    if not raw:
+        return 0
+    try:
+        return max(0, int(raw))
+    except ValueError:
+        return 0
+
+
+@pytest.fixture(scope="session")
+def base_url() -> str:
+    return _resolve_base_url()
+
+
+@pytest.fixture(scope="session")
+def admin_login() -> str:
+    return os.getenv("USUARIO_ADMIN", "admin")
+
+
+@pytest.fixture(scope="session")
+def senha_admin() -> str:
+    senha = os.getenv("SENHA_ADMIN")
+    if not senha:
+        pytest.skip("Configure a variavel de ambiente SENHA_ADMIN para executar o teste E2E.")
+    return senha
+
+
+@pytest.fixture(scope="session")
+def browser():
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(
+            headless=_resolve_headless(),
+            slow_mo=_resolve_slow_mo()
+        )
+        yield browser
+        browser.close()
+
+
+@pytest.fixture
+def page(browser):
+    context = browser.new_context()
+    page = context.new_page()
+    yield page
+    context.close()
+
+
+def texto_aleatorio(prefix: str) -> str:
     return f"{prefix} {random.randint(1000, 9999)}"
 
 
-def gerar_cpf_valido():
+def gerar_cpf_valido() -> str:
     cpf = [random.randint(0, 9) for _ in range(9)]
     soma = sum((cpf[i] * (10 - i)) for i in range(9))
     resto = soma % 11
@@ -20,494 +101,448 @@ def gerar_cpf_valido():
     soma = sum((cpf[i] * (11 - i)) for i in range(10))
     resto = soma % 11
     cpf.append(0 if resto < 2 else 11 - resto)
-    return f"{''.join(map(str, cpf[:3]))}.{''.join(map(str, cpf[3:6]))}.{''.join(map(str, cpf[6:9]))}-{''.join(map(str, cpf[9:]))}"
+    numeros = "".join(str(d) for d in cpf)
+    return f"{numeros[:3]}.{numeros[3:6]}.{numeros[6:9]}-{numeros[9:]}"
 
 
-def gerar_dados_pessoa():
-    """Gera dados aleatórios realistas para uma pessoa"""
-    nomes_masculinos = [
-        "João", "José", "Antonio", "Francisco", "Carlos", "Paulo", "Pedro", "Lucas", "Luiz", "Marcos",
-        "Luis", "Gabriel", "Rafael", "Daniel", "Marcelo", "Bruno", "Eduardo", "Felipe", "Raimundo", "Rodrigo"
-    ]
-    
-    nomes_femininos = [
-        "Maria", "Ana", "Francisca", "Antonia", "Adriana", "Juliana", "Marcia", "Fernanda", "Patricia", "Aline",
-        "Sandra", "Camila", "Amanda", "Bruna", "Jessica", "Leticia", "Julia", "Luciana", "Vanessa", "Mariana"
-    ]
-    
-    sobrenomes = [
-        "Silva", "Santos", "Oliveira", "Souza", "Rodrigues", "Ferreira", "Alves", "Pereira", "Lima", "Gomes",
-        "Costa", "Ribeiro", "Martins", "Carvalho", "Almeida", "Lopes", "Soares", "Fernandes", "Vieira", "Barbosa"
-    ]
-    
-    genero = random.choice(["Masculino", "Feminino", "Outro"])
-    if genero == "Masculino":
-        nome = random.choice(nomes_masculinos)
-        genero_autodeclarado = ""
-    elif genero == "Feminino":
-        nome = random.choice(nomes_femininos)
-        genero_autodeclarado = ""
-    else:
-        nome = random.choice(nomes_femininos + nomes_masculinos)
-        genero_autodeclarado = random.choice([
-            "Não binárie",
-            "Transgênero",
-            "Prefere não declarar"
-        ])
-    
-    sobrenome1 = random.choice(sobrenomes)
-    sobrenome2 = random.choice(sobrenomes)
-    nome_completo = f"{nome} {sobrenome1} {sobrenome2}"
-    
-    # Data de nascimento entre 18 e 65 anos
-    hoje = datetime.now()
-    idade = random.randint(18, 65)
-    data_nascimento = hoje - timedelta(days=idade * 365 + random.randint(0, 365))
-    data_nascimento_str = data_nascimento.strftime("%d/%m/%Y")
-    
-    estado_civil = random.choice(["Solteira(o)", "Casada(o)", "União Estável", "Divorciada(o)", "Viúva(o)"])
-    
+def gerar_data_nascimento(min_idade: int = 21, max_idade: int = 58) -> str:
+    idade = random.randint(min_idade, max_idade)
+    dias_extra = random.randint(0, 364)
+    nascimento = datetime.utcnow() - timedelta(days=idade * 365 + dias_extra)
+    return nascimento.strftime("%d/%m/%Y")
+
+
+def gerar_dados_pessoa() -> Dict[str, Any]:
+    nomes_fem = ["Maria", "Ana", "Julia", "Mariana", "Patricia", "Claudia"]
+    nomes_masc = ["Joao", "Jose", "Carlos", "Marcos", "Ricardo", "Paulo"]
+    sobrenomes = ["Silva", "Santos", "Oliveira", "Costa", "Almeida", "Fernandes"]
+    genero = random.choice(["Feminino", "Masculino"])
+    nome = f"{random.choice(nomes_fem if genero == 'Feminino' else nomes_masc)} {random.choice(sobrenomes)} {random.choice(sobrenomes)}"
+    estado_civil = random.choice(["Casada(o)", "Solteira(o)", "Uni\u00e3o Est\u00e1vel"])
     return {
-        "nome": nome_completo,
-        "data_nascimento": data_nascimento_str,
+        "nome": nome,
+        "data_nascimento": gerar_data_nascimento(),
         "genero": genero,
-        "genero_autodeclarado": genero_autodeclarado,
-        "estado_civil": estado_civil
+        "genero_autodeclarado": "",
+        "estado_civil": estado_civil,
+        "rg": f"{random.randint(10_000_000, 99_999_999)}",
+        "cpf": gerar_cpf_valido(),
+        "nome_mae": f"{random.choice(nomes_fem)} {random.choice(sobrenomes)}",
+        "nome_pai": f"{random.choice(nomes_masc)} {random.choice(sobrenomes)}",
+        "autoriza_imagem": True
     }
 
 
-def gerar_endereco():
-    """Gera dados de endereço aleatórios realistas"""
-    logradouros = [
-        "Rua das Flores", "Avenida Brasil", "Rua Santos Dumont", "Rua São José", "Avenida Paulista",
-        "Rua do Comércio", "Rua Santa Rita", "Avenida Central", "Rua Nova", "Rua da Esperança",
-        "Rua São João", "Avenida das Nações", "Rua do Sol", "Rua da Paz", "Rua Benedito Silva"
-    ]
-    
-    bairros = [
-        "Centro", "Vila Nova", "Jardim América", "São José", "Santa Rita", "Vila Real", "Parque Industrial",
-        "Cidade Nova", "Alto da Serra", "Vila Esperança", "Jardim das Flores", "Santa Maria"
-    ]
-    
-    cidades_sp = [
-        "São Paulo", "Campinas", "São Bernardo do Campo", "Santo André", "Osasco", "Sorocaba",
-        "Ribeirão Preto", "Santos", "Mauá", "São José dos Campos", "Diadema", "Carapicuíba"
-    ]
-    
+def gerar_endereco() -> Dict[str, str]:
     return {
-        "cep": f"{random.randint(10000, 99999):05d}-{random.randint(0, 999):03d}",
-        "logradouro": random.choice(logradouros),
-        "numero": str(random.randint(1, 9999)),
-        "complemento": random.choice(["Casa", "Apartamento", "Fundos", "Casa A", "Casa B", ""]),
-        "bairro": random.choice(bairros),
-        "cidade": random.choice(cidades_sp),
+        "cep": "13083-852",
+        "logradouro": random.choice([
+            "Rua das Acacias",
+            "Rua Sao Jose",
+            "Avenida Brasil",
+            "Rua Projetada 5"
+        ]),
+        "numero": str(random.randint(10, 999)),
+        "complemento": "Casa 2",
+        "bairro": random.choice(["Jardim Paulista", "Centro", "Vila Nova"]),
+        "cidade": "Campinas",
         "estado": "SP",
-        "ponto_referencia": random.choice([
-            "Próximo ao mercado", "Em frente à escola", "Ao lado da farmácia", 
-            "Próximo à igreja", "Perto do posto de saúde", "Próximo ao ponto de ônibus"
-        ])
+        "ponto_referencia": "Perto da escola municipal"
     }
 
 
-def gerar_composicao_familiar():
-    """Gera dados de composição familiar aleatórios"""
-    total_residentes = random.randint(2, 8)
-    
-    # Distribuir os residentes por faixa etária
-    bebes = random.randint(0, min(2, total_residentes - 1))
-    criancas = random.randint(0, min(3, total_residentes - bebes - 1))
-    adolescentes = random.randint(0, min(2, total_residentes - bebes - criancas - 1))
-    idosos = random.randint(0, min(2, total_residentes - bebes - criancas - adolescentes - 1))
-    adultos = total_residentes - bebes - criancas - adolescentes - idosos
-    
-    if adultos < 1:  # Garantir pelo menos 1 adulto
-        adultos = 1
-        total_residentes = bebes + criancas + adolescentes + adultos + idosos
-    
+def gerar_composicao() -> Dict[str, Any]:
     return {
-        "total_residentes": str(total_residentes),
-        "quantidade_bebes": str(bebes),
-        "quantidade_criancas": str(criancas),
-        "quantidade_adolescentes": str(adolescentes),
-        "quantidade_adultos": str(adultos),
-        "quantidade_idosos": str(idosos),
-        "menores_na_escola": random.choice(["sim", "nao"]) if (criancas + adolescentes) > 0 else "nao"
+        "total_residentes": 5,
+        "quantidade_bebes": 0,
+        "quantidade_criancas": 2,
+        "quantidade_adolescentes": 1,
+        "quantidade_adultos": 2,
+        "quantidade_idosos": 0,
+        "menores_na_escola": False,
+        "motivo_ausencia": texto_aleatorio("Busca vaga em creche")
     }
 
 
-def gerar_contato():
-    """Gera dados de contato aleatórios"""
-    ddd = random.choice(["11", "12", "13", "14", "15", "16", "17", "18", "19"])
-    
-    telefone_principal = f"({ddd}) 9{random.randint(1000, 9999):04d}-{random.randint(0, 9999):04d}"
-    telefone_alternativo = f"({ddd}) 9{random.randint(1000, 9999):04d}-{random.randint(0, 9999):04d}"
-    
-    nomes_contato = ["João", "Maria", "José", "Ana", "Carlos", "Patricia", "Pedro", "Sandra"]
-    
-    email_providers = ["gmail.com", "hotmail.com", "yahoo.com.br", "outlook.com"]
-    email = f"familia{random.randint(100, 999)}@{random.choice(email_providers)}"
-    
+def gerar_contato() -> Dict[str, str]:
+    ddd = random.choice(["11", "12", "19"])
+    telefone = f"({ddd}) 9{random.randint(1000, 9999)}-{random.randint(1000, 9999)}"
+    telefone_alt = f"({ddd}) 9{random.randint(1000, 9999)}-{random.randint(1000, 9999)}"
     return {
-        "telefone_principal": telefone_principal,
-        "telefone_principal_nome": random.choice(nomes_contato),
-        "telefone_alternativo": telefone_alternativo,
-        "telefone_alternativo_nome": random.choice(nomes_contato),
-        "email": email
+        "telefone_principal": telefone,
+        "telefone_principal_nome": "Responsavel",
+        "telefone_alternativo": telefone_alt,
+        "telefone_alternativo_nome": "Conjuge",
+        "email": f"familia{random.randint(1000,9999)}@exemplo.com"
     }
 
 
-def gerar_condicoes_moradia():
-    """Gera dados de condições de moradia aleatórios"""
-    tipo_moradia = random.choice([
-        "Própria",
-        "Alugada",
-        "Cedida",
-        "Financiada",
-        "Ocupação",
-        "Situação de rua",
-    ])
-    valor_aluguel = str(random.randint(300, 1200)) if tipo_moradia == "Alugada" else "0"
-    
+def gerar_moradia() -> Dict[str, Any]:
     return {
-        "tipo_moradia": tipo_moradia,
-        "valor_aluguel": valor_aluguel,
-        "agua_encanada": random.choice(["sim", "nao"]),
-        "rede_esgoto": random.choice(["sim", "nao"]),
-        "energia_eletrica": "sim",  # Assumindo que sempre tem energia
-        "tem_fogao": random.choice(["sim", "nao"]),
-        "tem_geladeira": random.choice(["sim", "nao"]),
-        "num_camas": str(random.randint(1, 6)),
-        "num_tvs": str(random.randint(0, 3)),
-        "num_ventiladores": str(random.randint(0, 5))
+        "tipo": "Alugada",
+        "valor_aluguel": 650,
+        "agua": True,
+        "esgoto": True,
+        "energia": True,
+        "fogao": True,
+        "geladeira": True,
+        "camas": 3,
+        "tvs": 1,
+        "ventiladores": 2
     }
 
 
-def gerar_renda_gastos():
-    """Gera dados de renda e gastos aleatórios realistas para famílias carentes no Brasil"""
-    # Renda baseada no salário mínimo brasileiro (R$ 1.412 em 2024)
-    renda_arrimo = random.randint(800, 2500)  # De pouco mais que meio salário mínimo até quase 2 salários
-    renda_outros = random.randint(0, 800)     # Renda complementar de outros familiares
-    auxilio = random.randint(0, 600)          # Auxílios diversos (Bolsa Família, etc.)
-    
-    # Gastos realistas para famílias carentes brasileiras
+def gerar_saude() -> Dict[str, Any]:
     return {
-        "gastos_supermercado": str(random.randint(400, 800)),        # R$ 400-800 por mês para alimentação
-        "gastos_energia_eletrica": str(random.randint(80, 250)),     # R$ 80-250 conta de luz
-        "gastos_agua": str(random.randint(40, 120)),                 # R$ 40-120 conta de água
-        "valor_botija_gas": str(random.randint(90, 130)),            # R$ 90-130 botijão de gás
-        "duracao_botija_gas": str(random.randint(20, 45)),           # 20-45 dias duração do gás
-        "gastos_transporte": str(random.randint(100, 350)),          # R$ 100-350 transporte público
-        "gastos_medicamentos": str(random.randint(50, 300)),         # R$ 50-300 medicamentos
-        "gastos_conta_celular": str(random.randint(30, 80)),         # R$ 30-80 conta de celular
-        "gastos_outros": str(random.randint(80, 250)),               # R$ 80-250 outros gastos
-        "renda_arrimo": str(renda_arrimo),
-        "renda_outros_familiares": str(renda_outros),
-        "auxilio_parentes_amigos": str(auxilio)
+        "tem_doenca_cronica": True,
+        "descricao_doenca": texto_aleatorio("Consulta medica"),
+        "usa_medicacao": True,
+        "descricao_medicacao": texto_aleatorio("Remedio controlado"),
+        "tem_deficiencia": True,
+        "descricao_deficiencia": "Deficiencia motora leve",
+        "recebe_bpc": False
     }
 
 
-def test_cadastro_nova_familia():
-    # Verificar se a senha está configurada
-    senha_admin = os.getenv("SENHA_ADMIN")
-    if not senha_admin:
-        raise ValueError("A variável de ambiente SENHA_ADMIN não está configurada. Configure no arquivo .env")
-    
-    # Gerar dados aleatórios para o teste
-    dados_pessoa = gerar_dados_pessoa()
-    endereco = gerar_endereco()
-    composicao = gerar_composicao_familiar()
-    contato = gerar_contato()
-    moradia = gerar_condicoes_moradia()
-    renda_gastos = gerar_renda_gastos()
-    
-    print(f"Testando com dados da família: {dados_pessoa['nome']}")
-    
-    with sync_playwright() as p:
-        # browser = p.chromium.launch(headless=True)
-        browser = p.chromium.launch(headless=False, slow_mo=300)
-        context = browser.new_context()
-        page = context.new_page()
+def gerar_emprego() -> Dict[str, Any]:
+    return {
+        "relacao": "Provedor n\u00e3o familiar",
+        "descricao_provedor_externo": "Vizinho que auxilia",
+        "situacao": "Outro",
+        "descricao_situacao": "Trabalha por diarias",
+        "profissao": "Auxiliar de servicos",
+        "experiencia": "Mais de 5 anos em limpeza",
+        "formacao": "Cursos de cuidador",
+        "habilidades": "Cozinha comunitaria e costura"
+    }
 
-        page.goto("http://127.0.0.1:5000/")
-        # page.goto("https://formiguinhasbr-a4g2cxeycmh8f7gy.brazilsouth-01.azurewebsites.net/")
-        page.fill("input#login", "admin")
-        page.fill("input#senha", senha_admin)
-        page.wait_for_timeout(1000)  # Pequena pausa para simular tempo de digitação
-        page.click("button[type='submit']")
-        page.wait_for_load_state("networkidle")
 
-        page.goto("http://127.0.0.1:5000/menu_atendimento")
-        #page.goto("https://formiguinhasbr-a4g2cxeycmh8f7gy.brazilsouth-01.azurewebsites.net/menu_atendimento")
-        page.click("#btnNovaFamilia")
+def gerar_renda() -> Dict[str, Any]:
+    return {
+        "gastos_supermercado": 650,
+        "gastos_energia": 180,
+        "gastos_agua": 90,
+        "valor_botija": 120,
+        "duracao_botija": 2,
+        "gastos_transporte": 150,
+        "gastos_medicamentos": 110,
+        "gastos_celular": 60,
+        "gastos_outros": 140,
+        "renda_arrimo": 1200,
+        "renda_outros": 350,
+        "ajuda_terceiros": 200,
+        "cadastro_unico": True,
+        "recebe_beneficio": True,
+        "descricao_beneficios": "Bolsa Familia e auxilio moradia",
+        "valor_beneficios": 350
+    }
 
-        # Etapa 1 - dados pessoais
-        page.fill("#nome_responsavel", dados_pessoa["nome"])
-        
-        # Preencher data de nascimento contornando a máscara dd/mm/aaaa
-        page.click("#data_nascimento")
-        page.keyboard.press("Control+a")  # Selecionar tudo
-        page.keyboard.press("Delete")     # Deletar conteúdo
-        
-        # Digitar apenas os números da data (sem as barras)
-        data_apenas_numeros = dados_pessoa["data_nascimento"].replace("/", "")
-        for char in data_apenas_numeros:
-            page.keyboard.press(char)
-            page.wait_for_timeout(50)  # Pequena pausa entre cada dígito
-        
-        page.select_option("#genero", label=dados_pessoa["genero"])
-        if dados_pessoa["genero"] == "Outro":
-            page.fill("#genero_autodeclarado", dados_pessoa["genero_autodeclarado"])
-        page.select_option("#estado_civil", label=dados_pessoa["estado_civil"])
-        page.fill("#rg", f"{random.randint(100000000, 999999999)}")
-        page.fill("#cpf", gerar_cpf_valido())
+
+def gerar_educacao() -> Dict[str, Any]:
+    return {
+        "nivel": "Ensino M\u00e9dio Completo",
+        "estuda": True,
+        "curso": "Curso tecnico em andamento"
+    }
+
+
+def gerar_demanda() -> Dict[str, str]:
+    return {
+        "descricao": texto_aleatorio("Necessidade de eletrodomestico"),
+        "categoria": "Equipamentos para casa",
+        "prioridade": "Alta"
+    }
+
+
+def gerar_atendimento() -> Dict[str, Any]:
+    return {
+        "percepcao": "Media",
+        "duracao": "Tempor\u00e1ria",
+        "motivo": texto_aleatorio("Situacao de desemprego"),
+        "cesta_entregue": True,
+        "data_cesta": datetime.utcnow().strftime("%d/%m/%Y")
+    }
+
+
+def gerar_dataset() -> Dict[str, Any]:
+    return {
+        "pessoa": gerar_dados_pessoa(),
+        "endereco": gerar_endereco(),
+        "composicao": gerar_composicao(),
+        "contato": gerar_contato(),
+        "moradia": gerar_moradia(),
+        "saude": gerar_saude(),
+        "emprego": gerar_emprego(),
+        "renda": gerar_renda(),
+        "educacao": gerar_educacao(),
+        "demanda": gerar_demanda(),
+        "atendimento": gerar_atendimento()
+    }
+
+
+def _type_digits(page: Page, selector: str, digits: str) -> None:
+    page.click(selector)
+    page.fill(selector, "")
+    page.type(selector, digits)
+
+
+def _fill_masked_date(page: Page, selector: str, date_br: str) -> None:
+    digits = re.sub(r"\D", "", date_br)
+    _type_digits(page, selector, digits)
+
+
+def _fill_currency(page: Page, selector: str, valor_reais: int) -> None:
+    cents = int(valor_reais * 100)
+    _type_digits(page, selector, str(cents))
+
+
+def _wait_for_step(page: Page, etapa: int) -> None:
+    page.wait_for_url(f"**/atendimento/etapa{etapa}", timeout=STEP_TIMEOUT)
+
+
+def _click_when_enabled(page: Page, selector: str = "#btnProxima") -> None:
+    """Wait for the next-step button to be enabled before clicking."""
+    botao = page.locator(selector)
+    expect(botao).to_be_enabled(timeout=STEP_TIMEOUT)
+    botao.click()
+
+
+def realizar_login(page: Page, base_url: str, usuario: str, senha: str) -> None:
+    page.goto(f"{base_url}/login", wait_until="networkidle")
+    page.fill("input#login", usuario)
+    page.fill("input#senha", senha)
+    page.click("button[type='submit']")
+    page.wait_for_url("**/menu_atendimento", timeout=STEP_TIMEOUT)
+
+
+def iniciar_novo_atendimento(page: Page, base_url: str) -> None:
+    page.goto(f"{base_url}/menu_atendimento", wait_until="networkidle")
+    page.click("#btnNovaFamilia")
+    _wait_for_step(page, 1)
+
+
+def preencher_etapa1(page: Page, pessoa: Dict[str, Any]) -> None:
+    page.fill("#nome_responsavel", pessoa["nome"])
+    _fill_masked_date(page, "#data_nascimento", pessoa["data_nascimento"])
+    page.select_option("#genero", label=pessoa["genero"])
+    if pessoa["genero"] == "Outro" and pessoa["genero_autodeclarado"]:
+        page.fill("#genero_autodeclarado", pessoa["genero_autodeclarado"])
+    page.select_option("#estado_civil", label=pessoa["estado_civil"])
+    page.fill("#rg", pessoa["rg"])
+    _type_digits(page, "#cpf", re.sub(r"\D", "", pessoa["cpf"]))
+    page.fill("#nome_mae", pessoa["nome_mae"])
+    page.fill("#nome_pai", pessoa["nome_pai"])
+    if pessoa["autoriza_imagem"]:
         page.check("#autoriza_sim")
-        page.click("#btnProxima")
-        page.wait_for_load_state("networkidle")
+    else:
+        page.check("#autoriza_nao")
+    _click_when_enabled(page)
+    _wait_for_step(page, 2)
 
-        # Etapa 2 - endereço
-        page.check("#preenchimento_manual")
-        page.fill("#cep", endereco["cep"])
-        page.fill("#logradouro", endereco["logradouro"])
-        page.fill("#numero", endereco["numero"])
-        page.fill("#complemento", endereco["complemento"])
-        page.fill("#bairro", endereco["bairro"])
-        page.fill("#cidade", endereco["cidade"])
-        page.fill("#estado", endereco["estado"])
-        page.fill("#ponto_referencia", endereco["ponto_referencia"])
-        page.click("#btnProxima")
-        page.wait_for_load_state("networkidle")
 
-        # Etapa 3 - composição familiar
-        page.fill("#total_residentes", composicao["total_residentes"])
-        page.fill("#quantidade_bebes", composicao["quantidade_bebes"])
-        page.fill("#quantidade_criancas", composicao["quantidade_criancas"])
-        page.fill("#quantidade_adolescentes", composicao["quantidade_adolescentes"])
-        page.fill("#quantidade_adultos", composicao["quantidade_adultos"])
-        page.fill("#quantidade_idosos", composicao["quantidade_idosos"])
-        
-        # Selecionar se menores estão na escola baseado na composição
-        if composicao["menores_na_escola"] == "sim":
-            page.check("#menores_na_escola_sim")
-        else:
-            page.check("#menores_na_escola_nao")
-            page.fill("#motivo_ausencia_escola", texto_aleatorio("Motivo"))
-            
-        page.click("#btnProxima")
-        page.wait_for_load_state("networkidle")
+def preencher_etapa2(page: Page, endereco: Dict[str, Any]) -> None:
+    page.check("#preenchimento_manual")
+    _type_digits(page, "#cep", re.sub(r"\D", "", endereco["cep"]))
+    page.fill("#logradouro", endereco["logradouro"])
+    page.fill("#numero", endereco["numero"])
+    page.fill("#complemento", endereco["complemento"])
+    page.fill("#bairro", endereco["bairro"])
+    page.fill("#cidade", endereco["cidade"])
+    page.fill("#estado", endereco["estado"])
+    page.fill("#ponto_referencia", endereco["ponto_referencia"])
+    _click_when_enabled(page)
+    _wait_for_step(page, 3)
 
-        # Etapa 4 - contato
-        page.fill("#telefone_principal", contato["telefone_principal"])
-        page.check("#telefone_principal_whatsapp")
-        page.fill("#telefone_principal_nome_contato", contato["telefone_principal_nome"])
-        page.fill("#telefone_alternativo", contato["telefone_alternativo"])
-        page.fill("#telefone_alternativo_nome_contato", contato["telefone_alternativo_nome"])
-        page.fill("#email_responsavel", contato["email"])
-        page.click("#btnProxima")
-        page.wait_for_load_state("networkidle")
 
-        # Etapa 5 - condições de moradia
-        page.select_option("#tipo_moradia", label=moradia["tipo_moradia"])
-        if moradia["tipo_moradia"] == "Alugada":
-            page.fill("#valor_aluguel", moradia["valor_aluguel"])
-        
-        # Marcar checkboxes baseado nos dados gerados
-        if moradia["agua_encanada"] == "sim":
-            page.check("#agua_encanada_sim")
-        else:
-            page.check("#agua_encanada_nao")
-            
-        if moradia["rede_esgoto"] == "sim":
-            page.check("#rede_esgoto_sim")
-        else:
-            page.check("#rede_esgoto_nao")
-            
-        if moradia["energia_eletrica"] == "sim":
-            page.check("#energia_eletrica_sim")
-        else:
-            page.check("#energia_eletrica_nao")
-            
-        if moradia["tem_fogao"] == "sim":
-            page.check("#tem_fogao_sim")
-        else:
-            page.check("#tem_fogao_nao")
-            
-        if moradia["tem_geladeira"] == "sim":
-            page.check("#tem_geladeira_sim")
-        else:
-            page.check("#tem_geladeira_nao")
-            
-        page.fill("#num_camas", moradia["num_camas"])
-        page.fill("#num_tvs", moradia["num_tvs"])
-        page.fill("#num_ventiladores", moradia["num_ventiladores"])
-        page.click("#btnProxima")
-        page.wait_for_load_state("networkidle")
+def preencher_etapa3(page: Page, composicao: Dict[str, Any]) -> None:
+    page.fill("#total_residentes", str(composicao["total_residentes"]))
+    page.fill("#quantidade_bebes", str(composicao["quantidade_bebes"]))
+    page.fill("#quantidade_criancas", str(composicao["quantidade_criancas"]))
+    page.fill("#quantidade_adolescentes", str(composicao["quantidade_adolescentes"]))
+    page.fill("#quantidade_adultos", str(composicao["quantidade_adultos"]))
+    page.fill("#quantidade_idosos", str(composicao["quantidade_idosos"]))
+    page.wait_for_timeout(200)
+    if composicao["quantidade_criancas"] + composicao["quantidade_adolescentes"] > 0:
+        alvo = "#menores_na_escola_sim" if composicao["menores_na_escola"] else "#menores_na_escola_nao"
+        page.check(alvo)
+        if not composicao["menores_na_escola"]:
+            page.fill("#motivo_ausencia_escola", composicao["motivo_ausencia"])
+    _click_when_enabled(page)
+    _wait_for_step(page, 4)
 
-        # Etapa 6 - saúde familiar
-        doenca_cronica = random.choice(["sim", "nao"])
-        medicacao = random.choice(["sim", "nao"])
-        deficiencia = random.choice(["sim", "nao"])
-        
-        if doenca_cronica == "sim":
-            page.check("#tem_doenca_cronica_sim")
-            page.fill("#descricao_doenca_cronica", texto_aleatorio("Doenca"))
-        else:
-            page.check("#tem_doenca_cronica_nao")
-            
-        if medicacao == "sim":
-            page.check("#usa_medicacao_continua_sim")
-            page.fill("#descricao_medicacao", texto_aleatorio("Medicacao"))
-        else:
-            page.check("#usa_medicacao_continua_nao")
-            
-        if deficiencia == "sim":
-            page.check("#tem_deficiencia_sim")
-            page.fill("#descricao_deficiencia", texto_aleatorio("Deficiencia"))
-            if random.choice(["sim", "nao"]) == "sim":
-                page.check("#recebe_bpc_sim")
-            else:
-                page.check("#recebe_bpc_nao")
-        else:
-            page.check("#tem_deficiencia_nao")
-            
-        page.click("#btnProxima")
-        page.wait_for_load_state("networkidle")
 
-        # Etapa 7 - emprego
-        relacao_provedor = random.choice([
-            "Eu mesma(o)",
-            "Cônjuge/Companheira(o)",
-            "Filho(a)",
-            "Outro familiar",
-            "Provedor não familiar",
-        ])
-        situacao_emprego = random.choice([
-            "Empregado formal",
-            "Empregado informal"
-        ])
-        
-        profissoes = [
-            "Auxiliar de limpeza", "Vendedor", "Cozinheira", "Pedreiro", "Motorista",
-            "Doméstica", "Segurança", "Operador", "Auxiliar", "Diarista"
-        ]
-        
-        page.select_option("#relacao_provedor_familia", label=relacao_provedor)
-        if relacao_provedor == "Provedor não familiar":
-            page.fill("#descricao_provedor_externo", texto_aleatorio("Provedor"))
+def preencher_etapa4(page: Page, contato: Dict[str, str]) -> None:
+    _type_digits(page, "#telefone_principal", re.sub(r"\D", "", contato["telefone_principal"]))
+    page.check("#telefone_principal_whatsapp")
+    page.fill("#telefone_principal_nome_contato", contato["telefone_principal_nome"])
+    _type_digits(page, "#telefone_alternativo", re.sub(r"\D", "", contato["telefone_alternativo"]))
+    page.fill("#telefone_alternativo_nome_contato", contato["telefone_alternativo_nome"])
+    page.fill("#email_responsavel", contato["email"])
+    _click_when_enabled(page)
+    _wait_for_step(page, 5)
 
-        page.select_option("#situacao_emprego", label=situacao_emprego)
-        if situacao_emprego == "Outro":
-            page.fill("#descricao_situacao_emprego_outro", texto_aleatorio("Emprego"))
-        page.fill("#profissao_provedor", random.choice(profissoes))
-        page.fill("#experiencia_profissional", random.choice([
-            "Mais de 5 anos", "2 a 5 anos", "1 a 2 anos", "Menos de 1 ano", "Nenhuma"
-        ]))
-        page.fill("#formacao_profissional", random.choice([
-            "Ensino Fundamental Incompleto", "Ensino Fundamental Completo",
-            "Ensino Médio Incompleto", "Ensino Médio Completo", "Superior Incompleto"
-        ]))
-        page.fill("#habilidades_relevantes", random.choice([
-            "Organização", "Comunicação", "Trabalho em equipe", "Pontualidade",
-            "Responsabilidade", "Criatividade", "Liderança"
-        ]))
-        page.click("#btnProxima")
-        page.wait_for_load_state("networkidle")
 
-        # Etapa 8 - renda e gastos
-        page.fill("#gastos_supermercado", renda_gastos["gastos_supermercado"])
-        page.fill("#gastos_energia_eletrica", renda_gastos["gastos_energia_eletrica"])
-        page.fill("#gastos_agua", renda_gastos["gastos_agua"])
-        page.fill("#valor_botija_gas", renda_gastos["valor_botija_gas"])
-        page.fill("#duracao_botija_gas", renda_gastos["duracao_botija_gas"])
-        page.fill("#gastos_transporte", renda_gastos["gastos_transporte"])
-        page.fill("#gastos_medicamentos", renda_gastos["gastos_medicamentos"])
-        page.fill("#gastos_conta_celular", renda_gastos["gastos_conta_celular"])
-        page.fill("#gastos_outros", renda_gastos["gastos_outros"])
-        page.fill("#renda_arrimo", renda_gastos["renda_arrimo"])
-        page.fill("#renda_outros_familiares", renda_gastos["renda_outros_familiares"])
-        page.fill("#auxilio_parentes_amigos", renda_gastos["auxilio_parentes_amigos"])
-        
-        # Cadastros e benefícios aleatórios
-        cadastro_governo = random.choice(["sim", "nao"])
-        beneficio_governo = random.choice(["sim", "nao"])
-        
-        if cadastro_governo == "sim":
-            page.check("#cadastro_sim")
-        else:
-            page.check("#cadastro_nao")
-            
-        if beneficio_governo == "sim":
-            page.check("#beneficio_sim")
-            page.fill("#descricao_beneficios", texto_aleatorio("Beneficio"))
-            page.fill("#valor_total_beneficios", str(random.randint(50, 400)))
-        else:
-            page.check("#beneficio_nao")
-            
-        page.click("#btnProxima")
-        page.wait_for_load_state("networkidle")
+def preencher_etapa5(page: Page, moradia: Dict[str, Any]) -> None:
+    page.select_option("#tipo_moradia", label=moradia["tipo"])
+    page.wait_for_timeout(200)
+    if moradia["tipo"] == "Alugada":
+        page.wait_for_selector("#valor_aluguel_container:not(.d-none)")
+        _fill_currency(page, "#valor_aluguel", moradia["valor_aluguel"])
+    page.check("#agua_encanada_sim" if moradia["agua"] else "#agua_encanada_nao")
+    page.check("#rede_esgoto_sim" if moradia["esgoto"] else "#rede_esgoto_nao")
+    page.check("#energia_eletrica_sim" if moradia["energia"] else "#energia_eletrica_nao")
+    page.check("#tem_fogao_sim" if moradia["fogao"] else "#tem_fogao_nao")
+    page.check("#tem_geladeira_sim" if moradia["geladeira"] else "#tem_geladeira_nao")
+    page.fill("#num_camas", str(moradia["camas"]))
+    page.fill("#num_tvs", str(moradia["tvs"]))
+    page.fill("#num_ventiladores", str(moradia["ventiladores"]))
+    _click_when_enabled(page)
+    _wait_for_step(page, 6)
 
-        # Etapa 9 - escolaridade
-        nivel_escolaridade = random.choice([
-            "Analfabeto", "Ensino Fundamental Incompleto", "Ensino Fundamental Completo"
-        ])
-        estuda_atualmente = random.choice(["sim", "nao"])
-        
-        page.select_option("#nivel_escolaridade", label=nivel_escolaridade)
-        
-        if estuda_atualmente == "sim":
-            page.check("#estuda_sim")
-            page.fill("#curso_ou_serie_atual", texto_aleatorio("Curso"))
-        else:
-            page.check("#estuda_nao")
-            
-        page.click("#btnProxima")
-        page.wait_for_load_state("networkidle")
 
-        # Etapa 10 - outras necessidades (nenhuma adicionada)
-        page.click("#btnProxima")
-        page.wait_for_load_state("networkidle")
+def preencher_etapa6(page: Page, saude: Dict[str, Any]) -> None:
+    page.check("#tem_doenca_cronica_sim" if saude["tem_doenca_cronica"] else "#tem_doenca_cronica_nao")
+    if saude["tem_doenca_cronica"]:
+        page.fill("#descricao_doenca_cronica", saude["descricao_doenca"])
+    page.check("#usa_medicacao_continua_sim" if saude["usa_medicacao"] else "#usa_medicacao_continua_nao")
+    if saude["usa_medicacao"]:
+        page.fill("#descricao_medicacao", saude["descricao_medicacao"])
+    page.check("#tem_deficiencia_sim" if saude["tem_deficiencia"] else "#tem_deficiencia_nao")
+    if saude["tem_deficiencia"]:
+        page.fill("#descricao_deficiencia", saude["descricao_deficiencia"])
+        page.check("#recebe_bpc_sim" if saude["recebe_bpc"] else "#recebe_bpc_nao")
+    _click_when_enabled(page)
+    _wait_for_step(page, 7)
 
-        # Etapa 11 - finalização
-        percepcao = random.choice(["Baixa", "Média", "Alta"])
-        page.select_option("#percepcao_necessidade", label=percepcao)
-        page.check("#duracao_temporaria")
-        page.fill("#motivo_duracao", texto_aleatorio("Motivo duracao"))
+
+def preencher_etapa7(page: Page, emprego: Dict[str, Any]) -> None:
+    page.select_option("#relacao_provedor_familia", label=emprego["relacao"])
+    if emprego["relacao"] == "Provedor n\u00e3o familiar":
+        page.fill("#descricao_provedor_externo", emprego["descricao_provedor_externo"])
+    page.select_option("#situacao_emprego", label=emprego["situacao"])
+    if emprego["situacao"] == "Outro":
+        page.fill("#descricao_situacao_emprego_outro", emprego["descricao_situacao"])
+    page.fill("#profissao_provedor", emprego["profissao"])
+    page.fill("#experiencia_profissional", emprego["experiencia"])
+    page.fill("#formacao_profissional", emprego["formacao"])
+    page.fill("#habilidades_relevantes", emprego["habilidades"])
+    _click_when_enabled(page)
+    _wait_for_step(page, 8)
+
+
+def preencher_etapa8(page: Page, renda: Dict[str, Any]) -> None:
+    _fill_currency(page, "#gastos_supermercado", renda["gastos_supermercado"])
+    _fill_currency(page, "#gastos_energia_eletrica", renda["gastos_energia"])
+    _fill_currency(page, "#gastos_agua", renda["gastos_agua"])
+    _fill_currency(page, "#valor_botija_gas", renda["valor_botija"])
+    page.fill("#duracao_botija_gas", str(renda["duracao_botija"]))
+    _fill_currency(page, "#gastos_transporte", renda["gastos_transporte"])
+    _fill_currency(page, "#gastos_medicamentos", renda["gastos_medicamentos"])
+    _fill_currency(page, "#gastos_conta_celular", renda["gastos_celular"])
+    _fill_currency(page, "#gastos_outros", renda["gastos_outros"])
+    _fill_currency(page, "#renda_arrimo", renda["renda_arrimo"])
+    _fill_currency(page, "#renda_outros_familiares", renda["renda_outros"])
+    _fill_currency(page, "#auxilio_parentes_amigos", renda["ajuda_terceiros"])
+    page.check("#cadastro_sim" if renda["cadastro_unico"] else "#cadastro_nao")
+    alvo = "#beneficio_sim" if renda["recebe_beneficio"] else "#beneficio_nao"
+    page.check(alvo)
+    if renda["recebe_beneficio"]:
+        page.wait_for_timeout(200)
+        page.fill("#descricao_beneficios", renda["descricao_beneficios"])
+        _fill_currency(page, "#valor_total_beneficios", renda["valor_beneficios"])
+    _click_when_enabled(page)
+    _wait_for_step(page, 9)
+
+
+def preencher_etapa9(page: Page, educacao: Dict[str, Any]) -> None:
+    page.select_option("#nivel_escolaridade", label=educacao["nivel"])
+    page.check("#estuda_sim" if educacao["estuda"] else "#estuda_nao")
+    if educacao["estuda"]:
+        page.fill("#curso_ou_serie_atual", educacao["curso"])
+    _click_when_enabled(page)
+    _wait_for_step(page, 10)
+
+
+def preencher_etapa10(page: Page, demanda: Dict[str, str]) -> None:
+    page.click("#adicionarNecessidade")
+    item = page.locator(".necessidade-item").last
+    item.locator("input.descricao").fill(demanda["descricao"])
+    item.locator("select.categoria").select_option(value=demanda["categoria"])
+    item.locator("select.prioridade").select_option(value=demanda["prioridade"])
+    _click_when_enabled(page)
+    _wait_for_step(page, 11)
+
+
+def preencher_etapa11(page: Page, atendimento: Dict[str, Any]) -> None:
+    page.select_option("#percepcao_necessidade", value=atendimento["percepcao"])
+    alvo = "#duracao_temporaria" if atendimento["duracao"] == "Tempor\u00e1ria" else "#duracao_permanente"
+    page.check(alvo)
+    page.fill("#motivo_duracao", atendimento["motivo"])
+    if atendimento["cesta_entregue"]:
         page.check("#cesta_entregue")
-        page.click("#btnFinalizar")
-        page.wait_for_load_state("networkidle")
-
-        browser.close()
-        
-        print(f"Cadastro concluído para: {dados_pessoa['nome']}")
-        print(f"Endereço: {endereco['logradouro']}, {endereco['numero']} - {endereco['bairro']}")
-        print(f"Família com {composicao['total_residentes']} pessoas")
-        print(f"Renda principal: R$ {renda_gastos['renda_arrimo']}")
-
-        assert True
+        page.wait_for_function("document.getElementById('dataEntregaCestaContainer').style.display !== 'none'")
+        _fill_masked_date(page, "#data_entrega_cesta", atendimento["data_cesta"])
+    page.click("#btnFinalizar")
+    page.wait_for_url("**/menu_atendimento", timeout=STEP_TIMEOUT)
 
 
-def test_multiplos_cadastros():
-    """Executa múltiplos testes com dados diferentes"""
-    num_testes = 57  # Pode ajustar o número de testes
-    
-    for i in range(num_testes):
-        print(f"\n--- Executando teste {i+1}/{num_testes} ---")
-        try:
-            test_cadastro_nova_familia()
-            print(f"✅ Teste {i+1} concluído com sucesso!")
-        except Exception as e:
-            print(f"❌ Erro no teste {i+1}: {str(e)}")
-            raise e
+def executar_fluxo(page: Page, base_url: str, usuario: str, senha: str, dataset: Dict[str, Any]) -> Dict[str, Any]:
+    realizar_login(page, base_url, usuario, senha)
+    iniciar_novo_atendimento(page, base_url)
+    preencher_etapa1(page, dataset["pessoa"])
+    preencher_etapa2(page, dataset["endereco"])
+    preencher_etapa3(page, dataset["composicao"])
+    preencher_etapa4(page, dataset["contato"])
+    preencher_etapa5(page, dataset["moradia"])
+    preencher_etapa6(page, dataset["saude"])
+    preencher_etapa7(page, dataset["emprego"])
+    preencher_etapa8(page, dataset["renda"])
+    preencher_etapa9(page, dataset["educacao"])
+    preencher_etapa10(page, dataset["demanda"])
+    preencher_etapa11(page, dataset["atendimento"])
+    page.wait_for_timeout(1000)
+    familia_id_raw = page.evaluate("sessionStorage.getItem('familia_id')")
+    familia_id = int(familia_id_raw) if familia_id_raw and familia_id_raw.isdigit() else None
+    assert familia_id is not None, "familia_id n\u00e3o foi definido na sessionStorage."
+    assert "Menu de Atendimento" in page.inner_text("body"), "Tela final n\u00e3o apresentou o menu esperado."
+    return {
+        "familia_id": familia_id,
+        "cpf": dataset["pessoa"]["cpf"],
+        "nome": dataset["pessoa"]["nome"]
+    }
 
 
-if __name__ == "__main__":
-    print("Iniciando teste de cadastro de nova família com dados randômicos...")
-    print("=" * 60)
-    
-    # Para executar apenas um teste
-    # test_cadastro_nova_familia()
-    
-    # Para executar múltiplos testes (descomente a linha abaixo)
-    test_multiplos_cadastros()
-    
-    print("\n" + "=" * 60)
-    print("Todos os testes concluídos com sucesso!")
+def buscar_familia_por_cpf(base_url: str, cpf: str) -> Optional[Dict[str, Any]]:
+    try:
+        resposta = requests.get(
+            f"{base_url}/familias/busca",
+            params={"q": cpf},
+            timeout=10
+        )
+        resposta.raise_for_status()
+    except requests.RequestException:
+        return None
+    for familia in resposta.json():
+        if familia.get("cpf") == cpf:
+            return familia
+    return None
+
+
+def aguardar_familia_no_backend(base_url: str, cpf: str) -> Optional[Dict[str, Any]]:
+    deadline = time.time() + API_WAIT_SECONDS
+    while time.time() < deadline:
+        encontrado = buscar_familia_por_cpf(base_url, cpf)
+        if encontrado:
+            return encontrado
+        time.sleep(2)
+    return None
+
+
+@pytest.mark.parametrize("execucao", range(RUN_COUNT))
+def test_fluxo_atendimento_end_to_end(page: Page, base_url: str, admin_login: str, senha_admin: str, execucao: int) -> None:
+    dataset = gerar_dataset()
+    resultado = executar_fluxo(page, base_url, admin_login, senha_admin, dataset)
+    familia = aguardar_familia_no_backend(base_url, resultado["cpf"])
+    assert familia is not None, f"N\u00e3o encontrei a fam\u00edlia com CPF {resultado['cpf']} pelo endpoint de busca."
+    assert int(familia["familia_id"]) == resultado["familia_id"]
+    assert familia["nome_responsavel"].split()[0] in resultado["nome"]
