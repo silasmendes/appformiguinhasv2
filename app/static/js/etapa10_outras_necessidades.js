@@ -29,6 +29,54 @@ document.addEventListener('DOMContentLoaded', function () {
     const obsAnteriorText = document.getElementById('modal_observacao_anterior');
     const modalDesc = document.getElementById('modal_demanda_descricao');
     const modalId = document.getElementById('modal_demanda_id');
+    let destacarExclusaoNecessidade = false;
+
+    function removerAlertaNecessidadeIncompleta() {
+        const alertaExistente = document.getElementById('alertaNecessidadeIncompleta');
+        if (alertaExistente) {
+            alertaExistente.remove();
+        }
+
+        destacarExclusaoNecessidade = false;
+        lista.querySelectorAll('.necessidade-item').forEach(item => {
+            item.classList.remove('necessidade-incompleta');
+        });
+    }
+
+    function atualizarEstadoNecessidade(item) {
+        if (!item) return true;
+
+        const inputDesc = item.querySelector('.descricao');
+        const selectCat = item.querySelector('.categoria');
+        const descricaoPreenchida = inputDesc && inputDesc.value.trim();
+        const categoriaPreenchida = selectCat && selectCat.value;
+        const itemValido = Boolean(descricaoPreenchida && categoriaPreenchida);
+
+        item.classList.toggle('necessidade-incompleta', destacarExclusaoNecessidade && !itemValido);
+        return itemValido;
+    }
+
+    function exibirAlertaNecessidadeIncompleta() {
+        removerAlertaNecessidadeIncompleta();
+        destacarExclusaoNecessidade = true;
+
+        const alerta = document.createElement('div');
+        alerta.id = 'alertaNecessidadeIncompleta';
+        alerta.className = 'alert alert-warning alert-dismissible fade show mb-3';
+        alerta.setAttribute('role', 'alert');
+        alerta.innerHTML = `
+            Você clicou em adicionar uma nova necessidade, mas não preencheu as informações obrigatórias. Se isso foi acidental, exclua a necessidade clicando no ícone da lixeira.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        `;
+
+        if (form && lista) {
+            form.insertBefore(alerta, lista);
+            lista.querySelectorAll('.necessidade-item').forEach(item => {
+                atualizarEstadoNecessidade(item);
+            });
+            alerta.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
 
     function atualizarNumeracao() {
         const itens = lista.querySelectorAll('.necessidade-item');
@@ -196,6 +244,15 @@ document.addEventListener('DOMContentLoaded', function () {
         inputDesc.name = 'descricao[]';
         inputDesc.required = true;
         inputDesc.setAttribute('autocomplete', 'off');
+        inputDesc.addEventListener('input', function () {
+            if (inputDesc.value.trim()) {
+                inputDesc.classList.remove('is-invalid');
+            }
+            atualizarEstadoNecessidade(item);
+            if (!lista.querySelector('.is-invalid')) {
+                removerAlertaNecessidadeIncompleta();
+            }
+        });
         colDesc.appendChild(labelDesc);
         colDesc.appendChild(inputDesc);
 
@@ -205,6 +262,15 @@ document.addEventListener('DOMContentLoaded', function () {
         labelCat.className = 'form-label';
         labelCat.innerHTML = 'Categoria <span class="text-danger">*</span>';
         const selectCat = criarSelectCategorias();
+        selectCat.addEventListener('change', function () {
+            if (selectCat.value) {
+                selectCat.classList.remove('is-invalid');
+            }
+            atualizarEstadoNecessidade(item);
+            if (!lista.querySelector('.is-invalid')) {
+                removerAlertaNecessidadeIncompleta();
+            }
+        });
         colCat.appendChild(labelCat);
         colCat.appendChild(selectCat);
 
@@ -226,6 +292,9 @@ document.addEventListener('DOMContentLoaded', function () {
         btnRemover.addEventListener('click', function () {
             item.remove();
             atualizarNumeracao();
+            if (!lista.querySelector('.necessidade-item')) {
+                removerAlertaNecessidadeIncompleta();
+            }
         });
         colRemover.appendChild(btnRemover);
 
@@ -250,6 +319,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         lista.appendChild(item);
+        atualizarEstadoNecessidade(item);
         atualizarNumeracao();
     }
 
@@ -260,6 +330,7 @@ document.addEventListener('DOMContentLoaded', function () {
     btnProxima.addEventListener('click', async function (e) {
         e.preventDefault();
         let valido = true;
+        removerAlertaNecessidadeIncompleta();
         lista.querySelectorAll('.necessidade-item').forEach(item => {
             const inputDesc = item.querySelector('.descricao');
             const selectCat = item.querySelector('.categoria');
@@ -277,7 +348,14 @@ document.addEventListener('DOMContentLoaded', function () {
             } else if (selectCat) {
                 selectCat.classList.remove('is-invalid');
             }
+
+            atualizarEstadoNecessidade(item);
         });
+
+        if (!valido) {
+            exibirAlertaNecessidadeIncompleta();
+            return;
+        }
 
         if (valido) {
             const storedFamiliaId = sessionStorage.getItem('familia_id');

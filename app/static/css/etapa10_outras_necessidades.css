@@ -8,6 +8,75 @@
     font-weight: 500;
 }
 
+#alertaNecessidadeIncompleta {
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.2) 0%, rgba(176, 42, 55, 0.3) 100%);
+    border: 1px solid rgba(176, 42, 55, 0.45);
+    color: #7f1d1d;
+    box-shadow: 0 10px 24px rgba(176, 42, 55, 0.16);
+}
+
+#alertaNecessidadeIncompleta .btn-close {
+    opacity: 0.8;
+}
+
+#alertaNecessidadeIncompleta .btn-close:hover {
+    opacity: 1;
+}
+
+#necessidadesLista .necessidade-incompleta {
+    border-color: rgba(176, 42, 55, 0.4) !important;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.08);
+}
+
+#necessidadesLista .btn-remover {
+    position: relative;
+    border-radius: 999px;
+    transition: transform 0.2s ease, color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#necessidadesLista .btn-remover:hover {
+    transform: scale(1.08);
+}
+
+#necessidadesLista .necessidade-incompleta .btn-remover {
+    color: #b02a37 !important;
+    background: rgba(220, 53, 69, 0.12);
+    box-shadow: 0 0 0 6px rgba(220, 53, 69, 0.12);
+    animation: pulseTrash 1.2s ease-in-out infinite;
+}
+
+#necessidadesLista .necessidade-incompleta .btn-remover::after {
+    content: 'Excluir';
+    position: absolute;
+    top: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #b02a37;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    box-shadow: 0 4px 10px rgba(176, 42, 55, 0.24);
+}
+
+@keyframes pulseTrash {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.3);
+    }
+    70% {
+        transform: scale(1.06);
+        box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+    }
+}
+
 /* Exibir cor no SELECT conforme valor */
 select.prioridade:has(option[value="Alta"]:checked) {
     color: #b30000;
