@@ -1,0 +1,28 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    init: true
+    env_file:
+      - .env
+    environment:
+      APP_ENV: production
+      FLASK_ENV: production
+      FLASK_DEBUG: "0"
+      DATABASE_URL: sqlite:////app/instance/formiguinhas.db
+      PRE_CADASTRO_DATABASE_URL: sqlite:////app/instance/precadastro.db
+      SESSION_FILE_DIR: /app/flask_session
+    ports:
+      - "127.0.0.1:5000:5000"
+    volumes:
+      - sqlite_data:/app/instance
+      - session_data:/app/flask_session
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  sqlite_data:
+  session_data:

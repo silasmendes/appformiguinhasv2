@@ -15,6 +15,11 @@ def create_app(test_config=None):
     app.config.from_object(Config)
     if test_config:
         app.config.update(test_config)
+    if app.config['ENV'] == 'production':
+        secret = app.config.get('SECRET_KEY') or ''
+        if len(secret) < 32 or secret.startswith(('SUBSTITUA', 'chave-ficticia', 'local-development')):
+            raise ValueError('Em produção, defina SECRET_KEY com um segredo aleatório de pelo menos 32 caracteres.')
+        app.config.update(DEBUG=False, SESSION_COOKIE_SECURE=True, REMEMBER_COOKIE_SECURE=True)
     os.makedirs(app.instance_path, exist_ok=True)
 
     os.makedirs(app.config.get("SESSION_FILE_DIR", "./flask_session"), exist_ok=True)

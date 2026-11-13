@@ -1,5 +1,7 @@
 # Python cache
 __pycache__/
+.pytest_cache/
+.uv-cache/
 *.py[cod]
 
 # Ambientes virtuais
@@ -10,6 +12,9 @@ env/
 # Arquivos sensíveis e variáveis de ambiente
 .env
 *.env
+.aws/
+.codex/
+.agents/
 
 # IDEs e arquivos do sistema
 .vscode/
@@ -28,8 +33,6 @@ flask_session/
 
 # Testes e dados auxiliares
 tests/
-seeds/
-reference_inputs/
 
 # Git
 .git

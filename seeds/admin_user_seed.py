@@ -5,8 +5,8 @@ from app import db
 from app.models.usuario import Usuario
 
 
-def seed_admin_user():
-    senha_admin = os.getenv('SENHA_ADMIN')
+def seed_admin_user(senha_admin=None):
+    senha_admin = senha_admin or os.getenv('SENHA_ADMIN')
     if not senha_admin:
         return
     if not Usuario.query.filter_by(login='admin').first():

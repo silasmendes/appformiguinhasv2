@@ -10,7 +10,7 @@ uv venv --python 3.12
 uv pip install -r requirements.txt
 # Optional, if you do not already have a .env:
 Copy-Item .env.example .env
-.venv\Scripts\python.exe manage.py
+.venv\Scripts\python.exe manage.py --with-demo-data
 .venv\Scripts\python.exe -m flask --app main run --debug
 ```
 
@@ -19,13 +19,15 @@ entered during initialization. Initialization can be repeated without deleting
 data or changing an existing administrator's password. `SENHA_ADMIN` can also
 provide the initial password through the environment or `.env`.
 
-Initialization also seeds four fictitious families matching the CPFs displayed
+With `--with-demo-data`, initialization also seeds four fictitious families matching the CPFs displayed
 in the appointment modal: **525.067.333-37**, **928.105.770-05**,
 **955.314.618-01**, and **742.691.086-57**. Each includes address, household,
 contact, housing, health, employment, income, education and appointment records.
-Their names contain `(Teste)`. Run `manage.py` again to add missing sample
+Their names contain `(Teste)`. Run `manage.py --with-demo-data` again to add missing sample
 families to an existing local database. Existing CPFs (with or without punctuation)
-are skipped, preserving any edits made during testing.
+are skipped, preserving any edits made during testing. Without `--with-demo-data`,
+initialization creates tables, lookup data and the administrator only. It never
+deletes demo families that were previously created.
 For the four sample CPFs, rerunning setup also repairs empty text fields saved
 as SQL `NULL` or the literal `None`, replacing them with empty strings. Filled-in
 values and other families are preserved.
@@ -70,6 +72,8 @@ Password-reset emails require SendGrid configuration. Neither service is needed
 for local login and CRUD.
 The Flask debug server and default development secret are for local use only.
 
+For a Linux VPS using Docker Compose, see [Deployment on a VPS](docs/deploy-vps.md).
+
 Run the SQLite regression checks with:
 
 ```powershell
@@ -78,5 +82,4 @@ Run the SQLite regression checks with:
 
 These tests use temporary databases and do not modify your local development data.
 `manage.py` creates missing tables; it does not migrate existing table definitions
-after model changes. The legacy SQL scripts under `reference_inputs/` are historical
-SQL Server references and are not used for SQLite initialization.
+after model changes.

@@ -1,27 +1,19 @@
-# Usa imagem baseada em Debian com Python 3.12
-FROM python:3.12-slim-bullseye
+FROM python:3.12-slim-bookworm
 
-# Instala dependências do sistema, incluindo ODBC Driver 17
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gnupg2 curl ca-certificates apt-transport-https software-properties-common gcc g++ unixodbc-dev \
-    && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
-    && curl https://packages.microsoft.com/config/debian/10/prod.list > /etc/apt/sources.list.d/mssql-release.list \
-    && apt-get update \
-    && ACCEPT_EULA=Y apt-get install -y msodbcsql17 \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
 
-# Define diretório de trabalho
 WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
 
-# Copia o conteúdo do projeto
-COPY . .
+RUN groupadd --gid 10001 app \
+    && useradd --uid 10001 --gid app --no-create-home app \
+    && mkdir -p /app/instance /app/flask_session \
+    && chown -R app:app /app
 
-# Instala as dependências Python
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Expõe a porta padrão do Flask
+COPY --chown=app:app . .
+USER app
 EXPOSE 5000
-
-# Comando para iniciar a aplicação com Gunicorn
-CMD ["gunicorn", "-b", "0.0.0.0:5000", "main:app"]
-
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "1", "--threads", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "main:app"]

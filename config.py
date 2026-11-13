@@ -6,19 +6,19 @@ load_dotenv()
 
 class Config:
     INSTANCE_DIR = Path(__file__).resolve().parent / "instance"
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        "DATABASE_URL", f"sqlite:///{(INSTANCE_DIR / 'formiguinhas.db').as_posix()}"
-    )
-    SQLALCHEMY_PRE_CADASTRO_URI = os.getenv(
-        "PRE_CADASTRO_DATABASE_URL",
-        f"sqlite:///{(INSTANCE_DIR / 'precadastro.db').as_posix()}",
-    )
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL") or f"sqlite:///{(INSTANCE_DIR / 'formiguinhas.db').as_posix()}"
+    SQLALCHEMY_PRE_CADASTRO_URI = os.getenv("PRE_CADASTRO_DATABASE_URL") or f"sqlite:///{(INSTANCE_DIR / 'precadastro.db').as_posix()}"
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    ENV = os.getenv("FLASK_ENV", "production")
+    ENV = os.getenv("APP_ENV") or os.getenv("FLASK_ENV") or "development"
     SECRET_KEY = os.getenv("SECRET_KEY", "dev")
     SESSION_TYPE = "filesystem"
-    SESSION_FILE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "flask_session")
+    SESSION_FILE_DIR = os.getenv("SESSION_FILE_DIR") or str(INSTANCE_DIR.parent / "flask_session")
+    DEBUG = False
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = "Lax"
+    REMEMBER_COOKIE_HTTPONLY = True
+    REMEMBER_COOKIE_SAMESITE = "Lax"
 
     # Configurações de localização
     LANGUAGES = ['pt-BR', 'pt']
