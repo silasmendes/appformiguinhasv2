@@ -65,12 +65,19 @@
                 <i class="fa-solid fa-info-circle"></i>
                 <span>Digite parte do nome ou CPF e clique em Buscar.</span>
             </div>
-            <form method="get" class="search-input-group">
+            <form method="get" class="search-input-group" id="formBuscaFamilia">
                 <input type="text" name="q" id="buscaFamiliaInput" class="form-control" placeholder="Digite nome ou CPF" value="{{ request.args.get('q','') }}">
                 <button type="submit" class="btn btn-primary"><i class="fa-solid fa-search"></i> Buscar</button>
             </form>
+            <p id="buscaFamiliaStatus" class="mt-3 mb-0" role="status" aria-live="polite"></p>
             {% if resultados is not none %}
-            <div id="resultadosContainer" class="mt-3">
+            <div id="resultadosContainer" class="mt-3 busca-resultados" tabindex="-1" aria-labelledby="tituloResultadosFamilia">
+                <div class="busca-resultados-cabecalho">
+                    <h6 id="tituloResultadosFamilia" class="mb-1"><i class="fa-solid fa-search" aria-hidden="true"></i>
+                        {% if resultados %}{{ resultados|length }} {{ 'família encontrada' if resultados|length == 1 else 'famílias encontradas' }}{% else %}Nenhuma família encontrada{% endif %}
+                    </h6>
+                    <p class="mb-0">{% if resultados %}Selecione uma família abaixo para iniciar o atendimento.{% else %}Confira o nome ou CPF e tente novamente.{% endif %}</p>
+                </div>
                 <ul class="list-group">
                     {% if resultados %}
                         {% for f in resultados %}

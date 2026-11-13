@@ -61,8 +61,8 @@ def normalizar_campos_formulario(valor):
     return valor
 
 
-def carregar_cadastro_familia(familia_id):
-    """Carrega dados da família e de demandas ativas para a sessão."""
+def carregar_cadastro_familia(familia_id, *, atualizar_sessao=True):
+    """Carrega dados da família, opcionalmente sem alterar a sessão."""
     familia = db.session.get(Familia, familia_id)
     if not familia:
         return None
@@ -262,6 +262,7 @@ def carregar_cadastro_familia(familia_id):
     ]
 
     cadastro = normalizar_campos_formulario(cadastro)
-    session["cadastro"] = cadastro
-    session["familia_id"] = familia_id
+    if atualizar_sessao:
+        session["cadastro"] = cadastro
+        session["familia_id"] = familia_id
     return cadastro

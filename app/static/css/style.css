@@ -729,6 +729,41 @@ h1, h2, h3, h4, h5, h6 {
     animation: fadeIn 0.3s ease-out;
 }
 
+.busca-resultados {
+    border: 2px solid #198754;
+    border-radius: 10px;
+    overflow: hidden;
+    scroll-margin: 16px;
+}
+
+.busca-resultados:focus {
+    outline: 3px solid #0d6efd;
+    outline-offset: 3px;
+}
+
+.busca-resultados-cabecalho {
+    padding: 14px 16px;
+    background: #e8f5ed;
+    color: #14532d;
+}
+
+.busca-resultados-cabecalho p {
+    font-size: 0.9rem;
+}
+
+.busca-resultados-entrada {
+    animation: buscaResultadosEntrada 0.45s ease-out;
+}
+
+@keyframes buscaResultadosEntrada {
+    from { opacity: 0.4; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .busca-resultados-entrada { animation: none; }
+}
+
 .modal-overlay.d-none {
     display: none !important;
 }

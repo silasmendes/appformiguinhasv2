@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}Ficha da família — {{ familia.nome_responsavel }}{% endblock %}
+{% block extra_css %}
+<style>
+.ficha dd { white-space: pre-wrap; overflow-wrap: anywhere; }
+.ficha dt { color: #59636c; font-weight: 500; }
+.ficha section { scroll-margin-top: 100px; }
+</style>
+{% endblock %}
+{% macro secao(titulo, campos) %}
+<section class="card mb-4 shadow-sm">
+  <div class="card-body">
+    <h2 class="h5 mb-3">{{ titulo }}</h2>
+    <dl class="row mb-0">
+    {% for campo in campos.split('|') %}
+      {% set chave, rotulo = campo.split(':', 1) %}
+      {% set valor = dados.get(chave) %}
+      <div class="col-md-6 mb-3">
+        <dt>{{ rotulo }}</dt>
+        <dd class="mb-0">{% if valor is sameas true %}Sim{% elif valor is sameas false %}Não{% elif valor is none or valor == '' %}<span class="text-muted">Não informado</span>{% else %}{{ valor }}{% endif %}</dd>
+      </div>
+    {% endfor %}
+    </dl>
+  </div>
+</section>
+{% endmacro %}
+{% block content %}
+<main class="ficha pb-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+      <p class="text-muted mb-1">Ficha de consulta · Família #{{ familia.familia_id }}</p>
+      <h1 class="h3">{{ familia.nome_responsavel or 'Responsável não informado' }}</h1>
+      <p class="mb-0">Situação do cadastro: {{ familia.status_cadastro }}</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a id="voltar-ficha" class="btn btn-outline-secondary" href="{{ url_for('dashboard') if current_user.tipo == 'admin' else url_for('menu_atendimento') }}"><i class="fas fa-arrow-left me-1" aria-hidden="true"></i>Voltar</a>
+      {% if current_user.tipo == 'admin' %}<a class="btn btn-outline-secondary" href="{{ url_for('dashboard') }}">Relatórios</a>{% endif %}
+      <a class="btn btn-primary" href="{{ url_for('fluxo_atendimento.atendimento_familia', familia_id=familia.familia_id) }}">Iniciar atendimento / atualizar cadastro</a>
+    </div>
+  </div>
+  <p class="text-muted">Esta ficha é somente para consulta. Ao iniciar um atendimento, a família selecionada substituirá o contexto do atendimento atual.</p>
+  {{ secao('Dados pessoais', 'nome_responsavel:Nome do responsável|data_nascimento:Data de nascimento|genero:Gênero|genero_autodeclarado:Gênero autodeclarado|estado_civil:Estado civil|rg:RG|cpf:CPF|nome_mae:Nome da mãe|nome_pai:Nome do pai|autoriza_uso_imagem:Autoriza uso de imagem') }}
+  {{ secao('Contatos', 'telefone_principal:Telefone principal|telefone_principal_whatsapp:WhatsApp principal|telefone_principal_nome_contato:Nome do contato principal|telefone_alternativo:Telefone alternativo|telefone_alternativo_whatsapp:WhatsApp alternativo|telefone_alternativo_nome_contato:Nome do contato alternativo|email_responsavel:E-mail') }}
+  {{ secao('Endereço', 'cep:CEP|logradouro:Logradouro|numero:Número|complemento:Complemento|bairro:Bairro|cidade:Cidade|estado:Estado|ponto_referencia:Ponto de referência') }}
+  {{ secao('Composição familiar', 'total_residentes:Total de residentes|quantidade_bebes:Bebês|quantidade_criancas:Crianças|quantidade_adolescentes:Adolescentes|quantidade_adultos:Adultos|quantidade_idosos:Idosos|menores_na_escola:Menores na escola|motivo_ausencia_escola:Motivo de ausência na escola') }}
+  {{ secao('Condições de habitação', 'tipo_moradia:Tipo de moradia|valor_aluguel:Aluguel (R$)|agua_encanada:Água encanada|rede_esgoto:Rede de esgoto|energia_eletrica:Energia elétrica|tem_fogao:Fogão|tem_geladeira:Geladeira|num_camas:Camas|num_tvs:Televisores|num_ventiladores:Ventiladores') }}
+  {{ secao('Saúde familiar', 'tem_doenca_cronica:Doença crônica|descricao_doenca_cronica:Descrição da doença|usa_medicacao_continua:Medicação contínua|descricao_medicacao:Descrição da medicação|tem_deficiencia:Deficiência|descricao_deficiencia:Descrição da deficiência|recebe_bpc:Recebe BPC') }}
+  {{ secao('Emprego e habilidades', 'relacao_provedor_familia:Relação do provedor com a família|descricao_provedor_externo:Provedor externo|situacao_emprego:Situação de emprego|descricao_situacao_emprego_outro:Outra situação de emprego|profissao_provedor:Profissão|experiencia_profissional:Experiência profissional|formacao_profissional:Formação profissional|habilidades_relevantes:Habilidades') }}
+  {{ secao('Renda e benefícios', 'renda_arrimo:Renda do provedor (R$)|renda_outros_familiares:Renda de outros moradores (R$)|auxilio_parentes_amigos:Ajuda de terceiros (R$)|cadastro_unico:Cadastro Único|recebe_beneficio:Recebe benefícios do governo|descricao_beneficios:Benefícios|valor_total_beneficios:Valor dos benefícios (R$)|renda_familiar_total:Renda familiar total (R$)') }}
+  {{ secao('Gastos', 'gastos_supermercado:Supermercado (R$)|gastos_energia_eletrica:Energia elétrica (R$)|gastos_agua:Água (R$)|valor_botija_gas:Botijão de gás (R$)|duracao_botija_gas:Duração do botijão (meses)|gastos_gas:Gás (R$)|gastos_transporte:Transporte (R$)|gastos_medicamentos:Medicamentos (R$)|gastos_conta_celular:Celular (R$)|gastos_outros:Outros gastos (R$)|total_gastos:Gastos totais (R$)|saldo:Saldo mensal (R$)') }}
+  {{ secao('Educação', 'nivel_escolaridade:Escolaridade|estuda_atualmente:Estuda atualmente|curso_ou_serie_atual:Curso ou série atual') }}
+  <section class="card shadow-sm"><div class="card-body">
+    <h2 class="h5 mb-3">Demandas ativas</h2>
+    {% for demanda in dados.demandas %}
+      <article class="border-top pt-3 mt-3">
+        <h3 class="h6">{{ demanda.categoria }}</h3>
+        <p>{{ demanda.descricao or 'Sem descrição' }}</p>
+        <p>Prioridade: {{ demanda.prioridade or 'Não informada' }} · Situação: {{ demanda.status_atual }}</p>
+        {% if demanda.observacao %}<p class="mb-0">{{ demanda.observacao }}</p>{% endif %}
+      </article>
+    {% else %}<p class="text-muted mb-0">Nenhuma demanda ativa registrada.</p>{% endfor %}
+  </div></section>
+</main>
+{% endblock %}
+{% block extra_js %}
+<script>
+  const voltarFicha = document.getElementById('voltar-ficha');
+  if (document.referrer && new URL(document.referrer).origin === window.location.origin) {
+    voltarFicha.href = document.referrer;
+    voltarFicha.addEventListener('click', function (event) {
+      if (event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && window.history.length > 1) {
+        event.preventDefault();
+        window.history.back();
+      }
+    });
+  }
+</script>
+{% endblock %}

@@ -1,4 +1,4 @@
-from flask import render_template, session, request, redirect, url_for, flash, send_file, jsonify
+from flask import render_template, session, request, redirect, url_for, flash, send_file, jsonify, abort
 from flask_login import login_required
 from app.routes.usuarios import admin_required
 import json
@@ -19,6 +19,15 @@ from app.utils.fluxo_atendimento import (
 from app.utils.pre_cadastro import buscar_pre_cadastros, converter_pre_cadastro_para_sessao
 
 app = create_app()
+
+@app.route("/familia/<int:familia_id>")
+@login_required
+def ficha_familia(familia_id):
+    cadastro = carregar_cadastro_familia(familia_id, atualizar_sessao=False)
+    if cadastro is None:
+        abort(404)
+    familia = db.session.get(Familia, familia_id)
+    return render_template("familias/ficha.html", familia=familia, dados=cadastro)
 
 @app.route("/")
 @login_required

@@ -3,6 +3,63 @@ document.addEventListener('DOMContentLoaded', function () {
     const modal = document.getElementById('buscaFamiliaModal');
     const closeBtn = document.getElementById('fecharBuscaFamilia');
     const input = document.getElementById('buscaFamiliaInput');
+    const form = document.getElementById('formBuscaFamilia');
+    const status = document.getElementById('buscaFamiliaStatus');
+
+    function destacarResultados() {
+        const results = document.getElementById('resultadosContainer');
+        if (!results) return;
+        results.classList.remove('busca-resultados-entrada');
+        void results.offsetWidth;
+        results.classList.add('busca-resultados-entrada');
+        results.focus({ preventScroll: true });
+        results.scrollIntoView({
+            behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+            block: 'nearest'
+        });
+    }
+
+    if (form) {
+        form.addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const term = input.value.trim();
+            if (!term) {
+                status.textContent = 'Digite um nome ou CPF para buscar.';
+                input.focus();
+                return;
+            }
+            const submit = form.querySelector('[type="submit"]');
+            const original = submit.innerHTML;
+            submit.disabled = true;
+            input.readOnly = true;
+            submit.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Buscando…';
+            status.textContent = 'Buscando famílias…';
+            modal.setAttribute('aria-busy', 'true');
+            const previous = document.getElementById('resultadosContainer');
+            if (previous) previous.hidden = true;
+            try {
+                const url = new URL(form.action || window.location.href);
+                url.searchParams.set('q', term);
+                const response = await fetch(url, { credentials: 'same-origin' });
+                if (!response.ok) throw new Error('Falha na busca');
+                const page = new DOMParser().parseFromString(await response.text(), 'text/html');
+                const results = page.getElementById('resultadosContainer');
+                if (!results) throw new Error('Resposta inesperada ou sessão expirada');
+                if (previous) previous.replaceWith(results);
+                else status.after(results);
+                window.history.replaceState(null, '', url);
+                status.textContent = results.querySelector('h6').textContent.trim();
+                destacarResultados();
+            } catch (error) {
+                status.textContent = 'Não foi possível concluir a busca. Tente novamente. Se o problema continuar, atualize a página para verificar seu acesso.';
+            } finally {
+                modal.removeAttribute('aria-busy');
+                submit.disabled = false;
+                input.readOnly = false;
+                submit.innerHTML = original;
+            }
+        });
+    }
 
     function abrirModal() {
         if (modal) {
@@ -30,6 +87,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (window.autoOpenBuscaFamilia) {
         abrirModal();
+        destacarResultados();
     }
 
     // Funcionalidade para o modal de pré-cadastro
