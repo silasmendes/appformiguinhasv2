@@ -8,11 +8,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 class OpenAIUsageTracker:
-    # Preços aproximados do Azure OpenAI (em USD por 1K tokens)
+    # Estimativas da API OpenAI em USD por 1K tokens, sem descontos de cache.
     TOKEN_PRICES = {
+        'gpt-5.6-luna': {'input': 0.0002, 'output': 0.0012},
         'gpt-4o': {
-            'input': 0.005,   # $0.005 por 1K tokens de input
-            'output': 0.015   # $0.015 por 1K tokens de output
+            'input': 0.0025,
+            'output': 0.01
         },
         'gpt-4': {
             'input': 0.03,
@@ -85,16 +86,16 @@ class OpenAIUsageTracker:
         thirty_days_ago = datetime.utcnow() - timedelta(days=30)
         
         return db.session.query(
-            db.func.cast(OpenAIUsage.timestamp, db.Date).label('date'),
+            db.func.date(OpenAIUsage.timestamp).label('date'),
             db.func.sum(OpenAIUsage.total_tokens).label('total_tokens'),
             db.func.sum(OpenAIUsage.cost_estimate).label('total_cost'),
             db.func.count(OpenAIUsage.id).label('total_requests')
         ).filter(
             OpenAIUsage.timestamp >= thirty_days_ago
         ).group_by(
-            db.func.cast(OpenAIUsage.timestamp, db.Date)
+            db.func.date(OpenAIUsage.timestamp)
         ).order_by(
-            db.func.cast(OpenAIUsage.timestamp, db.Date).desc()
+            db.func.date(OpenAIUsage.timestamp).desc()
         ).all()
     
     @staticmethod

@@ -50,6 +50,17 @@ def get_cadastro():
     return session["cadastro"]
 
 
+def normalizar_campos_formulario(valor):
+    """Exibe valores ausentes como vazio, preservando números e booleanos."""
+    if valor is None or (isinstance(valor, str) and valor == "None"):
+        return ""
+    if isinstance(valor, dict):
+        return {chave: normalizar_campos_formulario(item) for chave, item in valor.items()}
+    if isinstance(valor, list):
+        return [normalizar_campos_formulario(item) for item in valor]
+    return valor
+
+
 def carregar_cadastro_familia(familia_id):
     """Carrega dados da família e de demandas ativas para a sessão."""
     familia = db.session.get(Familia, familia_id)
@@ -250,6 +261,7 @@ def carregar_cadastro_familia(familia_id):
         for row in demandas_rows
     ]
 
+    cadastro = normalizar_campos_formulario(cadastro)
     session["cadastro"] = cadastro
     session["familia_id"] = familia_id
     return cadastro

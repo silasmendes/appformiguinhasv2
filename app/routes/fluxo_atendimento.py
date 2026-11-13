@@ -25,6 +25,7 @@ from app.utils.fluxo_atendimento import (
     reset_atendimento_sessao,
     carregar_cadastro_familia,
     _bool_to_sim_nao,
+    normalizar_campos_formulario,
 )
 
 bp = Blueprint('fluxo_atendimento', __name__, url_prefix='')
@@ -269,6 +270,7 @@ def atendimento_familia(familia_id):
         for row in demandas_rows
     ]
 
+    cadastro = normalizar_campos_formulario(cadastro)
     session['cadastro'] = cadastro
     return redirect(url_for('fluxo_atendimento.atendimento_etapa1'))
 

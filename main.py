@@ -145,7 +145,7 @@ def dashboard():
         SELECT COUNT(DISTINCT f.familia_id) as total_familias_atendidas_30_dias
         FROM familias f
         JOIN atendimentos a ON f.familia_id = a.familia_id
-        WHERE a.data_hora_atendimento >= DATEADD(DAY, -30, GETDATE())
+        WHERE a.data_hora_atendimento >= datetime('now', '-30 days')
         """
     )
     
@@ -157,7 +157,7 @@ def dashboard():
         """
         SELECT COUNT(*) as total_entregas_cestas_30_dias
         FROM atendimentos a
-        WHERE a.data_hora_atendimento >= DATEADD(DAY, -30, GETDATE())
+        WHERE a.data_hora_atendimento >= datetime('now', '-30 days')
         AND a.cesta_entregue = 1
         """
     )
@@ -177,10 +177,10 @@ def dashboard():
             FROM atendimentos 
             GROUP BY familia_id
         ) ultimo_atendimento ON f.familia_id = ultimo_atendimento.familia_id
-        WHERE f.data_hora_log_utc >= DATEADD(YEAR, -1, GETDATE())
+        WHERE f.data_hora_log_utc >= datetime('now', '-1 year')
         AND (
             ultimo_atendimento.ultima_data_atendimento IS NULL 
-            OR ultimo_atendimento.ultima_data_atendimento < DATEADD(DAY, -90, GETDATE())
+            OR ultimo_atendimento.ultima_data_atendimento < datetime('now', '-90 days')
         )
         """
     )
@@ -287,7 +287,7 @@ def dashboard_familias_atendidas_30_dias():
             LEFT JOIN enderecos e ON f.familia_id = e.familia_id
             LEFT JOIN contatos c ON f.familia_id = c.familia_id
             INNER JOIN atendimentos a ON f.familia_id = a.familia_id
-            WHERE a.data_hora_atendimento >= DATEADD(DAY, -30, GETDATE())
+            WHERE a.data_hora_atendimento >= datetime('now', '-30 days')
             ORDER BY a.data_hora_atendimento DESC;
         """
     )
@@ -318,7 +318,7 @@ def dashboard_entregas_cestas_30_dias():
         LEFT JOIN enderecos e ON f.familia_id = e.familia_id
         LEFT JOIN contatos c ON f.familia_id = c.familia_id
         INNER JOIN atendimentos a ON f.familia_id = a.familia_id
-        WHERE a.data_hora_atendimento >= DATEADD(DAY, -30, GETDATE())
+        WHERE a.data_hora_atendimento >= datetime('now', '-30 days')
         AND a.cesta_entregue = 1
         ORDER BY a.data_hora_atendimento DESC
         """
@@ -355,10 +355,10 @@ def dashboard_familias_sem_atendimento_recente():
             FROM atendimentos 
             GROUP BY familia_id
         ) ultimo_atendimento ON f.familia_id = ultimo_atendimento.familia_id
-        WHERE f.data_hora_log_utc >= DATEADD(YEAR, -1, GETDATE())
+        WHERE f.data_hora_log_utc >= datetime('now', '-1 year')
         AND (
             ultimo_atendimento.ultima_data_atendimento IS NULL 
-            OR ultimo_atendimento.ultima_data_atendimento < DATEADD(DAY, -90, GETDATE())
+            OR ultimo_atendimento.ultima_data_atendimento < datetime('now', '-90 days')
         )
         ORDER BY f.data_hora_log_utc DESC
         """
@@ -433,17 +433,18 @@ def dashboard_painel_demandas():
             de_last.data_atualizacao,
             de_last.observacao,
             (
-                SELECT
-                    de2.etapa_id,
-                    de2.status_atual,
-                    de2.observacao,
-                    de2.data_atualizacao,
-                    u.nome_completo AS atendente
-                FROM demanda_etapa de2
-                LEFT JOIN usuarios u ON de2.usuario_atendente_id = u.id
-                WHERE de2.demanda_id = df.demanda_id
-                ORDER BY de2.data_atualizacao ASC
-                FOR JSON PATH
+                SELECT json_group_array(json_object(
+                    'etapa_id', history.etapa_id, 'status_atual', history.status_atual,
+                    'observacao', history.observacao, 'data_atualizacao', history.data_atualizacao,
+                    'atendente', history.atendente
+                ))
+                FROM (
+                    SELECT de2.*, u.nome_completo AS atendente
+                    FROM demanda_etapa de2
+                    LEFT JOIN usuarios u ON de2.usuario_atendente_id = u.id
+                    WHERE de2.demanda_id = df.demanda_id
+                    ORDER BY de2.data_atualizacao ASC, de2.etapa_id ASC
+                ) AS history
             ) AS historico_json
         FROM familias f
         LEFT JOIN enderecos e ON f.familia_id = e.familia_id
@@ -466,7 +467,7 @@ def dashboard_painel_demandas():
     demandas = []
     for r in resultados:
         d = dict(r)
-        # Parse historico_json from MSSQL FOR JSON PATH
+        # Parse the SQLite JSON history aggregate
         hist_raw = d.pop('historico_json', None)
         if hist_raw:
             try:
@@ -610,33 +611,33 @@ def download_familias_cadastradas():
         LEFT JOIN emprego_provedor ep ON f.familia_id = ep.familia_id
         LEFT JOIN renda_familiar rf ON f.familia_id = rf.familia_id
         LEFT JOIN saude_familiar sf ON f.familia_id = sf.familia_id
-        OUTER APPLY (
-            SELECT 
-                df.demanda_id,
-                df.familia_id,
-                df.demanda_tipo_id,
-                dt.demanda_tipo_nome,
-                df.status,
-                df.descricao,
-                df.data_identificacao,
-                df.prioridade,
-                de.data_atualizacao,
-                de.status_atual,
-                de.observacao,
-                de.usuario_atendente_id
+        LEFT JOIN (
+            SELECT df.familia_id, json_group_array(json_object(
+                'demanda_id', df.demanda_id, 'familia_id', df.familia_id,
+                'demanda_tipo_id', df.demanda_tipo_id, 'demanda_tipo_nome', dt.demanda_tipo_nome,
+                'status', df.status, 'descricao', df.descricao,
+                'data_identificacao', df.data_identificacao, 'prioridade', df.prioridade,
+                'data_atualizacao', de.data_atualizacao, 'status_atual', de.status_atual,
+                'observacao', de.observacao, 'usuario_atendente_id', de.usuario_atendente_id
+            )) AS demandas
             FROM demanda_familia df
             INNER JOIN demanda_tipo dt ON df.demanda_tipo_id = dt.demanda_tipo_id
             INNER JOIN demanda_etapa de ON df.demanda_id = de.demanda_id
-            WHERE df.familia_id = f.familia_id
-            FOR JSON PATH
-        ) AS demandas_json(demandas)
-        OUTER APPLY (
-            SELECT 
-                a.*
+            GROUP BY df.familia_id
+        ) AS demandas_json ON demandas_json.familia_id = f.familia_id
+        LEFT JOIN (
+            SELECT a.familia_id, json_group_array(json_object(
+                'atendimento_id', a.atendimento_id, 'familia_id', a.familia_id,
+                'usuario_atendente_id', a.usuario_atendente_id,
+                'percepcao_necessidade', a.percepcao_necessidade,
+                'duracao_necessidade', a.duracao_necessidade, 'motivo_duracao', a.motivo_duracao,
+                'cesta_entregue', a.cesta_entregue, 'data_entrega_cesta', a.data_entrega_cesta,
+                'tipo_atendimento', a.tipo_atendimento, 'data_visita', a.data_visita,
+                'notas_visita', a.notas_visita, 'data_hora_atendimento', a.data_hora_atendimento
+            )) AS atendimentos
             FROM atendimentos a
-            WHERE a.familia_id = f.familia_id
-            FOR JSON PATH
-        ) AS atendimentos_json(atendimentos)
+            GROUP BY a.familia_id
+        ) AS atendimentos_json ON atendimentos_json.familia_id = f.familia_id
         """
         
         print("Usando query SQL embarcada...")
@@ -806,37 +807,37 @@ def download_familias_atendidas_30_dias():
         LEFT JOIN emprego_provedor ep ON f.familia_id = ep.familia_id
         LEFT JOIN renda_familiar rf ON f.familia_id = rf.familia_id
         LEFT JOIN saude_familiar sf ON f.familia_id = sf.familia_id
-        OUTER APPLY (
-            SELECT
-                df.demanda_id,
-                df.familia_id,
-                df.demanda_tipo_id,
-                dt.demanda_tipo_nome,
-                df.status,
-                df.descricao,
-                df.data_identificacao,
-                df.prioridade,
-                de.data_atualizacao,
-                de.status_atual,
-                de.observacao,
-                de.usuario_atendente_id
+        LEFT JOIN (
+            SELECT df.familia_id, json_group_array(json_object(
+                'demanda_id', df.demanda_id, 'familia_id', df.familia_id,
+                'demanda_tipo_id', df.demanda_tipo_id, 'demanda_tipo_nome', dt.demanda_tipo_nome,
+                'status', df.status, 'descricao', df.descricao,
+                'data_identificacao', df.data_identificacao, 'prioridade', df.prioridade,
+                'data_atualizacao', de.data_atualizacao, 'status_atual', de.status_atual,
+                'observacao', de.observacao, 'usuario_atendente_id', de.usuario_atendente_id
+            )) AS demandas
             FROM demanda_familia df
             INNER JOIN demanda_tipo dt ON df.demanda_tipo_id = dt.demanda_tipo_id
             INNER JOIN demanda_etapa de ON df.demanda_id = de.demanda_id
-            WHERE df.familia_id = f.familia_id
-            FOR JSON PATH
-        ) AS demandas_json(demandas)
-        OUTER APPLY (
-            SELECT
-                a.*
+            GROUP BY df.familia_id
+        ) AS demandas_json ON demandas_json.familia_id = f.familia_id
+        LEFT JOIN (
+            SELECT a.familia_id, json_group_array(json_object(
+                'atendimento_id', a.atendimento_id, 'familia_id', a.familia_id,
+                'usuario_atendente_id', a.usuario_atendente_id,
+                'percepcao_necessidade', a.percepcao_necessidade,
+                'duracao_necessidade', a.duracao_necessidade, 'motivo_duracao', a.motivo_duracao,
+                'cesta_entregue', a.cesta_entregue, 'data_entrega_cesta', a.data_entrega_cesta,
+                'tipo_atendimento', a.tipo_atendimento, 'data_visita', a.data_visita,
+                'notas_visita', a.notas_visita, 'data_hora_atendimento', a.data_hora_atendimento
+            )) AS atendimentos
             FROM atendimentos a
-            WHERE a.familia_id = f.familia_id
-            FOR JSON PATH
-        ) AS atendimentos_json(atendimentos)
+            GROUP BY a.familia_id
+        ) AS atendimentos_json ON atendimentos_json.familia_id = f.familia_id
         WHERE EXISTS (
             SELECT 1 FROM atendimentos a2
             WHERE a2.familia_id = f.familia_id
-              AND a2.data_hora_atendimento >= DATEADD(DAY, -30, GETDATE())
+              AND a2.data_hora_atendimento >= datetime('now', '-30 days')
         )
         """
 
@@ -937,34 +938,34 @@ def download_entregas_cestas_30_dias():
         LEFT JOIN renda_familiar rf ON f.familia_id = rf.familia_id
         LEFT JOIN saude_familiar sf ON f.familia_id = sf.familia_id
         INNER JOIN atendimentos a ON f.familia_id = a.familia_id
-        OUTER APPLY (
-            SELECT
-                df.demanda_id,
-                df.familia_id,
-                df.demanda_tipo_id,
-                dt.demanda_tipo_nome,
-                df.status,
-                df.descricao,
-                df.data_identificacao,
-                df.prioridade,
-                de.data_atualizacao,
-                de.status_atual,
-                de.observacao,
-                de.usuario_atendente_id
+        LEFT JOIN (
+            SELECT df.familia_id, json_group_array(json_object(
+                'demanda_id', df.demanda_id, 'familia_id', df.familia_id,
+                'demanda_tipo_id', df.demanda_tipo_id, 'demanda_tipo_nome', dt.demanda_tipo_nome,
+                'status', df.status, 'descricao', df.descricao,
+                'data_identificacao', df.data_identificacao, 'prioridade', df.prioridade,
+                'data_atualizacao', de.data_atualizacao, 'status_atual', de.status_atual,
+                'observacao', de.observacao, 'usuario_atendente_id', de.usuario_atendente_id
+            )) AS demandas
             FROM demanda_familia df
             INNER JOIN demanda_tipo dt ON df.demanda_tipo_id = dt.demanda_tipo_id
             INNER JOIN demanda_etapa de ON df.demanda_id = de.demanda_id
-            WHERE df.familia_id = f.familia_id
-            FOR JSON PATH
-        ) AS demandas_json(demandas)
-        OUTER APPLY (
-            SELECT
-                a2.*
-            FROM atendimentos a2
-            WHERE a2.familia_id = f.familia_id
-            FOR JSON PATH
-        ) AS atendimentos_json(atendimentos)
-        WHERE a.data_hora_atendimento >= DATEADD(DAY, -30, GETDATE())
+            GROUP BY df.familia_id
+        ) AS demandas_json ON demandas_json.familia_id = f.familia_id
+        LEFT JOIN (
+            SELECT a.familia_id, json_group_array(json_object(
+                'atendimento_id', a.atendimento_id, 'familia_id', a.familia_id,
+                'usuario_atendente_id', a.usuario_atendente_id,
+                'percepcao_necessidade', a.percepcao_necessidade,
+                'duracao_necessidade', a.duracao_necessidade, 'motivo_duracao', a.motivo_duracao,
+                'cesta_entregue', a.cesta_entregue, 'data_entrega_cesta', a.data_entrega_cesta,
+                'tipo_atendimento', a.tipo_atendimento, 'data_visita', a.data_visita,
+                'notas_visita', a.notas_visita, 'data_hora_atendimento', a.data_hora_atendimento
+            )) AS atendimentos
+            FROM atendimentos a
+            GROUP BY a.familia_id
+        ) AS atendimentos_json ON atendimentos_json.familia_id = f.familia_id
+        WHERE a.data_hora_atendimento >= datetime('now', '-30 days')
         AND a.cesta_entregue = 1
         ORDER BY a.data_hora_atendimento DESC
         """
@@ -1082,37 +1083,37 @@ def download_familias_sem_atendimento_recente():
             FROM atendimentos 
             GROUP BY familia_id
         ) ultimo_atendimento ON f.familia_id = ultimo_atendimento.familia_id
-        OUTER APPLY (
-            SELECT
-                df.demanda_id,
-                df.familia_id,
-                df.demanda_tipo_id,
-                dt.demanda_tipo_nome,
-                df.status,
-                df.descricao,
-                df.data_identificacao,
-                df.prioridade,
-                de.data_atualizacao,
-                de.status_atual,
-                de.observacao,
-                de.usuario_atendente_id
+        LEFT JOIN (
+            SELECT df.familia_id, json_group_array(json_object(
+                'demanda_id', df.demanda_id, 'familia_id', df.familia_id,
+                'demanda_tipo_id', df.demanda_tipo_id, 'demanda_tipo_nome', dt.demanda_tipo_nome,
+                'status', df.status, 'descricao', df.descricao,
+                'data_identificacao', df.data_identificacao, 'prioridade', df.prioridade,
+                'data_atualizacao', de.data_atualizacao, 'status_atual', de.status_atual,
+                'observacao', de.observacao, 'usuario_atendente_id', de.usuario_atendente_id
+            )) AS demandas
             FROM demanda_familia df
             INNER JOIN demanda_tipo dt ON df.demanda_tipo_id = dt.demanda_tipo_id
             INNER JOIN demanda_etapa de ON df.demanda_id = de.demanda_id
-            WHERE df.familia_id = f.familia_id
-            FOR JSON PATH
-        ) AS demandas_json(demandas)
-        OUTER APPLY (
-            SELECT
-                a.*
+            GROUP BY df.familia_id
+        ) AS demandas_json ON demandas_json.familia_id = f.familia_id
+        LEFT JOIN (
+            SELECT a.familia_id, json_group_array(json_object(
+                'atendimento_id', a.atendimento_id, 'familia_id', a.familia_id,
+                'usuario_atendente_id', a.usuario_atendente_id,
+                'percepcao_necessidade', a.percepcao_necessidade,
+                'duracao_necessidade', a.duracao_necessidade, 'motivo_duracao', a.motivo_duracao,
+                'cesta_entregue', a.cesta_entregue, 'data_entrega_cesta', a.data_entrega_cesta,
+                'tipo_atendimento', a.tipo_atendimento, 'data_visita', a.data_visita,
+                'notas_visita', a.notas_visita, 'data_hora_atendimento', a.data_hora_atendimento
+            )) AS atendimentos
             FROM atendimentos a
-            WHERE a.familia_id = f.familia_id
-            FOR JSON PATH
-        ) AS atendimentos_json(atendimentos)
-        WHERE f.data_hora_log_utc >= DATEADD(YEAR, -1, GETDATE())
+            GROUP BY a.familia_id
+        ) AS atendimentos_json ON atendimentos_json.familia_id = f.familia_id
+        WHERE f.data_hora_log_utc >= datetime('now', '-1 year')
         AND (
             ultimo_atendimento.ultima_data_atendimento IS NULL 
-            OR ultimo_atendimento.ultima_data_atendimento < DATEADD(DAY, -90, GETDATE())
+            OR ultimo_atendimento.ultima_data_atendimento < datetime('now', '-90 days')
         )
         ORDER BY f.data_hora_log_utc DESC
         """
@@ -1236,13 +1237,19 @@ def download_demandas_ativas():
                 GROUP BY demanda_id
             ) m ON de1.demanda_id = m.demanda_id AND de1.etapa_id = m.max_etapa_id
         ) de ON df.demanda_id = de.demanda_id
-        OUTER APPLY (
-            SELECT
-                a.*
+        LEFT JOIN (
+            SELECT a.familia_id, json_group_array(json_object(
+                'atendimento_id', a.atendimento_id, 'familia_id', a.familia_id,
+                'usuario_atendente_id', a.usuario_atendente_id,
+                'percepcao_necessidade', a.percepcao_necessidade,
+                'duracao_necessidade', a.duracao_necessidade, 'motivo_duracao', a.motivo_duracao,
+                'cesta_entregue', a.cesta_entregue, 'data_entrega_cesta', a.data_entrega_cesta,
+                'tipo_atendimento', a.tipo_atendimento, 'data_visita', a.data_visita,
+                'notas_visita', a.notas_visita, 'data_hora_atendimento', a.data_hora_atendimento
+            )) AS atendimentos
             FROM atendimentos a
-            WHERE a.familia_id = f.familia_id
-            FOR JSON PATH
-        ) AS atendimentos_json(atendimentos)
+            GROUP BY a.familia_id
+        ) AS atendimentos_json ON atendimentos_json.familia_id = f.familia_id
         ORDER BY df.prioridade ASC
         """
 
@@ -1377,33 +1384,33 @@ def download_familias_maior_vulnerabilidade():
             FROM atendimentos a1
             WHERE a1.percepcao_necessidade = 'Alta'
         ) ultimo_atendimento ON f.familia_id = ultimo_atendimento.familia_id AND ultimo_atendimento.rn = 1
-        OUTER APPLY (
-            SELECT
-                df.demanda_id,
-                df.familia_id,
-                df.demanda_tipo_id,
-                dt.demanda_tipo_nome,
-                df.status,
-                df.descricao,
-                df.data_identificacao,
-                df.prioridade,
-                de.data_atualizacao,
-                de.status_atual,
-                de.observacao,
-                de.usuario_atendente_id
+        LEFT JOIN (
+            SELECT df.familia_id, json_group_array(json_object(
+                'demanda_id', df.demanda_id, 'familia_id', df.familia_id,
+                'demanda_tipo_id', df.demanda_tipo_id, 'demanda_tipo_nome', dt.demanda_tipo_nome,
+                'status', df.status, 'descricao', df.descricao,
+                'data_identificacao', df.data_identificacao, 'prioridade', df.prioridade,
+                'data_atualizacao', de.data_atualizacao, 'status_atual', de.status_atual,
+                'observacao', de.observacao, 'usuario_atendente_id', de.usuario_atendente_id
+            )) AS demandas
             FROM demanda_familia df
             INNER JOIN demanda_tipo dt ON df.demanda_tipo_id = dt.demanda_tipo_id
             INNER JOIN demanda_etapa de ON df.demanda_id = de.demanda_id
-            WHERE df.familia_id = f.familia_id
-            FOR JSON PATH
-        ) AS demandas_json(demandas)
-        OUTER APPLY (
-            SELECT
-                a.*
+            GROUP BY df.familia_id
+        ) AS demandas_json ON demandas_json.familia_id = f.familia_id
+        LEFT JOIN (
+            SELECT a.familia_id, json_group_array(json_object(
+                'atendimento_id', a.atendimento_id, 'familia_id', a.familia_id,
+                'usuario_atendente_id', a.usuario_atendente_id,
+                'percepcao_necessidade', a.percepcao_necessidade,
+                'duracao_necessidade', a.duracao_necessidade, 'motivo_duracao', a.motivo_duracao,
+                'cesta_entregue', a.cesta_entregue, 'data_entrega_cesta', a.data_entrega_cesta,
+                'tipo_atendimento', a.tipo_atendimento, 'data_visita', a.data_visita,
+                'notas_visita', a.notas_visita, 'data_hora_atendimento', a.data_hora_atendimento
+            )) AS atendimentos
             FROM atendimentos a
-            WHERE a.familia_id = f.familia_id
-            FOR JSON PATH
-        ) AS atendimentos_json(atendimentos)
+            GROUP BY a.familia_id
+        ) AS atendimentos_json ON atendimentos_json.familia_id = f.familia_id
         ORDER BY ultimo_atendimento.data_hora_atendimento DESC
         """
 

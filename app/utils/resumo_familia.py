@@ -2,12 +2,13 @@ import json
 import logging
 import hashlib
 from decimal import Decimal
-from openai import AzureOpenAI
+from openai import OpenAI
 from flask import current_app, session
 from typing import Dict, Any, Optional
 from app.utils.openai_usage_tracker import OpenAIUsageTracker
 from app import db
 from app.models.resumo_familia_ia import ResumoFamiliaIA
+from app.models.openai_usage import OpenAIUsage
 from app.models.atendimento import Atendimento
 from app.models.demanda_familia import DemandaFamilia
 from app.models.demanda_etapa import DemandaEtapa
@@ -34,27 +35,26 @@ class ResumoFamiliaService:
         raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
     
     def _get_client(self):
-        """Obtém o cliente Azure OpenAI, inicializando se necessário"""
+        """Obtém o cliente da API direta da OpenAI."""
         if self.client is None:
             try:
                 # Verifica se as configurações necessárias estão disponíveis
-                api_key = current_app.config.get('AZURE_OPENAI_API_KEY')
-                endpoint = current_app.config.get('AZURE_OPENAI_ENDPOINT')
-                api_version = current_app.config.get('AZURE_OPENAI_API_VERSION')
+                api_key = current_app.config.get('OPENAI_API_KEY', '').strip()
                 
-                if not all([api_key, endpoint, api_version]):
-                    logger.warning("Configurações do Azure OpenAI não encontradas no arquivo .env")
+                if not api_key:
+                    logger.warning("OPENAI_API_KEY não configurada; usando resumo local")
                     return None
                 
-                self.client = AzureOpenAI(
+                self.client = OpenAI(
                     api_key=api_key,
-                    api_version=api_version,
-                    azure_endpoint=endpoint
+                    base_url=current_app.config['OPENAI_BASE_URL'],
+                    timeout=30.0,
+                    max_retries=1,
                 )
-                logger.info("Cliente Azure OpenAI inicializado com sucesso")
+                logger.info("Cliente OpenAI inicializado com sucesso")
                 
             except Exception as e:
-                logger.error(f"Erro ao inicializar cliente Azure OpenAI: {e}")
+                logger.error(f"Erro ao inicializar cliente OpenAI: {e}")
                 self.client = None
         return self.client
     
@@ -184,7 +184,7 @@ class ResumoFamiliaService:
         return context
 
     def _create_prompt(self, clean_data: Dict[str, Any], additional_context: Optional[Dict[str, Any]] = None) -> str:
-        """Cria o prompt para o Azure OpenAI"""
+        """Cria o prompt para o OpenAI"""
         json_data = json.dumps(clean_data, indent=2, ensure_ascii=False)
         
         # Montar seção de contexto adicional
@@ -269,7 +269,8 @@ Seja informativo mas conciso - máximo 600 caracteres:
         additional_context = self._fetch_additional_context(familia_id)
         
         # Verifica cache (incluindo contexto adicional na chave)
-        cache_input = {'cadastro': clean_data, 'contexto': additional_context}
+        cache_input = {'cadastro': clean_data, 'contexto': additional_context,
+                       'model': current_app.config['OPENAI_MODEL']}
         cache_key = self._get_cache_key(cache_input)
         if cache_key in self.cache:
             logger.info("Resumo obtido do cache")
@@ -278,30 +279,29 @@ Seja informativo mas conciso - máximo 600 caracteres:
         client = self._get_client()
         
         if not client:
-            logger.warning("Cliente Azure OpenAI não disponível, usando resumo padrão")
+            logger.warning("Cliente OpenAI não disponível, usando resumo padrão")
             resumo = self._get_fallback_summary(cadastro_data, additional_context)
-            self.cache[cache_key] = resumo
             return resumo
         
         try:
             # Cria o prompt
             prompt = self._create_prompt(clean_data, additional_context)
             
-            # Faz a chamada para o Azure OpenAI
+            # Faz a chamada para o OpenAI
             response = client.chat.completions.create(
-                model=current_app.config.get('AZURE_OPENAI_DEPLOYMENT_NAME'),
+                model=current_app.config['OPENAI_MODEL'],
                 messages=[
                     {"role": "system", "content": "Você é um especialista em análise social que gera resumos informativos em Markdown. Seja direto, objetivo e use formatação Markdown para destacar problemas críticos. RESUMA as observações dos atendimentos com suas próprias palavras — nunca copie o texto original. Extraia a essência: problema, ação em curso, próxima data. Máximo 600 caracteres."},
                     {"role": "user", "content": prompt}
                 ],
-                max_tokens=300,  # Aumentado para permitir resumo mais rico
-                temperature=0.1,  # Menor para mais consistência
-                top_p=0.8,
-                frequency_penalty=0.2,  # Evita repetições
-                presence_penalty=0.3   # Força novidade nas palavras
+                max_completion_tokens=2000,
+                reasoning_effort="low",
+                store=False,
             )
             
-            resumo = response.choices[0].message.content.strip()
+            resumo = (response.choices[0].message.content or '').strip()
+            if not resumo:
+                raise ValueError('A OpenAI retornou um resumo vazio')
             
             # Remover code fences (```markdown ... ```) que a IA pode incluir
             import re
@@ -312,7 +312,7 @@ Seja informativo mas conciso - máximo 600 caracteres:
             # Registrar o uso de tokens
             OpenAIUsageTracker.track_usage(
                 endpoint="chat/completions",
-                model=current_app.config.get('AZURE_OPENAI_DEPLOYMENT_NAME'),
+                model=current_app.config['OPENAI_MODEL'],
                 prompt_tokens=response.usage.prompt_tokens,
                 completion_tokens=response.usage.completion_tokens,
                 request_type="resumo_familia",
@@ -320,20 +320,22 @@ Seja informativo mas conciso - máximo 600 caracteres:
             )
             
             # Log da operação (sem dados sensíveis)
-            logger.info(f"Resumo gerado com sucesso via Azure OpenAI. Tamanho: {len(resumo)} caracteres")
+            logger.info(f"Resumo gerado com sucesso via OpenAI. Tamanho: {len(resumo)} caracteres")
             
             # Salva no cache
             self.cache[cache_key] = resumo
+            if familia_id:
+                salvar_resumo_no_banco(familia_id, resumo)
             
             return resumo
             
         except Exception as e:
-            logger.error(f"Erro ao gerar resumo com Azure OpenAI: {e}")
+            logger.error(f"Erro ao gerar resumo com OpenAI: {e}")
             
             # Registrar erro de uso
             OpenAIUsageTracker.track_usage(
                 endpoint="chat/completions",
-                model=current_app.config.get('AZURE_OPENAI_DEPLOYMENT_NAME', 'unknown'),
+                model=current_app.config['OPENAI_MODEL'],
                 prompt_tokens=0,
                 completion_tokens=0,
                 request_type="resumo_familia",
@@ -342,11 +344,10 @@ Seja informativo mas conciso - máximo 600 caracteres:
             )
             
             resumo = self._get_fallback_summary(cadastro_data, additional_context)
-            self.cache[cache_key] = resumo
             return resumo
     
     def _get_fallback_summary(self, cadastro_data: Dict[str, Any], additional_context: Optional[Dict[str, Any]] = None) -> str:
-        """Gera resumo básico em Markdown quando Azure OpenAI não está disponível"""
+        """Gera resumo básico em Markdown quando OpenAI não está disponível"""
         if not cadastro_data:
             return "Informações da família não disponíveis."
         
@@ -356,7 +357,10 @@ Seja informativo mas conciso - máximo 600 caracteres:
         extra_parts = []
         
         # Composição familiar
-        total_residentes = cadastro_data.get('total_residentes', 0)
+        try:
+            total_residentes = int(cadastro_data.get('total_residentes') or 0)
+        except (TypeError, ValueError):
+            total_residentes = 0
         if total_residentes > 0:
             summary_parts.append(f"Família de {total_residentes} pessoas")
         
@@ -433,27 +437,39 @@ Seja informativo mas conciso - máximo 600 caracteres:
         return base
 
 # Instância global do serviço - será inicializada sob demanda
-_resumo_service = None
-
 def get_resumo_service():
     """Obtém a instância do serviço de resumo, criando se necessário"""
-    global _resumo_service
-    if _resumo_service is None:
-        _resumo_service = ResumoFamiliaService()
-    return _resumo_service
+    if 'resumo_service' not in current_app.extensions:
+        current_app.extensions['resumo_service'] = ResumoFamiliaService()
+    return current_app.extensions['resumo_service']
 
 def buscar_resumo_recente(familia_id: int, horas: int = 12) -> Optional[str]:
     """Busca resumo existente para a família nas últimas X horas"""
     try:
         limite_tempo = datetime.now(timezone.utc) - timedelta(hours=horas)
+
+        # Resumos locais/legados não devem impedir a primeira chamada à OpenAI.
+        uso_openai = db.session.query(OpenAIUsage.id).filter(
+            OpenAIUsage.familia_id == familia_id,
+            OpenAIUsage.model == current_app.config['OPENAI_MODEL'],
+            OpenAIUsage.endpoint == 'chat/completions',
+            OpenAIUsage.success.is_(True),
+            OpenAIUsage.timestamp >= limite_tempo,
+            OpenAIUsage.timestamp <= ResumoFamiliaIA.data_hora_geracao,
+        ).exists()
         
         resumo_recente = ResumoFamiliaIA.query.filter(
             ResumoFamiliaIA.familia_id == familia_id,
             ResumoFamiliaIA.data_hora_geracao >= limite_tempo
+        ).filter(
+            uso_openai
         ).order_by(ResumoFamiliaIA.data_hora_geracao.desc()).first()
         
         if resumo_recente:
-            tempo_decorrido = datetime.now(timezone.utc) - resumo_recente.data_hora_geracao
+            geracao = resumo_recente.data_hora_geracao
+            if geracao.tzinfo is None:
+                geracao = geracao.replace(tzinfo=timezone.utc)
+            tempo_decorrido = datetime.now(timezone.utc) - geracao
             horas_decorridas = tempo_decorrido.total_seconds() / 3600
             logger.info(f"Resumo encontrado para família {familia_id} gerado em {resumo_recente.data_hora_geracao}")
             logger.debug(f"🔄 RESUMO REAPROVEITADO - Família {familia_id}: Evitada nova chamada OpenAI. "
@@ -504,14 +520,6 @@ def gerar_resumo_familia(cadastro_data: Dict[str, Any]) -> str:
                     f"Nenhum resumo encontrado nas últimas 12h. Chamada OpenAI necessária.")
         service = get_resumo_service()
         resumo = service.gerar_resumo(cadastro_data, familia_id=familia_id)
-        
-        # Salvar resumo no banco de dados se temos familia_id e resumo válido
-        if familia_id and resumo and resumo not in [
-            "Informações da família não disponíveis.", 
-            "Erro ao gerar resumo da família.",
-            "Dados da família não disponíveis para análise."
-        ]:
-            salvar_resumo_no_banco(familia_id, resumo)
         
         return resumo
     except Exception as e:

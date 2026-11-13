@@ -1,9 +1,9 @@
 """
 Utilitários para trabalhar com dados de pré-cadastro.
 """
-import pyodbc
+from sqlalchemy import create_engine, text
+from flask import current_app
 from datetime import datetime
-from config import Config
 from typing import List, Dict, Optional
 
 
@@ -11,16 +11,11 @@ def get_pre_cadastro_connection():
     """
     Cria uma conexão direta com o banco de pré-cadastro.
     """
-    connection_string = (
-        f"DRIVER={{ODBC Driver 17 for SQL Server}};"
-        f"SERVER={Config.DB_SERVER};"
-        f"DATABASE={Config.DB_NAME_PRE_CADASTRO};"
-        f"UID={Config.DB_USER};"
-        f"PWD={Config.DB_PASSWORD};"
-        f"Encrypt=yes;"
-        f"TrustServerCertificate=no;"
-    )
-    return pyodbc.connect(connection_string)
+    engine = current_app.extensions.get('pre_cadastro_engine')
+    if engine is None:
+        engine = create_engine(current_app.config['SQLALCHEMY_PRE_CADASTRO_URI'])
+        current_app.extensions['pre_cadastro_engine'] = engine
+    return engine.connect()
 
 
 def buscar_pre_cadastros(termo_busca: str) -> List[Dict]:
@@ -30,11 +25,10 @@ def buscar_pre_cadastros(termo_busca: str) -> List[Dict]:
     """
     try:
         with get_pre_cadastro_connection() as conn:
-            cursor = conn.cursor()
             # Usar uma query que converte os campos problemáticos para string
             sql_query = """
             SELECT 
-                f.familia_precadastro_id,
+                f.familia_id AS familia_precadastro_id,
                 f.nome_responsavel,
                 f.data_nascimento,
                 f.genero,
@@ -44,7 +38,7 @@ def buscar_pre_cadastros(termo_busca: str) -> List[Dict]:
                 f.cpf,
                 f.autoriza_uso_imagem,
                 f.status_cadastro,
-                CONVERT(varchar, f.data_hora_log_utc, 120) AS data_log_familia,
+                CAST(f.data_hora_log_utc AS TEXT) AS data_log_familia,
                 e.cep,
                 e.preenchimento_manual,
                 e.logradouro,
@@ -54,7 +48,7 @@ def buscar_pre_cadastros(termo_busca: str) -> List[Dict]:
                 e.cidade,
                 e.estado,
                 e.ponto_referencia,
-                CONVERT(varchar, e.data_hora_log_utc, 120) AS data_log_endereco,
+                CAST(e.data_hora_log_utc AS TEXT) AS data_log_endereco,
                 cf.total_residentes,
                 cf.quantidade_bebes,
                 cf.quantidade_criancas,
@@ -63,7 +57,7 @@ def buscar_pre_cadastros(termo_busca: str) -> List[Dict]:
                 cf.quantidade_idosos,
                 cf.tem_menores_na_escola,
                 cf.motivo_ausencia_escola,
-                CONVERT(varchar, cf.data_hora_log_utc, 120) AS data_log_composicao,
+                CAST(cf.data_hora_log_utc AS TEXT) AS data_log_composicao,
                 c.telefone_principal,
                 c.telefone_principal_whatsapp,
                 c.telefone_principal_nome_contato,
@@ -71,23 +65,23 @@ def buscar_pre_cadastros(termo_busca: str) -> List[Dict]:
                 c.telefone_alternativo_whatsapp,
                 c.telefone_alternativo_nome_contato,
                 c.email_responsavel,
-                CONVERT(varchar, c.data_hora_log_utc, 120) AS data_log_contato
-            FROM [dbo].[familias] f
-            LEFT JOIN [dbo].[enderecos] e 
-                ON f.familia_precadastro_id = e.familia_precadastro_id
-            LEFT JOIN [dbo].[composicao_familiar] cf 
-                ON f.familia_precadastro_id = cf.familia_precadastro_id
-            LEFT JOIN [dbo].[contatos] c 
-                ON f.familia_precadastro_id = c.familia_precadastro_id
-            ORDER BY f.familia_precadastro_id
+                CAST(c.data_hora_log_utc AS TEXT) AS data_log_contato
+            FROM [familias] f
+            LEFT JOIN [enderecos] e
+                ON f.familia_id = e.familia_id
+            LEFT JOIN [composicao_familiar] cf
+                ON f.familia_id = cf.familia_id
+            LEFT JOIN [contatos] c
+                ON f.familia_id = c.familia_id
+            ORDER BY f.familia_id
             """
-            cursor.execute(sql_query)
+            result = conn.execute(text(sql_query))
             
             # Mapear colunas para facilitar acesso
-            columns = [column[0] for column in cursor.description]
+            columns = list(result.keys())
             resultados = []
             
-            for row in cursor.fetchall():
+            for row in result:
                 row_dict = dict(zip(columns, row))
                 
                 # Filtrar por termo de busca (nome ou CPF)
@@ -95,7 +89,7 @@ def buscar_pre_cadastros(termo_busca: str) -> List[Dict]:
                 cpf = row_dict.get('cpf', '').replace('.', '').replace('-', '').replace('/', '') if row_dict.get('cpf') else ''
                 termo_limpo = termo_busca.lower().replace('.', '').replace('-', '').replace('/', '')
                 
-                if termo_limpo in nome or termo_limpo in cpf:
+                if termo_limpo in nome.replace('.', '').replace('-', '').replace('/', '') or termo_limpo in cpf:
                     # Formatar data para exibição
                     data_log = row_dict.get('data_log_familia')
                     if data_log:

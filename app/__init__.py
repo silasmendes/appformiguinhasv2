@@ -10,9 +10,12 @@ db = SQLAlchemy()
 ma = Marshmallow()
 login_manager = LoginManager()
 
-def create_app():
+def create_app(test_config=None):
     app = Flask(__name__)
     app.config.from_object(Config)
+    if test_config:
+        app.config.update(test_config)
+    os.makedirs(app.instance_path, exist_ok=True)
 
     os.makedirs(app.config.get("SESSION_FILE_DIR", "./flask_session"), exist_ok=True)
 

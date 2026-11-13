@@ -118,15 +118,15 @@
                 <table class="table table-borderless">
                     <tr>
                         <td><strong>Modelo:</strong></td>
-                        <td>{{ config.AZURE_OPENAI_DEPLOYMENT_NAME }}</td>
+                        <td>{{ config.OPENAI_MODEL }}</td>
                     </tr>
                     <tr>
                         <td><strong>Endpoint:</strong></td>
-                        <td>{{ config.AZURE_OPENAI_ENDPOINT }}</td>
+                        <td>{{ config.OPENAI_BASE_URL }}/chat/completions</td>
                     </tr>
                     <tr>
-                        <td><strong>Versão API:</strong></td>
-                        <td>{{ config.AZURE_OPENAI_API_VERSION }}</td>
+                        <td><strong>Provedor:</strong></td>
+                        <td>OpenAI</td>
                     </tr>
                     <tr>
                         <td><strong>Requests com Sucesso:</strong></td>

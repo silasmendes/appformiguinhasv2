@@ -1,25 +1,17 @@
 import os
 from dotenv import load_dotenv
-from urllib.parse import quote_plus
+from pathlib import Path
 
 load_dotenv()
 
 class Config:
-    DB_USER = os.getenv("DB_USER")
-    DB_PASSWORD = quote_plus(os.getenv("DB_PASSWORD"))  # faz o encoding de caracteres especiais
-    DB_SERVER = os.getenv("DB_SERVER")
-    DB_NAME = os.getenv("DB_NAME")
-    DB_NAME_PRE_CADASTRO = os.getenv("DB_NAME_PRE_CADASTRO", "dbformiguinhasprecbr")
-
-    SQLALCHEMY_DATABASE_URI = (
-        f"mssql+pyodbc://{DB_USER}:{DB_PASSWORD}@{DB_SERVER}:1433/{DB_NAME}"
-        "?driver=ODBC+Driver+17+for+SQL+Server&Encrypt=yes&TrustServerCertificate=no"
+    INSTANCE_DIR = Path(__file__).resolve().parent / "instance"
+    SQLALCHEMY_DATABASE_URI = os.getenv(
+        "DATABASE_URL", f"sqlite:///{(INSTANCE_DIR / 'formiguinhas.db').as_posix()}"
     )
-    
-    # URI para banco de pré-cadastro
-    SQLALCHEMY_PRE_CADASTRO_URI = (
-        f"mssql+pyodbc://{DB_USER}:{DB_PASSWORD}@{DB_SERVER}:1433/{DB_NAME_PRE_CADASTRO}"
-        "?driver=ODBC+Driver+17+for+SQL+Server&Encrypt=yes&TrustServerCertificate=no"
+    SQLALCHEMY_PRE_CADASTRO_URI = os.getenv(
+        "PRE_CADASTRO_DATABASE_URL",
+        f"sqlite:///{(INSTANCE_DIR / 'precadastro.db').as_posix()}",
     )
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -38,9 +30,8 @@ class Config:
         "pool_pre_ping": True
     }
     
-    # Azure OpenAI Configuration
-    AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
-    AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
-    AZURE_OPENAI_DEPLOYMENT_NAME = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME")
-    AZURE_OPENAI_API_VERSION = os.getenv("AZURE_OPENAI_API_VERSION")
+    # API direta da OpenAI. O endpoint não depende de configuração do Azure.
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
+    OPENAI_MODEL = os.getenv("OPENAI_MODEL", "").strip() or "gpt-5.6-luna"
+    OPENAI_BASE_URL = "https://api.openai.com/v1"
 
