@@ -92,15 +92,15 @@ Para executar em uma VPS Linux com Docker Compose, siga o [guia de deploy na VPS
 
 ## Testes
 
-Consulte o [guia de testes e manutenção](docs/testes-e-manutencao.md) para saber quando executar a validação, a cobertura dos dois arquivos de integração discutidos e as limitações do teste antigo de cadastro completo.
+Consulte o [guia de testes e manutenção](docs/testes-e-manutencao.md) para conhecer a cobertura e os limites da validação do servidor e do teste completo via Playwright.
 
-Execute os testes de regressão do SQLite com:
+Execute a validação do servidor com:
 
 ```powershell
-.venv\Scripts\python.exe -m pytest tests/test_sqlite_local.py -q
+.venv\Scripts\python.exe scripts/validate.py
 ```
 
-Cada cenário cria uma aplicação e dois bancos SQLite temporários próprios, sem alterar os bancos locais. Conexões de rede são bloqueadas e a geração de resumos é substituída por uma resposta local.
+O comando seleciona os testes revisados de SQLite local, concorrência, configuração de produção e do próprio comando de validação. Usa bancos temporários e desativa credenciais externas no subprocesso. Na suíte SQLite local, conexões de rede são bloqueadas e a geração de resumos é substituída por uma resposta local.
 
 A suíte verifica login, senha incorreta, logout, páginas protegidas selecionadas, cadastro e atualização de família, persistência após reiniciar a aplicação, valores e vínculos das oito seções complementares, registro de atendimento com o usuário autenticado e criação de demanda com histórico inicial. Também verifica rejeição de dados inválidos sem registros extras, filtros dos relatórios, conteúdo e quantidade de linhas dos arquivos Excel, separação do pré-cadastro e preservação da senha do administrador.
 
@@ -109,3 +109,17 @@ Antes de aceitar uma alteração manual ou feita com Codex/Claude Code, execute 
 **Limites:** estes testes exercitam o servidor sem navegador. Não verificam JavaScript, cliques, aparência visual, serviços externos ou todas as regras de negócio. Passar reduz o risco de regressão, mas não garante ausência de defeitos. Alguns testes antigos na pasta `tests` usam a configuração normal da aplicação; não execute toda a pasta contra bancos com dados importantes sem revisar seu isolamento.
 
 O `manage.py` cria tabelas ausentes, mas não migra a estrutura de tabelas existentes após alterações nos modelos.
+
+O teste Playwright existente é executado separadamente contra um servidor descartável preparado pelo usuário, conforme o guia. Ele permanece fora da execução automática.
+
+## Manutenção e contribuições
+
+Comece pelo [guia de contribuição](CONTRIBUTING.md). Agentes devem seguir [AGENTS.md](AGENTS.md); o arquivo `CLAUDE.md` importa essas mesmas orientações para Claude Code.
+
+- [Arquitetura e localização do código](docs/arquitetura.md)
+- [Regras atuais e limitações conhecidas](docs/regras-de-negocio.md)
+- [Testes e manutenção](docs/testes-e-manutencao.md)
+- [Banco, atualização e recuperação](docs/banco-e-recuperacao.md)
+- [CI e configuração da revisão obrigatória](docs/ci-e-revisao.md)
+
+O GitHub Actions executa a validação do servidor em Linux e Windows. Tornar esses resultados obrigatórios para integração exige configurar a proteção da branch no GitHub; o guia de CI descreve essa etapa.
