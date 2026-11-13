@@ -1,85 +1,103 @@
-# Formiguinhas — local development
+# Formiguinhas - Desenvolvimento local
 
-Flask application using SQLite by default. Python 3.12 is recommended for the
-pinned dependencies. Azure SQL and ODBC are no longer required.
+Aplicação Flask que utiliza SQLite por padrão. Recomendamos Python 3.12 para compatibilidade com as versões das dependências definidas no projeto.
 
-From PowerShell in the repository directory, with uv installed:
+## Instalação e execução
+
+Com o `uv` instalado, abra o PowerShell na pasta do repositório e execute:
 
 ```powershell
 uv venv --python 3.12
 uv pip install -r requirements.txt
-# Optional, if you do not already have a .env:
+```
+
+Se você ainda não tiver um `.env`, copie o arquivo de exemplo:
+
+```powershell
 Copy-Item .env.example .env
+```
+
+Edite o `.env` e ajuste os valores para seu ambiente. Depois, inicialize os bancos e execute a aplicação:
+
+```powershell
 .venv\Scripts\python.exe manage.py --with-demo-data
 .venv\Scripts\python.exe -m flask --app main run --debug
 ```
 
-Open http://127.0.0.1:5000 and sign in as **admin**, using the password you
-entered during initialization. Initialization can be repeated without deleting
-data or changing an existing administrator's password. `SENHA_ADMIN` can also
-provide the initial password through the environment or `.env`.
+Acesse [http://127.0.0.1:5000](http://127.0.0.1:5000) e entre com o usuário **admin** e a senha definida em `SENHA_ADMIN` no `.env`. 
 
-With `--with-demo-data`, initialization also seeds four fictitious families matching the CPFs displayed
-in the appointment modal: **525.067.333-37**, **928.105.770-05**,
-**955.314.618-01**, and **742.691.086-57**. Each includes address, household,
-contact, housing, health, employment, income, education and appointment records.
-Their names contain `(Teste)`. Run `manage.py --with-demo-data` again to add missing sample
-families to an existing local database. Existing CPFs (with or without punctuation)
-are skipped, preserving any edits made during testing. Without `--with-demo-data`,
-initialization creates tables, lookup data and the administrator only. It never
-deletes demo families that were previously created.
-For the four sample CPFs, rerunning setup also repairs empty text fields saved
-as SQL `NULL` or the literal `None`, replacing them with empty strings. Filled-in
-values and other families are preserved.
+Você pode repetir a inicialização sem excluir os dados ou alterar a senha de um administrador existente. A variável `SENHA_ADMIN` também pode ser definida diretamente no ambiente.
 
-The database files are `instance/formiguinhas.db` and `instance/precadastro.db`.
-Both are ignored by Git. The pre-registration database starts empty and uses
-the same SQLAlchemy table schema as the main database; family searches return
-no pre-registrations until you populate it. It is independent of the main
-database. Existing Azure data is not copied automatically.
+## Dados de demonstração
 
-An existing `.env` may be kept: legacy `DB_USER`, `DB_PASSWORD`, `DB_SERVER`, and
-`DB_NAME` variables are no longer used. Optional `DATABASE_URL` and
-`PRE_CADASTRO_DATABASE_URL` override the SQLite locations. Use absolute paths
-and create their parent directories first when overriding them.
+A opção `--with-demo-data` inclui quatro famílias fictícias:
 
-AI summaries use the direct OpenAI API. Set these values in your `.env`:
+- **525.067.333-37**
+- **928.105.770-05**
+- **955.314.618-01**
+- **742.691.086-57**
 
-```dotenv
-OPENAI_API_KEY=your-project-api-key
-OPENAI_MODEL=gpt-5.6-luna
+Os nomes dessas famílias contêm `(Teste)`. Para adicionar os exemplos ausentes em um banco já existente, execute novamente `manage.py --with-demo-data`.
+
+Para criar apenas as tabelas, as categorias e o administrador, execute sem a opção de demonstração:
+
+```powershell
+.venv\Scripts\python.exe manage.py
 ```
 
-Restart Flask after changing configuration. The app calls only
-`POST https://api.openai.com/v1/chat/completions`, with low reasoning effort and
-a 2,000 completion-token limit (including reasoning). Use a model supporting
-these parameters; ensure your project has access to the configured model.
-Azure credentials, deployment names, endpoints and API versions are no longer used.
-Without a key, or if a request fails, the app generates a local fallback summary;
-fallbacks are not cached or saved as AI summaries. Successful summaries are reused
-for up to 12 hours. Token usage is recorded locally in SQLite, without calling
-OpenAI's usage or billing endpoints. Cost figures in the app are estimates.
+Executar sem essa opção não remove famílias fictícias criadas anteriormente.
 
-Create a **Restricted** project API key and allow only **Model capabilities →
-Chat Completions → Request/Write**, leaving every other endpoint at **None**.
-The app does not need Models Read, Responses, Files, Assistants, Threads, Batch,
-Fine-tuning, Images, Audio, Embeddings, Usage or administrative permissions.
-Under project Limits → Model usage, allow the configured model only.
-See the [official key permissions guide](https://help.openai.com/en/articles/9186755-managing-projects-in-the-api-platform)
-and [model documentation](https://developers.openai.com/api/docs/models/gpt-5.6-luna).
+## Banco de dados e configuração
 
-Password-reset emails require SendGrid configuration. Neither service is needed
-for local login and CRUD.
-The Flask debug server and default development secret are for local use only.
+Os bancos ficam em `instance/formiguinhas.db` e `instance/precadastro.db`. Ambos são ignorados pelo Git.
 
-For a Linux VPS using Docker Compose, see [Deployment on a VPS](docs/deploy-vps.md).
+O banco de pré-cadastro começa vazio e utiliza a mesma estrutura de tabelas SQLAlchemy do banco principal. Ele é independente: a busca de pré-cadastros só retorna resultados depois que você o preencher. 
 
-Run the SQLite regression checks with:
+## Resumos por inteligência artificial
+
+Os resumos utilizam a API direta da OpenAI. Para habilitá-los, configure no `.env`:
+
+```dotenv
+OPENAI_API_KEY=sua-chave-de-api-do-projeto
+OPENAI_MODEL=gpt-6-luna
+```
+
+Reinicie o Flask após alterar a configuração. A aplicação utiliza apenas `POST https://api.openai.com/v1/chat/completions`, com esforço de raciocínio baixo e limite de 2.000 tokens de conclusão, incluindo os tokens de raciocínio.
+
+Escolha um modelo compatível com esses parâmetros e confirme que seu projeto tem acesso a ele.
+
+Credenciais, nomes de implantação, endpoints e versões de API do Azure não são mais utilizados.
+
+Sem uma chave, ou se a chamada falhar, a aplicação gera um resumo local. Esses resumos locais não são armazenados em cache nem salvos como resumos de IA.
+
+Resumos gerados pela API são reaproveitados por até 12 horas.
+
+O consumo de tokens é registrado no SQLite, sem consultar os endpoints de uso ou faturamento da OpenAI. 
+
+Crie uma chave de projeto com permissões **Restricted** e permita somente **Model capabilities → Chat Completions → Request/Write**. Deixe os demais endpoints como **None**.
+
+Não é necessário liberar Models Read, Responses, Files, Assistants, Threads, Batch, Fine-tuning, Images, Audio, Embeddings, Usage ou permissões administrativas.
+
+Em **Limits → Model usage** do projeto, permita apenas o modelo configurado.
+
+## E-mails e ambiente de produção
+
+O envio de e-mails de redefinição de senha depende da configuração do SendGrid.
+
+OpenAI e SendGrid são opcionais para login local e cadastro, consulta, atualização e exclusão de registros.
+
+O servidor Flask com debug e os segredos de exemplo são destinados somente ao desenvolvimento local.
+
+Para executar em uma VPS Linux com Docker Compose, siga o [guia de deploy na VPS](docs/deploy-vps.md).
+
+## Testes
+
+Execute os testes de regressão do SQLite com:
 
 ```powershell
 .venv\Scripts\python.exe -m pytest tests/test_sqlite_local.py -q
 ```
 
-These tests use temporary databases and do not modify your local development data.
-`manage.py` creates missing tables; it does not migrate existing table definitions
-after model changes.
+Esses testes utilizam bancos temporários e não alteram os dados do seu banco de desenvolvimento local.
+
+O `manage.py` cria tabelas ausentes, mas não migra a estrutura de tabelas existentes após alterações nos modelos.
