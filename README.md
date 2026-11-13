@@ -92,12 +92,20 @@ Para executar em uma VPS Linux com Docker Compose, siga o [guia de deploy na VPS
 
 ## Testes
 
+Consulte o [guia de testes e manutenção](docs/testes-e-manutencao.md) para saber quando executar a validação, a cobertura dos dois arquivos de integração discutidos e as limitações do teste antigo de cadastro completo.
+
 Execute os testes de regressão do SQLite com:
 
 ```powershell
 .venv\Scripts\python.exe -m pytest tests/test_sqlite_local.py -q
 ```
 
-Esses testes utilizam bancos temporários e não alteram os dados do seu banco de desenvolvimento local.
+Cada cenário cria uma aplicação e dois bancos SQLite temporários próprios, sem alterar os bancos locais. Conexões de rede são bloqueadas e a geração de resumos é substituída por uma resposta local.
+
+A suíte verifica login, senha incorreta, logout, páginas protegidas selecionadas, cadastro e atualização de família, persistência após reiniciar a aplicação, valores e vínculos das oito seções complementares, registro de atendimento com o usuário autenticado e criação de demanda com histórico inicial. Também verifica rejeição de dados inválidos sem registros extras, filtros dos relatórios, conteúdo e quantidade de linhas dos arquivos Excel, separação do pré-cadastro e preservação da senha do administrador.
+
+Antes de aceitar uma alteração manual ou feita com Codex/Claude Code, execute o comando acima. Se falhar, investigue o comportamento esperado antes de alterar ou remover uma verificação apenas para fazer o teste passar. Ao corrigir um defeito, acrescente um cenário que reproduza o problema.
+
+**Limites:** estes testes exercitam o servidor sem navegador. Não verificam JavaScript, cliques, aparência visual, serviços externos ou todas as regras de negócio. Passar reduz o risco de regressão, mas não garante ausência de defeitos. Alguns testes antigos na pasta `tests` usam a configuração normal da aplicação; não execute toda a pasta contra bancos com dados importantes sem revisar seu isolamento.
 
 O `manage.py` cria tabelas ausentes, mas não migra a estrutura de tabelas existentes após alterações nos modelos.
