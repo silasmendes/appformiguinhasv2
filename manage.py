@@ -5,7 +5,6 @@ from app.models.password_reset_token import PasswordResetToken
 from seeds.admin_user_seed import seed_admin_user
 from seeds.familias_seed import seed_familias
 from app.models.usuario import Usuario
-from sqlalchemy import create_engine
 import click
 
 app = create_app()
@@ -46,7 +45,7 @@ def initialize(admin_password, with_demo_data):
             ):
                 raise click.ClickException('Defina uma senha de produção própria com pelo menos 12 caracteres.')
         db.create_all()
-        engine = create_engine(app.config['SQLALCHEMY_PRE_CADASTRO_URI'])
+        engine = app.extensions['pre_cadastro_engine']
         try:
             # Pre-registration uses the same family/contact schema in a separate file.
             db.metadata.create_all(engine)

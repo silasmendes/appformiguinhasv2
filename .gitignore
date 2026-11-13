@@ -16,6 +16,10 @@ env/
 instance/
 *.db
 *.sqlite3
+*.db-wal
+*.db-shm
+*.sqlite3-wal
+*.sqlite3-shm
 flask_session/
 
 # MacOS / Windows

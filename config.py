@@ -10,6 +10,7 @@ class Config:
     SQLALCHEMY_PRE_CADASTRO_URI = os.getenv("PRE_CADASTRO_DATABASE_URL") or f"sqlite:///{(INSTANCE_DIR / 'precadastro.db').as_posix()}"
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLITE_BUSY_TIMEOUT_MS = int(os.getenv('SQLITE_BUSY_TIMEOUT_MS', '10000'))
     ENV = os.getenv("APP_ENV") or os.getenv("FLASK_ENV") or "development"
     SECRET_KEY = os.getenv("SECRET_KEY", "dev")
     SESSION_TYPE = "filesystem"

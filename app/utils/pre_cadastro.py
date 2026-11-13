@@ -1,7 +1,7 @@
 """
 Utilitários para trabalhar com dados de pré-cadastro.
 """
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 from flask import current_app
 from datetime import datetime
 from typing import List, Dict, Optional
@@ -11,10 +11,7 @@ def get_pre_cadastro_connection():
     """
     Cria uma conexão direta com o banco de pré-cadastro.
     """
-    engine = current_app.extensions.get('pre_cadastro_engine')
-    if engine is None:
-        engine = create_engine(current_app.config['SQLALCHEMY_PRE_CADASTRO_URI'])
-        current_app.extensions['pre_cadastro_engine'] = engine
+    engine = current_app.extensions['pre_cadastro_engine']
     return engine.connect()
 
 

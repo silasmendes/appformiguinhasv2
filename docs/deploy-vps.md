@@ -5,7 +5,7 @@ de produção. Requer uma VPS Linux com Docker Engine e Docker Compose v2, acess
 ao repositório e acesso de rede para baixar a imagem e as dependências.
 Não é necessário instalar Python ou uv no host.
 
-O proxy reverso, domínio/HTTPS, ajustes de concorrência do SQLite, backups e
+O proxy reverso, domínio/HTTPS, backups e
 migrações de esquema ainda não são configurados por este procedimento.
 
 ## Primeira instalação
@@ -56,6 +56,24 @@ executado automaticamente ao iniciar o serviço. Reexecutar sem essa opção nã
 remove famílias de demonstração já existentes.
 
 ## Produção e persistência
+
+Os dois bancos usam WAL e cada conexão espera até `SQLITE_BUSY_TIMEOUT_MS`
+(padrão: 10000 ms) por bloqueios temporários. Reinicie a aplicação após alterar
+esse valor. Leitores podem continuar durante uma escrita, mas existe apenas um
+escritor por banco de cada vez. O prazo pode expirar e a operação falhar se uma
+transação demorar demais; não há repetição automática de gravações.
+
+Essa configuração atende ao cenário de cerca de dez usuários com gravações
+curtas, sujeito à carga real e ao disco da VPS. O formulário mantém os dados
+nas sessões entre etapas; não mantenha transações abertas durante interação
+humana ou chamadas externas. WAL não detecta edições concorrentes da mesma
+família: uma gravação posterior pode sobrescrever dados de outra sessão.
+
+Mantenha os bancos em disco local da VPS, com permissão de escrita no diretório.
+WAL cria arquivos auxiliares `-wal` e `-shm` junto dos bancos. Não os exclua nem
+copie apenas o `.db` enquanto a aplicação estiver ativa; para backup online,
+use a API de backup do SQLite. Não execute inicialização ou migrações durante
+o atendimento. Referência: [SQLite WAL](https://www.sqlite.org/wal.html).
 
 - Gunicorn executa a aplicação como usuário sem privilégios, com um processo e
   quatro threads. Não usa o servidor de desenvolvimento nem recarregamento.

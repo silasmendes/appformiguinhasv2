@@ -25,6 +25,14 @@ def create_app(test_config=None):
     os.makedirs(app.config.get("SESSION_FILE_DIR", "./flask_session"), exist_ok=True)
 
     db.init_app(app)
+    from sqlalchemy import create_engine
+    from app.sqlite import configure_sqlite
+    with app.app_context():
+        for engine in db.engines.values():
+            configure_sqlite(engine, app.config['SQLITE_BUSY_TIMEOUT_MS'])
+    pre_engine = create_engine(app.config['SQLALCHEMY_PRE_CADASTRO_URI'])
+    configure_sqlite(pre_engine, app.config['SQLITE_BUSY_TIMEOUT_MS'])
+    app.extensions['pre_cadastro_engine'] = pre_engine
     ma.init_app(app)
 
     login_manager.init_app(app)
